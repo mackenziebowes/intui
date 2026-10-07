@@ -1,0 +1,11 @@
+{
+  "name": "@intui/core",
+  "version": "0.1.0",
+  "description": "Component schemas and meaning for IntUI: interactive answers from agents, drawn on any surface.",
+  "type": "module",
+  "license": "MIT",
+  "exports": { ".": "./src/index.ts" },
+  "dependencies": {
+    "zod": "^4.6.5"
+  }
+}

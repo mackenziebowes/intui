@@ -1,0 +1,16 @@
+{
+  "name": "intui",
+  "private": true,
+  "type": "module",
+  "workspaces": ["packages/*"],
+  "scripts": {
+    "test": "bun test",
+    "typecheck": "tsc --noEmit",
+    "site": "bun site/build.ts",
+    "site:dev": "bun site/build.ts && bunx serve site/dist"
+  },
+  "devDependencies": {
+    "@types/bun": "latest",
+    "typescript": "^5"
+  }
+}
