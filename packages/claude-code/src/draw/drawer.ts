@@ -1,5 +1,5 @@
 import type { ElementTable, RenderElement, RenderSurface } from 'claude-code'
-import type { Node, Tree } from '@intui/core'
+import type { FieldValue, Node, Tree } from '@intui/core'
 
 /**
  * What a drawer gets besides its props: the surface's elements, the room it has,
@@ -22,6 +22,13 @@ export type DrawContext = {
   pressed: (choiceId: string) => string | undefined
   /** Sends a press back to the agent. */
   press: (choiceId: string, optionId: string) => Promise<void>
+  /** A Form field's current value, as typed or selected so far. */
+  field: (formId: string, fieldId: string) => FieldValue | undefined
+  setField: (formId: string, fieldId: string, value: FieldValue) => Promise<void>
+  /** Whether a Form was already submitted, so it draws as used up. */
+  submitted: (formId: string) => boolean
+  /** Sends the Form's values back to the agent. Throws IntuiError if a required field is empty. */
+  submit: (formId: string) => Promise<void>
 }
 
 /** Draws one kind of component on Claude Code's surfaces. */

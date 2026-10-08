@@ -1,14 +1,12 @@
 import { atom, read, update } from 'claude-code'
 import type { Register } from 'claude-code'
 import { IntuiError, IntuiEvent, Tree } from '@intui/core'
-import type { IntuiUsed } from '../types'
+import type { IntuiForms, IntuiUsed } from '../types'
 import { drawTree } from './draw'
-import { SHOW_TOOL, TOOL_NAME } from './tool'
+import { SHOW_TOOL } from './tool'
 
-const PLUGIN = 'intui'
-// Matchers below spell the tool name out: the engine reads them from the source.
-const TOOL = `mcp__${PLUGIN}__${TOOL_NAME}`
 const used = atom({ plugin: 'intui', key: 'used' } as const, {} as IntuiUsed)
+const forms = atom({ plugin: 'intui', key: 'forms' } as const, {} as IntuiForms)
 
 /** The tool's own arguments: the tool call's input less the keys the engine reserves. */
 function treeInput(input: Record<string, unknown>): Record<string, unknown> {
@@ -44,19 +42,32 @@ export const register: Register = on => {
     }
     const source = e.props.tool_use_id
     const usedNow = await read($, used)
+    const formsNow = await read($, forms)
+    const at = (id: string) => `${source}:${id}`
     return drawTree(tree, {
       surface: e.surface,
       el: $.ui.resolve(e),
       columns: e.viewport?.columns ?? 80,
       source,
-      pressed: choiceId => usedNow[`${source}:${choiceId}`],
+      pressed: choiceId => usedNow[at(choiceId)],
       press: async (choiceId, optionId) => {
         const event = IntuiEvent.press(source, choiceId, optionId)
         tree.verify(event)
         const choice = tree.interactive(choiceId)
         if (choice?.type === 'Choice' && choice.repeat === 'once') {
-          await update($, used, all => ({ ...all, [`${source}:${choiceId}`]: optionId }))
+          await update($, used, all => ({ ...all, [at(choiceId)]: optionId }))
         }
+        await $.prompt.submit({ text: tree.describe(event) })
+      },
+      field: (formId, fieldId) => formsNow[at(formId)]?.[fieldId],
+      setField: async (formId, fieldId, value) => {
+        await update($, forms, all => ({ ...all, [at(formId)]: { ...all[at(formId)], [fieldId]: value } }))
+      },
+      submitted: formId => usedNow[at(formId)] !== undefined,
+      submit: async formId => {
+        const event = IntuiEvent.submit(source, formId, (await read($, forms))[at(formId)] ?? {})
+        tree.verify(event)
+        await update($, used, all => ({ ...all, [at(formId)]: 'submitted' }))
         await $.prompt.submit({ text: tree.describe(event) })
       },
     })

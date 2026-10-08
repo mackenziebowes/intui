@@ -7,7 +7,7 @@
   ],
   "scripts": {
     "test": "bun test",
-    "typecheck": "tsc --noEmit && tsc --noEmit -p packages/claude-code",
+    "typecheck": "tsc --noEmit && tsc --noEmit -p packages/claude-code && tsc --noEmit -p packages/claude-code/tsconfig.test.json",
     "site": "bun site/build.ts",
     "site:dev": "bun site/build.ts && bunx serve site/dist",
     "plugin": "bun packages/claude-code/build.ts"
