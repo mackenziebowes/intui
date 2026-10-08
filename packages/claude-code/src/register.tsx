@@ -1,7 +1,7 @@
 import { atom, read, update } from 'claude-code'
 import type { Register } from 'claude-code'
 import { IntuiError, IntuiEvent, Tree } from '@intui/core'
-import type { IntuiForms, IntuiUsed } from '../types'
+import type { IntuiForms, IntuiNotes, IntuiUsed } from '../types'
 import { drawTree } from './draw'
 import { SHOW_TOOL } from './tool'
 import { appended, refusedEntry, shownEntry, summary, type UsageEntry } from './usage'
@@ -10,6 +10,7 @@ const LOG = 'usage'
 
 const used = atom({ plugin: 'intui', key: 'used' } as const, {} as IntuiUsed)
 const forms = atom({ plugin: 'intui', key: 'forms' } as const, {} as IntuiForms)
+const notes = atom({ plugin: 'intui', key: 'notes' } as const, {} as IntuiNotes)
 
 /** Splits a tool call's input into the tree and the optional `wanted` note, dropping the keys the engine reserves. */
 function showInput(input: Record<string, unknown>): { tree: Record<string, unknown>; wanted?: string } {
@@ -60,6 +61,7 @@ export const register: Register = on => {
     const source = e.props.tool_use_id
     const usedNow = await read($, used)
     const formsNow = await read($, forms)
+    const notesNow = await read($, notes)
     const at = (id: string) => `${source}:${id}`
     return drawTree(tree, {
       surface: e.surface,
@@ -86,6 +88,13 @@ export const register: Register = on => {
         tree.verify(event)
         await update($, used, all => ({ ...all, [at(formId)]: 'submitted' }))
         await $.prompt.submit({ text: tree.describe(event) })
+      },
+      note: id => notesNow[at(id)],
+      setNote: async (id, text) => {
+        await update($, notes, all => {
+          const { [at(id)]: _old, ...rest } = all
+          return text === undefined ? rest : { ...rest, [at(id)]: text }
+        })
       },
     })
   })

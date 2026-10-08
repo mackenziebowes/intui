@@ -47,6 +47,7 @@ export type Recorded = {
   presses: { choiceId: string; optionId: string }[]
   fields: Record<string, Record<string, FieldValue>>
   submits: string[]
+  notes: Record<string, string>
 }
 
 export type DrawOptions = {
@@ -57,12 +58,14 @@ export type DrawOptions = {
   /** Field values already entered, by Form id then field id. */
   fields?: Record<string, Record<string, FieldValue>>
   submitted?: string[]
+  /** Notes already set, by note id. */
+  notes?: Record<string, string>
 }
 
 /** Draws a node (or a whole tree) as code would, returning the drawing and the recorded interactions. */
 export function draw(root: object, options: DrawOptions = {}): { drawn: Drawn; recorded: Recorded } {
   const surface = options.surface ?? 'terminal'
-  const recorded: Recorded = { presses: [], fields: structuredClone(options.fields ?? {}), submits: [] }
+  const recorded: Recorded = { presses: [], fields: structuredClone(options.fields ?? {}), submits: [], notes: { ...options.notes } }
   const drawn = drawTree(Tree.of(root as Node), {
     surface,
     el: fakeElements(surface),
@@ -76,6 +79,11 @@ export function draw(root: object, options: DrawOptions = {}): { drawn: Drawn; r
     },
     submitted: id => options.submitted?.includes(id) ?? false,
     submit: async formId => void recorded.submits.push(formId),
+    note: id => recorded.notes[id],
+    setNote: async (id, text) => {
+      if (text === undefined) delete recorded.notes[id]
+      else recorded.notes[id] = text
+    },
   }) as unknown as Drawn
   return { drawn, recorded }
 }

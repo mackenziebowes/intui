@@ -26,6 +26,8 @@ export type Surroundings = {
   setField: DrawContext['setField']
   submitted: DrawContext['submitted']
   submit: DrawContext['submit']
+  note: DrawContext['note']
+  setNote: DrawContext['setNote']
 }
 
 /** Draws a whole tree for one transcript row. */
@@ -47,6 +49,8 @@ export function drawTree(tree: Tree, around: Surroundings): RenderElement {
       setField: around.setField,
       submitted: around.submitted,
       submit: around.submit,
+      note: around.note,
+      setNote: around.setNote,
     }
     const drawer = DRAWERS.get(node.type)
     return drawer ? drawer.draw(node, ctx) : <around.el.Markdown text={text(node)} />

@@ -29,6 +29,13 @@ export type DrawContext = {
   submitted: (formId: string) => boolean
   /** Sends the Form's values back to the agent. Throws IntuiError if a required field is empty. */
   submit: (formId: string) => Promise<void>
+  /**
+   * A short note shown next to a control, such as why a number was refused.
+   * Kept in plugin state, so it survives a reload and setting it redraws the row.
+   * Write it from a handler, never while drawing.
+   */
+  note: (id: string) => string | undefined
+  setNote: (id: string, text: string | undefined) => Promise<void>
 }
 
 /** Draws one kind of component on Claude Code's surfaces. */
