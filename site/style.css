@@ -48,7 +48,7 @@ body {
   margin: 0;
   background: var(--bg);
   color: var(--ink);
-  font: 16px/1.6 Inter, system-ui, sans-serif;
+  font: 16px/1.6 "Instrument Sans", system-ui, sans-serif;
 }
 
 main {
@@ -69,7 +69,7 @@ h3 { font-size: 18px; margin: 0; }
 
 a { color: var(--accent); }
 .links { display: flex; flex-wrap: wrap; gap: 20px; margin-top: 28px; }
-.links a { font-weight: 550; text-decoration: none; }
+.links a { font-weight: 600; text-decoration: none; }
 .links a:hover { text-decoration: underline; }
 
 code, pre { font-family: "JetBrains Mono", ui-monospace, monospace; font-size: 13px; }
@@ -119,7 +119,7 @@ pre.text { background: var(--surface); white-space: pre-wrap; }
 .pair { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
 .pair > * { min-width: 0; }
 figure { margin: 0; }
-figcaption { font-size: 12px; font-weight: 550; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); margin-bottom: 6px; }
+figcaption { font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); margin-bottom: 6px; }
 
 .roadmap { padding-left: 22px; }
 .roadmap li { margin-bottom: 8px; }
