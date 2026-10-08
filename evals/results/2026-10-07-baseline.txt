@@ -1,0 +1,16 @@
+pass  define-bounce-rate   text
+pass  thanks               text
+pass  arithmetic           text
+pass  let-vs-const         text
+pass  request-path         [Flow]
+FAIL  rebase-steps         text
+      expected a show call, got plain text; expected a Flow
+pass  package-deps         [Group Flow Table]
+FAIL  db-comparison        text
+      expected a show call, got plain text; expected a Table
+pass  host-decision        [Group Text Table Choice]
+pass  project-intake       [Form]
+pass  status-board         [Group Label Text]
+pass  chart-numbers        [Group Table Text]
+
+10/12 passed
