@@ -9,6 +9,13 @@
         "typescript": "^5",
       },
     },
+    "packages/claude-code": {
+      "name": "@intui/claude-code",
+      "version": "0.1.0",
+      "dependencies": {
+        "@intui/core": "workspace:*",
+      },
+    },
     "packages/core": {
       "name": "@intui/core",
       "version": "0.1.0",
@@ -18,6 +25,8 @@
     },
   },
   "packages": {
+    "@intui/claude-code": ["@intui/claude-code@workspace:packages/claude-code"],
+
     "@intui/core": ["@intui/core@workspace:packages/core"],
 
     "@types/bun": ["@types/bun@1.4.2", "", { "dependencies": { "bun-types": "1.4.2" } }, "sha512-GimotNn7+ZV0uVArItBbriZsR1oNf0+WTzPkdcFrzShI7k2norL0uzEaJT8T33dWr7O/c9ZDuAFQrctKCi72oQ=="],

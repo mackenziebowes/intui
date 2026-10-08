@@ -1,0 +1,15 @@
+{
+  "name": "@intui/claude-code",
+  "version": "0.1.0",
+  "description": "A Claude Code plugin that draws IntUI trees in the transcript.",
+  "type": "module",
+  "license": "MIT",
+  "private": true,
+  "scripts": {
+    "build": "bun build.ts",
+    "typecheck": "tsc --noEmit -p ."
+  },
+  "dependencies": {
+    "@intui/core": "workspace:*"
+  }
+}

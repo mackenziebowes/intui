@@ -2,12 +2,15 @@
   "name": "intui",
   "private": true,
   "type": "module",
-  "workspaces": ["packages/*"],
+  "workspaces": [
+    "packages/*"
+  ],
   "scripts": {
     "test": "bun test",
-    "typecheck": "tsc --noEmit",
+    "typecheck": "tsc --noEmit && tsc --noEmit -p packages/claude-code",
     "site": "bun site/build.ts",
-    "site:dev": "bun site/build.ts && bunx serve site/dist"
+    "site:dev": "bun site/build.ts && bunx serve site/dist",
+    "plugin": "bun packages/claude-code/build.ts"
   },
   "devDependencies": {
     "@types/bun": "latest",
