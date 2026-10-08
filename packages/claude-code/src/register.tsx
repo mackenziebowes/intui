@@ -1,11 +1,14 @@
 import { atom, read, update } from 'claude-code'
-import type { Register } from 'claude-code'
+import type { EngineInterface, Register, RenderInput } from 'claude-code'
 import { IntuiError, IntuiEvent, Tree } from '@intui/core'
-import type { IntuiForms, IntuiNotes, IntuiUsed } from '../types'
+import type { IntuiForms, IntuiNotes, IntuiTrees, IntuiUsed } from '../types'
 import { drawnTypes, drawTree } from './draw'
+import { DEMO_TOOL, DEMO_TOOL_FULL_NAME, demoTree } from './demo'
+import { MAX_TREES, treeFromOutput } from './envelope'
 import { estimatedToolTokens, SHOW_TOOL } from './tool'
 import {
   appended,
+  codeEntry,
   pendingAfterAnswer,
   pendingAfterPrompt,
   pendingAfterShow,
@@ -25,6 +28,7 @@ const PENDING = 'pending'
 
 const used = atom({ plugin: 'intui', key: 'used' } as const, {} as IntuiUsed)
 const forms = atom({ plugin: 'intui', key: 'forms' } as const, {} as IntuiForms)
+const trees = atom({ plugin: 'intui', key: 'trees' } as const, {} as IntuiTrees)
 const notes = atom({ plugin: 'intui', key: 'notes' } as const, {} as IntuiNotes)
 
 /** Splits a tool call's input into the tree and the optional `wanted` note, dropping the keys the engine reserves. */
@@ -33,10 +37,59 @@ function showInput(input: Record<string, unknown>): { tree: Record<string, unkno
   return { tree, wanted: typeof wanted === 'string' && wanted.trim() ? wanted.trim().slice(0, 200) : undefined }
 }
 
+/** Draws a tree for one transcript row: the model's `show` call, or a tree a tool returned. */
+async function drawForRow($: EngineInterface, e: RenderInput<'ToolUse' | 'ToolResult'>, tree: Tree) {
+  const source = e.props.tool_use_id
+  // A press or submit answers what is waiting. Written from a handler, never while drawing.
+  const answered = async () =>
+    $.store.set(PENDING, pendingAfterAnswer(((await $.store.get(PENDING)) ?? {}) as Pending, await $.session.id()))
+  const usedNow = await read($, used)
+  const formsNow = await read($, forms)
+  const notesNow = await read($, notes)
+  const at = (id: string) => `${source}:${id}`
+  return drawTree(tree, {
+    surface: e.surface,
+    el: $.ui.resolve(e),
+    columns: e.viewport?.columns ?? 80,
+    source,
+    pressed: choiceId => usedNow[at(choiceId)],
+    press: async (choiceId, optionId) => {
+      const event = IntuiEvent.press(source, choiceId, optionId)
+      tree.verify(event)
+      const choice = tree.interactive(choiceId)
+      if (choice?.type === 'Choice' && choice.repeat === 'once') {
+        await update($, used, all => ({ ...all, [at(choiceId)]: optionId }))
+      }
+      await answered()
+      await $.prompt.submit({ text: tree.describe(event) })
+    },
+    field: (formId, fieldId) => formsNow[at(formId)]?.[fieldId],
+    setField: async (formId, fieldId, value) => {
+      await update($, forms, all => ({ ...all, [at(formId)]: { ...all[at(formId)], [fieldId]: value } }))
+    },
+    submitted: formId => usedNow[at(formId)] !== undefined,
+    submit: async formId => {
+      const event = IntuiEvent.submit(source, formId, (await read($, forms))[at(formId)] ?? {})
+      tree.verify(event)
+      await update($, used, all => ({ ...all, [at(formId)]: 'submitted' }))
+      await answered()
+      await $.prompt.submit({ text: tree.describe(event) })
+    },
+    note: id => notesNow[at(id)],
+    setNote: async (id, text) => {
+      await update($, notes, all => {
+        const { [at(id)]: _old, ...rest } = all
+        return text === undefined ? rest : { ...rest, [at(id)]: text }
+      })
+    },
+  })
+}
+
 export const register: Register = on => {
   on('session.start', async ($, e, next) => {
     await $.store.set(STARTS, startCounted(((await $.store.get(STARTS)) ?? {}) as Record<string, number>))
     await $.tool.register(SHOW_TOOL)
+    await $.tool.register(DEMO_TOOL)
     await $.command.register({ name: 'intui', description: 'IntUI: how often each component was used, for evals' })
     return next(e)
   })
@@ -95,50 +148,7 @@ export const register: Register = on => {
     } catch {
       return next(e)
     }
-    const source = e.props.tool_use_id
-    // A press or submit answers what is waiting. Written from a handler, never while drawing.
-    const answered = async () =>
-      $.store.set(PENDING, pendingAfterAnswer(((await $.store.get(PENDING)) ?? {}) as Pending, await $.session.id()))
-    const usedNow = await read($, used)
-    const formsNow = await read($, forms)
-    const notesNow = await read($, notes)
-    const at = (id: string) => `${source}:${id}`
-    return drawTree(tree, {
-      surface: e.surface,
-      el: $.ui.resolve(e),
-      columns: e.viewport?.columns ?? 80,
-      source,
-      pressed: choiceId => usedNow[at(choiceId)],
-      press: async (choiceId, optionId) => {
-        const event = IntuiEvent.press(source, choiceId, optionId)
-        tree.verify(event)
-        const choice = tree.interactive(choiceId)
-        if (choice?.type === 'Choice' && choice.repeat === 'once') {
-          await update($, used, all => ({ ...all, [at(choiceId)]: optionId }))
-        }
-        await answered()
-        await $.prompt.submit({ text: tree.describe(event) })
-      },
-      field: (formId, fieldId) => formsNow[at(formId)]?.[fieldId],
-      setField: async (formId, fieldId, value) => {
-        await update($, forms, all => ({ ...all, [at(formId)]: { ...all[at(formId)], [fieldId]: value } }))
-      },
-      submitted: formId => usedNow[at(formId)] !== undefined,
-      submit: async formId => {
-        const event = IntuiEvent.submit(source, formId, (await read($, forms))[at(formId)] ?? {})
-        tree.verify(event)
-        await update($, used, all => ({ ...all, [at(formId)]: 'submitted' }))
-        await answered()
-        await $.prompt.submit({ text: tree.describe(event) })
-      },
-      note: id => notesNow[at(id)],
-      setNote: async (id, text) => {
-        await update($, notes, all => {
-          const { [at(id)]: _old, ...rest } = all
-          return text === undefined ? rest : { ...rest, [at(id)]: text }
-        })
-      },
-    })
+    return drawForRow($, e, tree)
   })
 
   // The result is the tree's text form, for the model. The row above already
@@ -147,5 +157,43 @@ export const register: Register = on => {
     if (e.props.isErrored) return next(e)
     const { Box } = $.ui.resolve(e)
     return <Box />
+  })
+  // A tool answers with a tree, and code wrote it: Chart and Stat are allowed.
+  // The result carries the envelope (see TOOLS.md). Drawn here, whichever tool
+  // returned it, so the tool needs no hook of its own. Anything that is not a
+  // valid envelope is the engine's to draw.
+  on('ui.render', { component: 'ToolResult' }, async ($, e, next) => {
+    if (e.props.isErrored) return next(e)
+    const kept = (await read($, trees))[e.props.tool_use_id]
+    let tree: Tree | undefined
+    try {
+      tree = kept ? Tree.parse(kept, { author: 'code' }) : treeFromOutput(e.props.output)
+    } catch {
+      tree = undefined
+    }
+    return tree ? drawForRow($, e, tree) : next(e)
+  })
+
+  // Every tool call passes here to record trees tools return (shapes only, marked
+  // as code-written). A plugin tool's result may only be a string, so the demo
+  // tool answers with the tree's text and keeps the tree in state for the ToolResult row.
+  // An MCP tool's envelope stays in its result and is read from there.
+  on('tool.call', async ($, e, next) => {
+    let tree: Tree | undefined
+    let answer
+    if (e.tool === DEMO_TOOL_FULL_NAME) {
+      const made = demoTree()
+      tree = made
+      await update($, trees, all => Object.fromEntries(Object.entries({ ...all, [e.tool_use_id]: made.toJSON() }).slice(-MAX_TREES)))
+      answer = { result: made.toText() }
+    } else {
+      answer = await next(e)
+      if (e.tool !== 'mcp__intui__show' && 'result' in answer && answer.result !== undefined) tree = treeFromOutput(answer.result)
+    }
+    if (tree) {
+      const entry = codeEntry(tree, await $.session.id(), e.tool, new Date(), drawnTypes())
+      await $.store.set(LOG, appended(((await $.store.get(LOG)) ?? []) as UsageEntry[], entry))
+    }
+    return answer
   })
 }

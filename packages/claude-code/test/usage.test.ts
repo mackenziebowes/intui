@@ -10,6 +10,7 @@ import {
   refusedEntry,
   retryPairs,
   shownEntry,
+  codeEntry,
   startCounted,
   summary,
   type UsageEntry,
@@ -100,6 +101,16 @@ describe('summary', () => {
     expect(text).toContain('| Show calls per session | 1.50 over 2 recorded session starts |')
     expect(text).toContain('| Text | 2 |')
     expect(text).toContain('- a Timeline')
+  })
+
+  test('keeps code-written trees out of the show numbers and counts them apart', () => {
+    const stat = Tree.parse({ v: 1, root: { type: 'Stat', label: 'Visitors', value: 1 } }, { author: 'code' })
+    const log = [shownEntry(tree, 's1', undefined, at('2026-10-06T10:00:00Z')), codeEntry(stat, 's1', 'mcp__hub__map', at('2026-10-06T10:01:00Z'))]
+    const text = summary(log, { now })
+    expect(text).toContain('| Show calls | 1 across 1 session |')
+    expect(text).toContain('| mcp__hub__map | 1 |')
+    expect(text).toContain('| Stat | 1 |')
+    expect(summary([codeEntry(stat, 's', 't')])).toContain('No `show` calls')
   })
 
   test('summarizes old entries that lack the newer fields, and an empty log', () => {

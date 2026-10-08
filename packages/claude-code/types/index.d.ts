@@ -7,8 +7,11 @@ export type IntuiForms = Record<string, Record<string, string | number | boolean
 /** Short-lived notes a drawer shows next to a control (a refused number, a failed press), keyed `<tool_use_id>:<note id>`. */
 export type IntuiNotes = Record<string, string>
 
+/** Trees plugin tools returned, keyed by `tool_use_id`, newest last; capped. */
+export type IntuiTrees = Record<string, { v: 1; root: unknown }>
+
 declare module 'claude-code' {
   interface PluginState {
-    intui: { used: IntuiUsed; forms: IntuiForms; notes: IntuiNotes }
+    intui: { used: IntuiUsed; forms: IntuiForms; notes: IntuiNotes; trees: IntuiTrees }
   }
 }

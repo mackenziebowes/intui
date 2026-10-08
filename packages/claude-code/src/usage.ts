@@ -20,6 +20,10 @@ export type UsageEntry = {
   interactive?: number
   /** Nodes with no native drawer, so drawn as their text form. Left out when none. */
   fallbacks?: number
+  /** `code` for a tree a tool returned (not a `show` call). Left out for `show`, so older entries are `show` calls. */
+  author?: 'code'
+  /** The tool that returned a code-written tree. */
+  tool?: string
 }
 
 /** The person typed their own reply while a Choice or Form was still waiting. Shape only. */
@@ -59,6 +63,11 @@ export function shownEntry(
     ...(fallbacks ? { fallbacks } : {}),
     ...(wanted ? { wanted } : {}),
   }
+}
+
+/** A tree a tool returned, marked as code-written so the trend keeps it apart from `show`. Shapes only. */
+export function codeEntry(tree: Tree, session: string, tool: string, at = new Date(), drawnNatively?: Iterable<string>): UsageEntry {
+  return { ...shownEntry(tree, session, undefined, at, drawnNatively), author: 'code', tool }
 }
 
 export function refusedEntry(problems: number, session: string, wanted: string | undefined, at = new Date()): UsageEntry {
@@ -125,7 +134,10 @@ export type SummaryInput = {
 }
 
 /** A Markdown trend report of the log, for the `/intui` command. */
-export function summary(log: readonly UsageEntry[], input: SummaryInput = {}): string {
+export function summary(all: readonly UsageEntry[], input: SummaryInput = {}): string {
+  const log = all.filter(entry => entry.author !== 'code')
+  const code = all.filter(entry => entry.author === 'code')
+  if (log.length === 0 && code.length === 0) return 'No `show` calls recorded yet.'
   if (log.length === 0) return 'No `show` calls recorded yet.'
   const now = input.now ?? new Date()
   const escapes = input.escapes ?? []
@@ -182,7 +194,34 @@ export function summary(log: readonly UsageEntry[], input: SummaryInput = {}): s
 
   const wanted = log.flatMap(entry => (entry.wanted ? [entry.wanted] : [])).slice(-10)
   if (wanted.length > 0) lines.push('', '**Wanted but missing** (latest first):', ...wanted.reverse().map(text => `- ${text}`))
+  lines.push(...codeLines(code))
   return lines.join('\n')
+}
+
+/** Trees tools returned, apart from `show`: how many, from which tools, with which components. */
+function codeLines(code: readonly UsageEntry[]): string[] {
+  if (code.length === 0) return []
+  const counts = new Map<string, number>()
+  for (const entry of code) for (const [type, count] of Object.entries(entry.types)) counts.set(type, (counts.get(type) ?? 0) + count)
+  const tools = new Map<string, number>()
+  for (const entry of code) tools.set(entry.tool ?? 'unknown', (tools.get(entry.tool ?? 'unknown') ?? 0) + 1)
+  return [
+    '',
+    '**Code-written trees** (returned by tools, not `show`)',
+    '',
+    '| Signal | Value |',
+    '| --- | --- |',
+    `| Trees | ${code.length} across ${new Set(code.map(entry => entry.session)).size} sessions |`,
+    `| Fallbacks | ${sum(code.map(entry => entry.fallbacks ?? 0))} nodes drawn as text |`,
+    '',
+    '| Tool | Trees |',
+    '| --- | --- |',
+    ...[...tools].sort((a, b) => b[1] - a[1]).map(([tool, count]) => `| ${tool} | ${count} |`),
+    '',
+    '| Component | Times used (code-written) |',
+    '| --- | --- |',
+    ...[...counts].sort((a, b) => b[1] - a[1]).map(([type, count]) => `| ${type} | ${count} |`),
+  ]
 }
 
 const sum = (numbers: number[]) => numbers.reduce((a, b) => a + b, 0)
