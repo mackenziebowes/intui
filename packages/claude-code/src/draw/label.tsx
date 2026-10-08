@@ -1,8 +1,13 @@
 import type { LabelProps } from '@intui/core'
 import { defineDrawer } from './drawer'
+import { tagText } from './label-shape'
+import { isDim, TONE_COLOR } from './theme'
 
-// Stub: draws the text form until the real drawer lands.
 export const label = defineDrawer<LabelProps>({
   type: 'Label',
-  draw: (props, { el, text }) => <el.Markdown text={text(props)} />,
+  draw: (props, { el, columns }) => (
+    <el.Text color={TONE_COLOR[props.tone]} dimColor={isDim(props.tone)} bold={props.tone !== 'muted'} wrap="truncate-end">
+      {tagText(props.text, columns)}
+    </el.Text>
+  ),
 })

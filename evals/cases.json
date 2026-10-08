@@ -1,0 +1,14 @@
+[
+  { "id": "define-bounce-rate", "prompt": "What's a bounce rate, in one sentence?", "expect": { "show": false } },
+  { "id": "thanks", "prompt": "Thanks, that's all I needed!", "expect": { "show": false } },
+  { "id": "arithmetic", "prompt": "What's 17 times 23?", "expect": { "show": false } },
+  { "id": "let-vs-const", "prompt": "Quick one: what's the difference between let and const in JavaScript?", "expect": { "show": false } },
+  { "id": "request-path", "prompt": "Explain how a web request travels from the browser through a CDN, a load balancer and an app server to the database and back.", "expect": { "show": true, "includes": ["Flow"] } },
+  { "id": "rebase-steps", "prompt": "Walk me through the steps of rebasing a feature branch onto main and resolving a conflict.", "expect": { "show": true, "includes": ["Flow"] } },
+  { "id": "package-deps", "prompt": "Map out how these packages depend on each other: core has no dependencies; claude-code, web and email all depend on core; the docs site depends on core and web.", "expect": { "show": true, "includes": ["Flow"] } },
+  { "id": "db-comparison", "prompt": "Compare Postgres, SQLite and DuckDB for embedded analytics in a desktop app: setup, concurrency, analytical speed, file size.", "expect": { "show": true, "includes": ["Table"] } },
+  { "id": "host-decision", "prompt": "I can't decide between Vercel and Cloudflare Pages for a small static docs site. Help me pick, and ask me what matters most to me.", "expect": { "show": true, "includes": ["Choice"] } },
+  { "id": "project-intake", "prompt": "I want to set up a new client project. Collect what you need from me: the client's name, the budget, the deadline, and whether it's a rebuild or a new site.", "expect": { "show": true, "includes": ["Form"] } },
+  { "id": "status-board", "prompt": "Give me a status summary I can scan: the build is passing, 3 tests are failing, and the deploy is blocked on review.", "expect": { "show": true, "includes": ["Label"] } },
+  { "id": "chart-numbers", "prompt": "Show my site's visitors last week: Mon 120, Tue 180, Wed 90, Thu 140, Fri 160.", "expect": { "show": true, "excludes": ["Chart", "Stat"], "note": "The model may not write numbers into a Chart; a Table or Text is right, and a refused Chart attempt counts against it." } }
+]

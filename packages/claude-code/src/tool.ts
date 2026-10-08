@@ -9,10 +9,24 @@ Use it when a component says it better than prose: a Flow instead of an ASCII di
 The input is a tree: {"v": 1, "root": <component>}. Components:
 ${core.writableBy('model').describe()}
 
-Group holds others in a row or column. Pressing a Choice option sends you a message saying what was pressed. Charts and stats with numbers can't be written here: they must come from a tool that ran a query. The tool result is the tree's text form, so you can refer back to what you showed.`
+Group holds others in a row or column. Pressing a Choice option sends you a message saying what was pressed. Charts and stats with numbers can't be written here: they must come from a tool that ran a query. The tool result is the tree's text form, so you can refer back to what you showed.
+
+If you wanted a component that doesn't exist, draw the closest thing and say what you wanted in "wanted" (one line). That's how IntUI learns what to add.`
+
+/** The tree's schema, plus the optional `wanted` note. */
+function inputSchema(): Record<string, unknown> {
+  const schema = core.writableBy('model').jsonSchema() as { properties: Record<string, unknown> }
+  return {
+    ...schema,
+    properties: {
+      ...schema.properties,
+      wanted: { type: 'string', description: 'Optional: a component you needed that IntUI lacks, in one line.' },
+    },
+  }
+}
 
 export const SHOW_TOOL = {
   name: TOOL_NAME,
   description: DESCRIPTION,
-  inputSchema: core.writableBy('model').jsonSchema(),
+  inputSchema: inputSchema(),
 }
