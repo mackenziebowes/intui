@@ -20,6 +20,10 @@ bun run site         # build the docs site into site/dist
 - `packages/core/src/problems.ts`: `IntuiError`. Its messages are read by models retrying a tool call, so every problem names its path, the rule that failed and what to do.
 - `site/`: the docs site, generated from the catalog so it can't drift from the code.
 
+## Tests and evals
+
+Follow the `test-design` and `eval-design` skills. In short: test contracts and tricky logic, not presentation; loop over surfaces only where a drawer branches on them; one real check through the engine per drawer; evals are trends we read, never gates.
+
 ## Rules for core
 
 Agents will add to this package while working on a specific product. These rules keep core general. Read them before changing anything in `packages/core`.
