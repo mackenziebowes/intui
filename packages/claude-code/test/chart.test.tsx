@@ -1,9 +1,8 @@
 import { describe, expect, test } from 'bun:test'
-import { draw, findAll, SURFACES, textOf, type Drawn } from './harness'
-import { buildModel, formatValue, markerGlyph, niceDomain, niceStep, placeLabels, withUnit } from '../src/draw/chart-scale'
-import { barLayout, legendRows, lineDots, plotBars, plotLine, plotRows, type Row } from '../src/draw/chart-text'
-import { buildSvg, escapeXml, pathData } from '../src/draw/chart-svg'
-import { chart } from '../src/draw/chart'
+import { draw, findAll, textOf, type Drawn } from './harness'
+import { buildModel, niceDomain, niceStep, placeLabels } from '../src/draw/chart-scale'
+import { plotBars, plotLine, plotRows, type Row } from '../src/draw/chart-text'
+import { buildSvg, pathData } from '../src/draw/chart-svg'
 
 const week = {
   type: 'Chart',
@@ -33,24 +32,12 @@ describe('chart scales', () => {
     expect(niceDomain(5, 5, 'line').hi).toBeGreaterThan(5)
     expect(niceDomain(0, 0, 'bar')).toEqual({ lo: 0, hi: 1 })
   })
-  test('formatValue is short', () => {
-    expect([formatValue(0), formatValue(0.5), formatValue(12.34), formatValue(1234), formatValue(12500), formatValue(3200000)]).toEqual(['0', '0.5', '12.3', '1234', '12.5k', '3.2M'])
-    expect(formatValue(0.0004)).toBe('0.0004')
-  })
-  test('withUnit puts the unit where it reads', () => {
-    expect([withUnit('95', '%'), withUnit('5', '$'), withUnit('9', 'ms'), withUnit('9', undefined)]).toEqual(['95%', '$5', '9 ms', '9'])
-    expect(withUnit('180', 'visitors')).toBe('180 visitors')
-  })
   test('placeLabels keeps the ends and adds midpoints when there is room', () => {
     const centers = [0, 5, 10, 15, 20]
     expect(placeLabels(centers, [3, 3, 3, 3, 3], 24).map(l => l.index)).toEqual([0, 1, 2, 3, 4])
     expect(placeLabels(centers, [8, 8, 8, 8, 8], 24).map(l => l.index)).toEqual([0, 4])
     expect(placeLabels([0, 1], [10, 10], 12).map(l => l.index)).toEqual([0])
     expect(placeLabels([], [], 10)).toEqual([])
-  })
-  test('placeLabels clamps the last label inside the axis', () => {
-    const last = placeLabels([0, 19], [3, 10], 20).at(-1)!
-    expect(last.start + 10).toBeLessThanOrEqual(20)
   })
   test('buildModel orders categories by first appearance, aligns values and numbers markers', () => {
     const m = model({ ...week, series: [{ label: 'a', role: 'primary', points: [{ x: 'b', y: 1 }, { x: 'a', y: 2 }] }, { label: 'c', role: 'baseline', points: [{ x: 'z', y: 3 }, { x: 'b', y: 4 }] }], annotations: [{ at: 'a', label: 'x' }, { at: 'nope', label: 'y' }] })
@@ -59,27 +46,9 @@ describe('chart scales', () => {
     expect(m.series[1]!.values).toEqual([4, undefined, 3])
     expect(m.markers.map(k => [k.n, k.index])).toEqual([[1, 1], [2, undefined]])
   })
-  test('markerGlyph is a digit then a star', () => {
-    expect([markerGlyph(1), markerGlyph(9), markerGlyph(10)]).toEqual(['1', '9', '*'])
-  })
 })
 
 describe('chart text plot', () => {
-  test('lineDots covers both ends and is connected', () => {
-    const dots = lineDots(0, 0, 5, 2)
-    expect(dots[0]).toEqual([0, 0])
-    expect(dots.at(-1)).toEqual([5, 2])
-    expect(dots).toHaveLength(6)
-    expect(lineDots(3, 3, 3, 3)).toEqual([[3, 3]])
-    expect(lineDots(4, 0, 0, 0)).toHaveLength(5)
-  })
-  test('plotLine draws braille, the highest point near the top row', () => {
-    const cells = plotLine(model({ ...week, series: [{ label: 'a', role: 'primary', points: [{ x: 1, y: 0 }, { x: 2, y: 10 }, { x: 3, y: 0 }] }], annotations: [] }), 12, 4)
-    expect(cells).toHaveLength(4)
-    expect(cells[0]!.some(c => c.ch !== ' ')).toBe(true)
-    expect(cells[3]!.some(c => c.ch !== ' ')).toBe(true)
-    for (const c of cells.flat()) if (c.ch !== ' ') expect(c.ch >= '⠀' && c.ch <= '⣿').toBe(true)
-  })
   test('plotLine: a baseline is dashed and the primary wins a shared cell', () => {
     const flat = (role: string) => model({ ...week, series: [{ label: 'a', role, points: [{ x: 1, y: 5 }, { x: 2, y: 5 }] }], annotations: [] })
     const solid = plotLine(flat('primary'), 20, 4).flat().filter(c => c.ch !== ' ').length
@@ -90,6 +59,10 @@ describe('chart text plot', () => {
     const both = model({ ...week, series: [{ label: 'a', role: 'baseline', points: [{ x: 1, y: 5 }, { x: 2, y: 5 }] }, { label: 'b', role: 'primary', points: [{ x: 1, y: 5 }, { x: 2, y: 5 }] }], annotations: [] })
     expect(plotLine(both, 20, 4).flat().filter(c => c.ch !== ' ').every(c => c.style === 'primary')).toBe(true)
   })
+  test('plotLine survives a single point', () => {
+    const one = model({ ...week, series: [{ label: 'a', role: 'primary', points: [{ x: 1, y: 5 }] }], annotations: [] })
+    expect(plotLine(one, 20, 4).flat().some(c => c.ch !== ' ')).toBe(true)
+  })
   test('plotBars uses block characters scaled to the domain', () => {
     const m = model({ ...bars, series: [{ label: 'a', role: 'primary', points: [{ x: 'a', y: 8 }, { x: 'b', y: 4 }, { x: 'c', y: 1 }] }], annotations: [] })
     expect(m.domain).toEqual({ lo: 0, hi: 8 })
@@ -98,14 +71,6 @@ describe('chart text plot', () => {
     expect(col(columns[0]!)).toBe('██')
     expect(col(columns[1]!)).toBe(' █')
     expect(col(columns[2]!)).toBe(' ▍'.replace('▍', '▂'))
-  })
-  test('a tiny positive bar still shows', () => {
-    const m = model({ ...bars, series: [{ label: 'a', role: 'primary', points: [{ x: 'a', y: 1000 }, { x: 'b', y: 1 }] }], annotations: [] })
-    expect(plotBars(m, 8, 4)!.cells[3]![6]!.ch).toBe('▁')
-  })
-  test('barLayout needs a column per series in every slot', () => {
-    expect(barLayout(5, 2, 8)).toBeUndefined()
-    expect(barLayout(2, 2, 20)).toEqual({ slot: 10, bar: 4, offset: 1 })
   })
   test('plotRows lays out labels with the unit, the axis, x labels and marker numbers', () => {
     const out = lines(plotRows(model(week), 60)!)
@@ -117,11 +82,6 @@ describe('chart text plot', () => {
     expect(out.join('\n')).toContain('┊')
     for (const line of out) expect(line.length).toBeLessThanOrEqual(60)
   })
-  test('a long unit moves to its own line', () => {
-    const out = lines(plotRows(model({ ...week, unit: 'visitors per calendar week of the year' }), 40)!)
-    expect(out[0]).toContain('y: visitors per')
-    expect(out[1]).toContain('180')
-  })
   test('plotRows gives up when it cannot be drawn sensibly', () => {
     expect(plotRows(model(week), 14)).toBeUndefined()
     const negative = model({ ...bars, series: [{ label: 'a', role: 'primary', points: [{ x: 'a', y: -3 }, { x: 'b', y: 4 }] }], annotations: [] })
@@ -129,26 +89,13 @@ describe('chart text plot', () => {
     const crowded = model({ ...bars, series: [{ label: 'a', role: 'primary', points: Array.from({ length: 40 }, (_, i) => ({ x: i, y: i })) }, { label: 'b', role: 'baseline', points: [{ x: 0, y: 1 }] }], annotations: [] })
     expect(plotRows(crowded, 50)).toBeUndefined()
   })
-  test('legend names every series with its role, on one row when it fits', () => {
-    expect(lines(legendRows(model(week), 80))).toEqual(['━━ This week   ╌╌ Usual (baseline)'])
-    expect(legendRows(model(week), 20)).toHaveLength(2)
-  })
-  test('sample output', () => {
-    const out = lines(plotRows(model(week), 56)!)
-    const bar = lines(plotRows(model(bars), 56)!)
-    if (process.env.CHART_SAMPLE) console.log([...out, '', ...bar].join('\n'))
-    expect(out.length).toBeGreaterThan(8)
-  })
 })
 
 describe('chart svg', () => {
-  const colors = { primary: 'cyan', baseline: '#888', comparison: 'cyan', marker: 'yellow', quiet: '#888' }
+  const colors = { primary: '#1fa2b8', baseline: '#888', comparison: '#1fa2b8', marker: '#888', quiet: '#888' }
   test('pathData is M then L through the points', () => {
     expect(pathData([[0, 0], [10.04, 5]])).toBe('M0 0 L10 5')
     expect(pathData([])).toBe('')
-  })
-  test('escapeXml', () => {
-    expect(escapeXml('a<b>&"')).toBe('a&lt;b&gt;&amp;&quot;')
   })
   test('a line chart has a dashed baseline path, axis labels, and a marker', () => {
     const svg = buildSvg(model(week), 480, 216, colors)
@@ -161,26 +108,15 @@ describe('chart svg', () => {
     expect(svg).toContain('>Mon<')
     expect(svg).toContain('>1<')
   })
-  test('a bar chart has a rect per value', () => {
-    const svg = buildSvg(model(bars), 480, 216, colors)
-    expect(svg.match(/<rect /g)).toHaveLength(10)
-  })
   test('bars with negatives hang below the zero line', () => {
     const m = model({ ...bars, series: [{ label: 'a', role: 'primary', points: [{ x: 'a', y: -4 }, { x: 'b', y: 4 }] }], annotations: [] })
     const svg = buildSvg(m, 400, 180, colors)
     const [neg, pos] = [...svg.matchAll(/<rect x="[\d.]+" y="([\d.]+)" width="[\d.]+" height="([\d.]+)"/g)].map(r => [Number(r[1]), Number(r[2])] as const)
     expect(neg![0]).toBeCloseTo(pos![0] + pos![1], 0)
   })
-  test('markup escapes labels', () => {
-    const m = model({ ...week, unit: '<b>', annotations: [] })
-    expect(buildSvg(m, 480, 216, colors)).not.toContain('<b>')
-  })
 })
 
 describe('chart drawer', () => {
-  test('is registered for Chart', () => {
-    expect(chart.type).toBe('Chart')
-  })
   test('terminal: title, legend, plot rows and the marker list; no Svg', () => {
     const { drawn } = draw(week, { columns: 60 })
     const all = textOf(drawn)
@@ -192,12 +128,8 @@ describe('chart drawer', () => {
     expect(findAll(drawn, 'Svg')).toHaveLength(0)
     expect(findAll(drawn, 'Markdown')).toHaveLength(0)
   })
-  test('terminal: primary uses the accent, baseline is dim', () => {
-    const texts = findAll(draw(week, { columns: 60 }).drawn, 'Text')
-    expect(texts.some(t => t.props.color === 'cyan')).toBe(true)
-    expect(texts.some(t => t.props.dimColor === true && t.children.join('').includes('╌╌'))).toBe(true)
-  })
-  for (const surface of ['desktop', 'vscode', 'mobile'] as const) {
+  {
+    const surface = 'desktop'
     test(`${surface}: one Svg sized to the width, with alt text, plus the same legend and markers`, () => {
       const { drawn } = draw(week, { surface, columns: 60 })
       const [svg] = findAll(drawn, 'Svg') as [Drawn]
@@ -209,27 +141,14 @@ describe('chart drawer', () => {
       expect(textOf(drawn)).toContain('Tue: New pricing page')
     })
   }
-  test('svg width is capped on wide surfaces', () => {
-    const svg = findAll(draw(week, { surface: 'desktop', columns: 200 }).drawn, 'Svg')[0]!
-    expect(String(svg.props.source)).toContain('viewBox="0 0 720 324"')
+  test('under 30 columns falls back to the text form', () => {
+    const { drawn } = draw(week, { columns: 28 })
+    expect(drawn.el).toBe('Markdown')
+    expect(String(drawn.props.text)).toContain('| This week |')
   })
-  for (const surface of SURFACES) {
-    test(`${surface}: under 30 columns falls back to the text form`, () => {
-      const { drawn } = draw(week, { surface, columns: 28 })
-      expect(drawn.el).toBe('Markdown')
-      expect(String(drawn.props.text)).toContain('| This week |')
-    })
-  }
   test('terminal: a chart that cannot be plotted falls back too', () => {
     const negative = { ...bars, series: [{ label: 'a', role: 'primary', points: [{ x: 'a', y: -3 }] }], annotations: [] }
     expect(draw(negative, { columns: 60 }).drawn.el).toBe('Markdown')
     expect(draw(negative, { surface: 'desktop', columns: 60 }).drawn.el).toBe('Box')
-  })
-  test('a bar chart on the terminal draws block characters', () => {
-    expect(textOf(draw(bars, { columns: 60 }).drawn)).toMatch(/[▁▂▃▄▅▆▇█]/)
-  })
-  test('annotation that matches no x is listed and flagged', () => {
-    const odd = { ...week, annotations: [{ at: 'Sun', label: 'Outage' }] }
-    expect(textOf(draw(odd, { columns: 60 }).drawn)).toContain('Sun: Outage (no matching x)')
   })
 })

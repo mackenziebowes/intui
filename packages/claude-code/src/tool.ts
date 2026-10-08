@@ -30,3 +30,6 @@ export const SHOW_TOOL = {
   description: DESCRIPTION,
   inputSchema: inputSchema(),
 }
+
+/** Rough tokens the pinned tool adds to every session: its name, description and JSON schema at ~4 characters per token. An estimate. */
+export const estimatedToolTokens = () => Math.ceil(JSON.stringify(SHOW_TOOL).length / 4)

@@ -6,7 +6,7 @@
     "packages/*"
   ],
   "scripts": {
-    "test": "bun test",
+    "test": "bun test packages/core packages/claude-code/test",
     "typecheck": "tsc --noEmit && tsc --noEmit -p packages/claude-code && tsc --noEmit -p packages/claude-code/tsconfig.test.json",
     "site": "bun site/build.ts",
     "site:dev": "bun site/build.ts && bunx serve site/dist",

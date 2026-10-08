@@ -2,7 +2,7 @@ export { core, Catalog, type Author } from "./catalog";
 export { defineKind, type ComponentKind, type Node, type Writer } from "./component";
 export { IntuiEvent, type EventData, type FieldValue } from "./event";
 export { IntuiError, type Problem } from "./problems";
-export { cell, formatNumber, markdownTable } from "./text";
+export { cell, cellText, formatNumber, markdownTable } from "./text";
 export { Tree, VERSION, type ParseOptions, type TreeData } from "./tree";
 
 export { Chart, SERIES_ROLES, type Annotation, type ChartProps, type Point, type Series, type SeriesRole } from "./components/chart";

@@ -8,11 +8,15 @@ export function formatNumber(value: number, unit?: string): string {
   return unit === "%" ? `${formatted}%` : `${formatted} ${unit}`;
 }
 
-/** Escapes a value for a Markdown table cell. */
-export function cell(value: string | number | boolean | null | undefined): string {
+/** A cell value as plain text: numbers formatted, empty for null, newlines as spaces. */
+export function cellText(value: string | number | boolean | null | undefined): string {
   if (value === null || value === undefined) return "";
-  const text = typeof value === "number" ? numbers.format(value) : String(value);
-  return text.replaceAll("|", "\\|").replaceAll("\n", " ");
+  return (typeof value === "number" ? numbers.format(value) : String(value)).replaceAll("\n", " ");
+}
+
+/** A cell value escaped for a Markdown table. */
+export function cell(value: string | number | boolean | null | undefined): string {
+  return cellText(value).replaceAll("|", "\\|");
 }
 
 export function markdownTable(headers: readonly string[], rows: readonly (readonly string[])[]): string {

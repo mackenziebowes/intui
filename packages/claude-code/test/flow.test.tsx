@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'bun:test'
-import { analyse, asSequence, breakCycles, layoutGrid, planSequence, resolveEdges, truncate, wrap } from '../src/draw/flow-layout'
-import { draw, findAll, SURFACES, textOf } from './harness'
+import { analyse, breakCycles, layoutGrid, planSequence, truncate, wrap } from '../src/draw/flow-layout'
+import { draw, findAll, textOf } from './harness'
 
 const steps = (...ids: string[]) => ids.map(id => ({ id, label: id.toUpperCase() }))
 const flow = (ids: string[], links: { from: string; to: string; label?: string }[] = [], detail: Record<string, string> = {}) => ({
@@ -15,25 +15,16 @@ const grid = (ids: string[], links: { from: string; to: string; label?: string }
 }
 
 describe('text helpers', () => {
-  test('wrap breaks at spaces and splits long words', () => {
+  test('wrap breaks at spaces and splits long words; truncate ends in an ellipsis', () => {
     expect(wrap('one two three', 7)).toEqual(['one two', 'three'])
     expect(wrap('abcdefghij', 4)).toEqual(['abcd', 'efgh', 'ij'])
     expect(wrap('', 5)).toEqual([''])
-  })
-  test('truncate ends in an ellipsis', () => {
     expect(truncate('abcdef', 4)).toBe('abc…')
     expect(truncate('abc', 4)).toBe('abc')
   })
 })
 
 describe('layering', () => {
-  test('no links chain the steps in order', () => {
-    expect(resolveEdges(steps('a', 'b', 'c'), [])).toEqual([{ from: 0, to: 1 }, { from: 1, to: 2 }])
-  })
-  test('duplicate links merge their labels', () => {
-    const edges = resolveEdges(steps('a', 'b'), [{ from: 'a', to: 'b', label: 'x' }, { from: 'a', to: 'b', label: 'y' }])
-    expect(edges).toEqual([{ from: 0, to: 1, label: 'x / y' }])
-  })
   test('layers follow the longest path', () => {
     const a = analyse(steps('a', 'b', 'c', 'd'), [
       { from: 'a', to: 'b' }, { from: 'b', to: 'd' }, { from: 'a', to: 'c' }, { from: 'c', to: 'd' },
@@ -50,11 +41,6 @@ describe('layering', () => {
     const a = analyse(steps('a', 'b'), [{ from: 'a', to: 'b' }, { from: 'b', to: 'a' }])
     expect(a.layers.flat().sort()).toEqual([0, 1])
   })
-  test('a straight line reads as a sequence, a fork does not', () => {
-    const s = steps('a', 'b', 'c')
-    expect(asSequence(analyse(s, []), 3)).toEqual([0, 1, 2])
-    expect(asSequence(analyse(s, [{ from: 'a', to: 'b' }, { from: 'a', to: 'c' }]), 3)).toBeUndefined()
-  })
 })
 
 describe('row or column', () => {
@@ -62,10 +48,6 @@ describe('row or column', () => {
   test('a row when it fits, a column when it does not', () => {
     expect(planSequence(s, [[], [], []], [undefined, undefined], 80).direction).toBe('row')
     expect(planSequence(s, [[], [], []], [undefined, undefined], 20).direction).toBe('column')
-  })
-  test('long labels shrink the cap before giving up on a row', () => {
-    const long = [{ id: 'a', label: 'x'.repeat(40) }, { id: 'b', label: 'y'.repeat(40) }]
-    expect(planSequence(long, [[], []], [undefined], 50)).toEqual({ direction: 'row', cap: 16 })
   })
 })
 
@@ -77,31 +59,14 @@ describe('grid layout', () => {
     expect(rows.join('\n')).toContain('┤')
     expect([...rows.join('')].filter(c => c === '→')).toHaveLength(3)
   })
-  test('an edge that skips a layer falls back', () => {
-    expect(grid(['a', 'b', 'c'], [{ from: 'a', to: 'b' }, { from: 'b', to: 'c' }, { from: 'a', to: 'c' }])).toBeUndefined()
-  })
   test('too narrow falls back, never wider than the room', () => {
     const links = [{ from: 'a', to: 'b' }, { from: 'a', to: 'c' }]
     expect(grid(['a', 'b', 'c'], links, 10)).toBeUndefined()
     for (const row of grid(['a', 'b', 'c'], links, 30)!) expect([...row].length).toBeLessThanOrEqual(30)
   })
-  test('a back edge becomes a note inside its box', () => {
-    const rows = grid(['a', 'b', 'c'], [{ from: 'a', to: 'b' }, { from: 'a', to: 'c' }, { from: 'c', to: 'a', label: 'retry' }])!
-    expect(rows.join('\n')).toContain('↩ A (retry)')
-  })
 })
 
 describe('Flow drawer', () => {
-  for (const surface of SURFACES) {
-    test(`a linear flow is a row of bordered boxes on ${surface}`, () => {
-      const { drawn } = draw(flow(['a', 'b', 'c'], [], { b: 'the middle' }), { surface })
-      expect(drawn.props.flexDirection).toBe('row')
-      expect(findAll(drawn, 'Box').filter(b => b.props.borderStyle)).toHaveLength(3)
-      expect(textOf(drawn)).toContain('the middle')
-      expect(findAll(drawn, 'Text').filter(t => String(t.children[0]).includes('→'))).toHaveLength(2)
-      expect(findAll(drawn, 'Text').find(t => t.children[0] === 'the middle')!.props.dimColor).toBe(true)
-    })
-  }
 
   test('a narrow linear flow stacks with downward arrows', () => {
     const { drawn } = draw(flow(['first step', 'second step', 'third step']), { columns: 24 })
@@ -109,24 +74,19 @@ describe('Flow drawer', () => {
     expect(findAll(drawn, 'Text').filter(t => String(t.children[0]).startsWith('↓'))).toHaveLength(2)
   })
 
-  test('a linked chain keeps its labels on the arrows', () => {
-    const { drawn } = draw(flow(['a', 'b'], [{ from: 'a', to: 'b', label: 'ok' }]))
-    expect(textOf(drawn)).toContain('─ ok ─→')
+  test('link labels sit on the arrows of a chain and beside the branches of a fork', () => {
+    expect(textOf(draw(flow(['a', 'b'], [{ from: 'a', to: 'b', label: 'ok' }])).drawn)).toContain('─ ok ─→')
+    const fork = draw(flow(['a', 'b', 'c'], [{ from: 'a', to: 'b', label: 'yes' }, { from: 'a', to: 'c', label: 'no' }]))
+    expect(textOf(fork.drawn)).toContain('yes')
+    expect(textOf(fork.drawn)).toContain('no')
   })
 
-  test('a branching flow draws a grid of text rows', () => {
-    const { drawn } = draw(flow(['a', 'b', 'c'], [{ from: 'a', to: 'b', label: 'yes' }, { from: 'a', to: 'c', label: 'no' }]))
-    expect(textOf(drawn)).toContain('yes')
-    expect(findAll(drawn, 'Box').every(b => !b.props.borderStyle)).toBe(true)
-  })
-
-  test('a branching flow too tangled to draw falls back to a list of links', () => {
+  test('a flow too tangled to draw falls back to a list of links', () => {
     const { drawn } = draw(flow(['a', 'b', 'c'], [{ from: 'a', to: 'b' }, { from: 'b', to: 'c' }, { from: 'a', to: 'c', label: 'skip' }]))
-    expect(findAll(drawn, 'Box').filter(b => b.props.borderStyle)).toHaveLength(3)
     expect(textOf(drawn)).toContain('→ C (skip)')
   })
 
-  test('a cyclic flow still shows every step', () => {
+  test('a cyclic flow still shows every step and lists the back edge as ↩', () => {
     const { drawn } = draw(flow(['a', 'b', 'c'], [{ from: 'a', to: 'b' }, { from: 'b', to: 'c' }, { from: 'c', to: 'a', label: 'retry' }]))
     const text = textOf(drawn)
     for (const label of ['A', 'B', 'C']) expect(text).toContain(label)

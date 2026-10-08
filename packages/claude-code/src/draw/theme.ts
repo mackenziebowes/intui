@@ -19,9 +19,11 @@ export const ACCENT = 'cyan'
 
 /**
  * Hex colors for Svg surfaces, where named terminal colors don't apply.
- * `QUIET` is for axes, grid lines, secondary text and baselines.
+ * `quiet` is for axes, grid lines, secondary text and baselines; `warning`
+ * matches the terminal's warning tone, for markers.
  */
 export const SVG = {
   accent: '#1fa2b8',
   quiet: '#888888',
+  warning: '#c98a00',
 } as const

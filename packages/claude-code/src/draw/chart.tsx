@@ -4,7 +4,7 @@ import { defineDrawer } from './drawer'
 import { buildModel } from './chart-scale'
 import { buildSvg, describe, type SvgColors } from './chart-svg'
 import { legendRows, markerRows, plotRows, type Row, type Style } from './chart-text'
-import { ACCENT, TONE_COLOR } from './theme'
+import { ACCENT, SVG, TONE_COLOR } from './theme'
 
 /** Narrower than this the plot has no room, so the chart is its text form. */
 const MIN_COLUMNS = 30
@@ -12,15 +12,13 @@ const MIN_COLUMNS = 30
 const PIXELS_PER_COLUMN = 8
 const MAX_SVG_WIDTH = 720
 
-/** A mid grey that reads on both light and dark pages: theme.ts has no neutral for Svg. */
-const QUIET = '#888888'
-
+/** Svg surfaces take hex colors from theme.ts. */
 const SVG_COLORS: SvgColors = {
-  primary: ACCENT,
-  baseline: QUIET,
-  comparison: ACCENT,
-  marker: TONE_COLOR.warning ?? QUIET,
-  quiet: QUIET,
+  primary: SVG.accent,
+  baseline: SVG.quiet,
+  comparison: SVG.accent,
+  marker: SVG.warning,
+  quiet: SVG.quiet,
 }
 
 type TextStyle = { color?: string; dimColor?: boolean; bold?: boolean }

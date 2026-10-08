@@ -7,6 +7,7 @@
   "private": true,
   "scripts": {
     "build": "bun build.ts",
+    "conformance": "bun build.ts --out ${INTUI_CONFORMANCE_OUT:-/tmp/intui-conformance} && claude plugin test ${INTUI_CONFORMANCE_OUT:-/tmp/intui-conformance}",
     "typecheck": "tsc --noEmit -p ."
   },
   "dependencies": {

@@ -40,7 +40,10 @@ export function niceDomain(min: number, max: number, kind: ChartProps['kind']): 
   return { lo: clean(Math.floor(lo / step) * step), hi: clean(Math.ceil(hi / step) * step) }
 }
 
-/** A short number for an axis: 1200 -> 1.2k, 0.5 -> 0.5. */
+/**
+ * A short number for an axis: 1200 -> 1.2k, 0.5 -> 0.5. Not core's formatNumber, which
+ * writes `12,500` and `1,234,000`; an axis label has a few cells to live in.
+ */
 export function formatValue(value: number): string {
   const abs = Math.abs(value)
   const trim = (n: number, digits: number) => String(Number(n.toFixed(digits)))

@@ -1,14 +1,5 @@
-import type { Change } from '@intui/core'
+import { formatNumber, type Change } from '@intui/core'
 import { fit } from './label-shape'
-
-const numbers = new Intl.NumberFormat('en', { maximumFractionDigits: 2 })
-
-/** Same formatting as the text form in @intui/core (which doesn't export it). */
-export function formatNumber(value: number, unit?: string): string {
-  const formatted = numbers.format(value)
-  if (!unit) return formatted
-  return unit === '%' ? `${formatted}%` : `${formatted} ${unit}`
-}
 
 /** Which way a change went. Direction only: whether it is good news is the tone's job. */
 export function direction(change: Change): 'up' | 'down' | 'flat' {

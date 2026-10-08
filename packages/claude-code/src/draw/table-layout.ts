@@ -1,4 +1,4 @@
-import type { CellValue, TableColumn } from '@intui/core'
+import { cellText, type CellValue, type TableColumn } from '@intui/core'
 
 /** Cells between columns. */
 export const GAP = 2
@@ -6,15 +6,6 @@ export const GAP = 2
 const MIN_WIDTH = 4
 /** A header is kept whole up to this many cells when columns shrink. */
 const HEADER_KEEP = 10
-
-const numbers = new Intl.NumberFormat('en', { maximumFractionDigits: 2 })
-
-/** A cell's text: numbers get thousands separators (as in core's text form), null is empty. */
-export function formatCell(value: CellValue | undefined): string {
-  if (value === null || value === undefined) return ''
-  const text = typeof value === 'number' ? numbers.format(value) : String(value)
-  return text.replace(/\s*\n\s*/g, ' ')
-}
 
 /** Shortens text to `width` cells, ending in an ellipsis when it was cut. */
 export function truncate(text: string, width: number): string {
@@ -71,7 +62,7 @@ export type TableLayout = GridLayout | StackedLayout
 
 /** Decides grid or stacked and produces the lines to draw. */
 export function layoutTable(columnDefs: TableColumn[], rows: Record<string, CellValue>[], columns: number): TableLayout {
-  const cells = rows.map(row => columnDefs.map(column => formatCell(row[column.key])))
+  const cells = rows.map(row => columnDefs.map(column => cellText(row[column.key])))
   const natural = columnDefs.map((column, i) => Math.max(column.label.length, ...cells.map(r => r[i]!.length)))
   const min = columnDefs.map(column => Math.max(MIN_WIDTH, Math.min(column.label.length, HEADER_KEEP)))
   const widths = allocateWidths(natural, min, columns)

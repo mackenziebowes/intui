@@ -4,22 +4,16 @@ import { defineDrawer, type DrawContext } from './drawer'
 import { describeError } from './choice-view'
 import { blockedNote, checkboxLabel, fieldLabel, missingRequired, parseNumber, summarize } from './form-logic'
 
-/**
- * Notes a handler leaves for the next draw, by element key: why a number was
- * refused, why a submit failed. Typed text never goes into the tree's state.
- */
-const notes = new Map<string, string>()
-
 type Fields = ElementTable<'terminal'>
 const fieldElements = (ctx: DrawContext) => (ctx.surface === 'mobile' ? undefined : (ctx.el as unknown as Fields))
 
-/** Runs a handler so nothing it throws reaches the engine; the message waits in `notes`. */
-async function guarded(noteKey: string, run: () => Promise<void>) {
+/** Runs a handler so nothing it throws reaches the engine; the message is left as a note on `noteKey`. */
+async function guarded(ctx: DrawContext, noteKey: string, run: () => Promise<void>) {
   try {
-    notes.delete(noteKey)
+    await ctx.setNote(noteKey, undefined)
     await run()
   } catch (error) {
-    notes.set(noteKey, describeError(error))
+    await ctx.setNote(noteKey, describeError(error))
   }
 }
 
@@ -49,11 +43,12 @@ export const form = defineDrawer<FormProps>({
     }
 
     const numberKey = (field: FormField) => key('field', field.id, 'number')
-    const effective = (field: FormField) => (notes.has(numberKey(field)) ? undefined : valueOf(field.id))
-    const invalid = props.fields.filter(f => f.input === 'number' && notes.has(numberKey(f))).map(f => `${f.label} ${notes.get(numberKey(f))}`)
+    const effective = (field: FormField) => (ctx.note(numberKey(field)) !== undefined ? undefined : valueOf(field.id))
+    const invalid = props.fields.filter(f => f.input === 'number' && ctx.note(numberKey(f)) !== undefined).map(f => `${f.label} ${ctx.note(numberKey(f))}`)
     const missing = missingRequired(props.fields, fieldId => effective(props.fields.find(f => f.id === fieldId)!))
     const blocked = blockedNote(missing, invalid)
-    const submitFailure = notes.get(key('submit'))
+    const fieldFailure = (field: FormField) => ctx.note(key('field', field.id))
+    const submitFailure = ctx.note(key('submit'))
 
     const save = (fieldId: string, value: FieldValue) => ctx.setField(props.id, fieldId, value)
 
@@ -62,7 +57,7 @@ export const form = defineDrawer<FormProps>({
       const label = fieldLabel(field)
       if (field.input === 'checkbox') {
         const checked = valueOf(field.id) === true
-        return <el.Button key={fieldKey} label={checkboxLabel(field, checked)} onPress={() => guarded(fieldKey, () => save(field.id, !checked))} />
+        return <el.Button key={fieldKey} label={checkboxLabel(field, checked)} onPress={() => guarded(ctx, fieldKey, () => save(field.id, !checked))} />
       }
       if (field.input === 'select') {
         const current = valueOf(field.id)
@@ -72,37 +67,35 @@ export const form = defineDrawer<FormProps>({
             label={label}
             options={(field.options ?? []).map(value => ({ value }))}
             value={typeof current === 'string' ? current : undefined}
-            onSelect={value => guarded(fieldKey, () => save(field.id, value))}
+            onSelect={value => guarded(ctx, fieldKey, () => save(field.id, value))}
           />
         )
       }
       if (field.input === 'number') {
         const stored = valueOf(field.id)
         const commit = (raw: string) =>
-          guarded(fieldKey, async () => {
+          guarded(ctx, fieldKey, async () => {
             const parsed = parseNumber(raw)
             if (parsed.kind === 'value') {
-              notes.delete(numberKey(field))
+              await ctx.setNote(numberKey(field), undefined)
               return save(field.id, parsed.value)
             }
             // A stale number may already be stored and cannot be removed, so block the submit until the text is a number again.
-            if (parsed.kind === 'invalid') notes.set(numberKey(field), parsed.note)
-            else if (stored !== undefined) notes.set(numberKey(field), 'needs a number')
-            else notes.delete(numberKey(field))
-            if (stored !== undefined) await save(field.id, stored)
+            if (parsed.kind === 'invalid') await ctx.setNote(numberKey(field), parsed.note)
+            else await ctx.setNote(numberKey(field), stored !== undefined ? 'needs a number' : undefined)
           })
         return (
           <inputs.Input
             key={fieldKey}
             label={label}
             placeholder="number"
-            value={notes.has(numberKey(field)) || stored === undefined ? undefined : String(stored)}
+            value={ctx.note(numberKey(field)) !== undefined || stored === undefined ? undefined : String(stored)}
             onInput={commit}
             onSubmit={commit}
           />
         )
       }
-      const commit = (value: string) => guarded(fieldKey, () => save(field.id, value))
+      const commit = (value: string) => guarded(ctx, fieldKey, () => save(field.id, value))
       const stored = valueOf(field.id)
       return <inputs.Input key={fieldKey} label={label} value={typeof stored === 'string' ? stored : undefined} onInput={commit} onSubmit={commit} />
     }
@@ -112,8 +105,8 @@ export const form = defineDrawer<FormProps>({
         {props.fields.map(field => (
           <el.Box key={key('row', field.id)} flexDirection="column">
             {control(field)}
-            {notes.get(key('field', field.id)) ? <el.Text color="red">{notes.get(key('field', field.id))}</el.Text> : null}
-            {field.input === 'number' && notes.has(numberKey(field)) ? <el.Text color="yellow">{notes.get(numberKey(field))}</el.Text> : null}
+            {fieldFailure(field) ? <el.Text color="red">{fieldFailure(field)}</el.Text> : null}
+            {field.input === 'number' && ctx.note(numberKey(field)) !== undefined ? <el.Text color="yellow">{ctx.note(numberKey(field))}</el.Text> : null}
           </el.Box>
         ))}
         <el.Button
@@ -121,7 +114,7 @@ export const form = defineDrawer<FormProps>({
           label={props.submitLabel}
           variant="primary"
           onPress={() =>
-            guarded(key('submit'), async () => {
+            guarded(ctx, key('submit'), async () => {
               if (blocked) return
               await ctx.submit(props.id)
             })

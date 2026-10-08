@@ -53,5 +53,21 @@ await Bun.write(join(out, 'hooks/hooks.json'), JSON.stringify({ modules: ['./reg
 await mkdir(join(out, 'types'), { recursive: true })
 await Bun.write(join(out, 'types/index.d.ts'), Bun.file(join(here, 'types/index.d.ts')))
 
+// Conformance tests run against the real engine with `claude plugin test <out>`.
+// A plugin folder can only hold its own files, so the test is bundled with
+// @intui/core; only the engine's modules stay external.
+const tests = await Bun.build({
+  entrypoints: [join(here, 'conformance/conformance.test.ts')],
+  outdir: out,
+  naming: 'conformance.test.ts',
+  target: 'browser',
+  format: 'esm',
+  external: ['claude-code', 'claude-code/testing'],
+})
+if (!tests.success) {
+  for (const log of tests.logs) console.error(log)
+  process.exit(1)
+}
+
 const size = built.outputs.reduce((sum, file) => sum + file.size, 0)
 console.log(`built ${out} (${(size / 1024).toFixed(0)} KB)`)

@@ -2,9 +2,6 @@ import type { ChoiceProps } from '@intui/core'
 import { defineDrawer } from './drawer'
 import { choiceView, describeError, variantOf } from './choice-view'
 
-/** The last failed press per button key, so the next draw can show why nothing happened. */
-const failures = new Map<string, string>()
-
 // Digit hotkeys are left off on purpose: they only fire while a band or pane holds
 // the keyboard, never in a transcript row, and two rows with the same digit clash.
 export const choice = defineDrawer<ChoiceProps>({
@@ -21,7 +18,7 @@ export const choice = defineDrawer<ChoiceProps>({
         </el.Box>
       )
     }
-    const failed = failures.get(key('failed'))
+    const failed = ctx.note(key('failed'))
     return (
       <el.Box flexDirection="column">
         {prompt}
@@ -33,10 +30,10 @@ export const choice = defineDrawer<ChoiceProps>({
               variant={variantOf(option.emphasis)}
               onPress={async () => {
                 try {
-                  failures.delete(key('failed'))
+                  await ctx.setNote(key('failed'), undefined)
                   await ctx.press(props.id, option.id)
                 } catch (error) {
-                  failures.set(key('failed'), describeError(error))
+                  await ctx.setNote(key('failed'), describeError(error))
                 }
               }}
             />

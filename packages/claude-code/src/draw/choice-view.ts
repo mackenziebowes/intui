@@ -14,8 +14,5 @@ export function choiceView(props: ChoiceProps, pressed: string | undefined): Cho
 /** The Button variant for an option: only `emphasis: "primary"` stands out. */
 export const variantOf = (emphasis: 'primary' | undefined) => (emphasis === 'primary' ? ('primary' as const) : undefined)
 
-/** Hotkey digits 1-9 in order; later options get none. */
-export const hotkeyAt = (index: number) => (index < 9 ? String(index + 1) : undefined)
-
 /** A short, one-line reason from anything a handler caught. */
 export const describeError = (error: unknown) => (error instanceof Error ? error.message : String(error)).split('\n')[0]!.slice(0, 160)

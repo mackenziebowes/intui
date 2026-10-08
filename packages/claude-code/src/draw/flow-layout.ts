@@ -182,10 +182,82 @@ const GLYPH: Record<number, string> = {
   [N | S | E]: '├', [N | S | W]: '┤', [E | W | S]: '┬', [E | W | N]: '┴', [N | S | E | W]: '┼',
 }
 
-type Cell = { ch: string; kind: CellKind; mask: number; edges: Set<number> }
-
 /** Gutter widths and boxes per cap are tried widest first; the first layout that fits and draws cleanly wins. */
 const GRID_CAPS = [24, 16, 12]
+
+type Cell = { ch: string; kind: CellKind; mask: number; edges: Set<number> }
+
+/** A character grid that boxes, edge lines and labels are painted onto. */
+class Canvas {
+  private readonly cells: Cell[][]
+
+  constructor(rows: number, cols: number) {
+    this.cells = Array.from({ length: rows }, () =>
+      Array.from({ length: cols }, () => ({ ch: ' ', kind: 'blank' as CellKind, mask: 0, edges: new Set<number>() })),
+    )
+  }
+
+  put(row: number, col: number, ch: string, kind: CellKind) {
+    const cell = this.cells[row]?.[col]
+    if (cell) Object.assign(cell, { ch, kind })
+  }
+
+  /** Paints a rounded box whose first line of text sits one row below `top`. */
+  box(top: number, left: number, width: number, lines: readonly BoxLine[]) {
+    const bottom = top + lines.length + 1
+    this.put(top, left, '╭', 'border')
+    this.put(top, left + width - 1, '╮', 'border')
+    this.put(bottom, left, '╰', 'border')
+    this.put(bottom, left + width - 1, '╯', 'border')
+    for (let c = 1; c < width - 1; c++) {
+      this.put(top, left + c, '─', 'border')
+      this.put(bottom, left + c, '─', 'border')
+    }
+    lines.forEach((line, k) => {
+      this.put(top + 1 + k, left, '│', 'border')
+      this.put(top + 1 + k, left + width - 1, '│', 'border')
+      ;[...line.text].forEach((ch, c) => this.put(top + 1 + k, left + 2 + c, ch, line.kind))
+    })
+  }
+
+  /**
+   * Lays one segment of edge `id` along `row` (horizontal) or column `row` (vertical) from `a` to `b`.
+   * Fails when it would touch a line of an unrelated edge, so unrelated lines never merge.
+   */
+  segment(id: number, edges: readonly Edge[], row: number, a: number, b: number, vertical: boolean): boolean {
+    const [lo, hi] = [Math.min(a, b), Math.max(a, b)]
+    for (let k = lo; k <= hi; k++) {
+      const cell = vertical ? this.cells[k]?.[row] : this.cells[row]?.[k]
+      if (!cell) return false
+      for (const other of cell.edges) {
+        if (other !== id && edges[other]!.from !== edges[id]!.from && edges[other]!.to !== edges[id]!.to) return false
+      }
+      cell.edges.add(id)
+      const [before, after] = vertical ? [N, S] : [W, E]
+      cell.mask |= (k > lo ? before : 0) | (k < hi ? after : 0)
+    }
+    return true
+  }
+
+  /** Turns the segments laid so far into line glyphs. */
+  drawLines() {
+    for (const row of this.cells) for (const cell of row) if (cell.mask) Object.assign(cell, { ch: GLYPH[cell.mask] ?? '─', kind: 'arrow' })
+  }
+
+  /** Writes text onto blank cells only; false when it would land on anything else. */
+  label(row: number, col: number, text: string): boolean {
+    for (const [k, ch] of [...text].entries()) {
+      const cell = this.cells[row]?.[col + k]
+      if (!cell || cell.kind !== 'blank') return false
+      Object.assign(cell, { ch, kind: 'edge' })
+    }
+    return true
+  }
+
+  runs(): Run[][] {
+    return this.cells.map(row => toRuns(row))
+  }
+}
 
 /**
  * Draws a layered flow on a character grid, layers left to right. Returns undefined when it
@@ -202,33 +274,16 @@ export function layoutGrid(steps: readonly FlowStep[], analysis: Analysis, colum
   return undefined
 }
 
-function tryGrid(steps: readonly FlowStep[], analysis: Analysis, notes: string[][], cap: number, columns: number): Run[][] | undefined {
+/** Vertical placement: stack each layer, pulling a step toward its predecessors, then centre steps on their successors. */
+function placeVertically(analysis: Analysis, height: readonly number[]): number[] {
   const { layers, edges } = analysis
-  const lines = steps.map((step, i) => boxLines(step, notes[i]!, cap))
-  const width = lines.map(boxWidth)
-  const height = lines.map(l => l.length + 2)
-  const layerWidth = layers.map(layer => Math.max(...layer.map(i => width[i]!)))
-  const gutter = layers.slice(1).map((_, l) => {
-    const labels = edges.filter(e => analysis.layerOf[e.from] === l).map(e => [...(e.label ?? '')].length)
-    return Math.max(5, Math.max(0, ...labels) + 5)
-  })
-  const left: number[] = []
-  let x = 0
-  layers.forEach((_, l) => {
-    left.push(x)
-    x += layerWidth[l]! + (gutter[l] ?? 0)
-  })
-  if (x > columns) return undefined
-
-  // Vertical placement: stack each layer, pulling a step toward its predecessors, then centre steps on their successors.
-  const top = new Array<number>(steps.length).fill(0)
+  const top = new Array<number>(height.length).fill(0)
   const mid = (i: number) => top[i]! + 1
+  const centre = (neighbours: number[]) => (neighbours.length ? Math.round(neighbours.reduce((a, b) => a + b, 0) / neighbours.length) - 1 : 0)
   layers.forEach(layer => {
     let next = 0
     for (const i of layer) {
-      const before = edges.filter(e => e.to === i).map(e => mid(e.from))
-      const want = before.length ? Math.round(before.reduce((a, b) => a + b, 0) / before.length) - 1 : 0
-      top[i] = Math.max(next, want)
+      top[i] = Math.max(next, centre(edges.filter(e => e.to === i).map(e => mid(e.from))))
       next = top[i]! + height[i]! + 1
     }
   })
@@ -236,92 +291,64 @@ function tryGrid(steps: readonly FlowStep[], analysis: Analysis, notes: string[]
     let next = 0
     for (const i of layers[l]!) {
       const after = edges.filter(e => e.from === i).map(e => mid(e.to))
-      const want = after.length ? Math.round(after.reduce((a, b) => a + b, 0) / after.length) - 1 : 0
-      top[i] = Math.max(next, want, after.length ? 0 : top[i]!)
+      top[i] = Math.max(next, centre(after), after.length ? 0 : top[i]!)
       next = top[i]! + height[i]! + 1
     }
   }
   const shift = Math.min(...top)
-  const rows = Math.max(...steps.map((_, i) => top[i]! - shift + height[i]!))
-  const cells: Cell[][] = Array.from({ length: rows }, () =>
-    Array.from({ length: x }, () => ({ ch: ' ', kind: 'blank' as CellKind, mask: 0, edges: new Set<number>() })),
-  )
-  const put = (row: number, col: number, ch: string, kind: CellKind) => {
-    const cell = cells[row]?.[col]
-    if (cell) Object.assign(cell, { ch, kind })
-  }
+  return top.map(t => t - shift)
+}
 
+function tryGrid(steps: readonly FlowStep[], analysis: Analysis, notes: string[][], cap: number, columns: number): Run[][] | undefined {
+  const { layers, edges, layerOf } = analysis
+  const lines = steps.map((step, i) => boxLines(step, notes[i]!, cap))
+  const width = lines.map(boxWidth)
+  const height = lines.map(l => l.length + 2)
+  const layerWidth = layers.map(layer => Math.max(...layer.map(i => width[i]!)))
+  const gutter = layers.slice(1).map((_, l) => {
+    const labels = edges.filter(e => layerOf[e.from] === l).map(e => [...(e.label ?? '')].length)
+    return Math.max(5, Math.max(0, ...labels) + 5)
+  })
+  const left: number[] = []
+  let total = 0
+  layers.forEach((_, l) => {
+    left.push(total)
+    total += layerWidth[l]! + (gutter[l] ?? 0)
+  })
+  if (total > columns) return undefined
+
+  const top = placeVertically(analysis, height)
+  const canvas = new Canvas(Math.max(...steps.map((_, i) => top[i]! + height[i]!)), total)
   layers.forEach((layer, l) => {
-    for (const i of layer) {
-      const y = top[i]! - shift
-      const w = width[i]!
-      const x0 = left[l]!
-      put(y, x0, '╭', 'border')
-      put(y, x0 + w - 1, '╮', 'border')
-      put(y + height[i]! - 1, x0, '╰', 'border')
-      put(y + height[i]! - 1, x0 + w - 1, '╯', 'border')
-      for (let c = 1; c < w - 1; c++) {
-        put(y, x0 + c, '─', 'border')
-        put(y + height[i]! - 1, x0 + c, '─', 'border')
-      }
-      lines[i]!.forEach((line, k) => {
-        put(y + 1 + k, x0, '│', 'border')
-        put(y + 1 + k, x0 + w - 1, '│', 'border')
-        ;[...line.text].forEach((ch, c) => put(y + 1 + k, x0 + 2 + c, ch, line.kind))
-      })
-    }
+    for (const i of layer) canvas.box(top[i]!, left[l]!, width[i]!, lines[i]!)
   })
 
   // Routing: each edge runs from its source's first line, along a vertical trunk, to its target's first line.
   const outdeg = (i: number) => edges.filter(e => e.from === i).length
   const indeg = (i: number) => edges.filter(e => e.to === i).length
-  const link = (id: number, row: number, a: number, b: number, vertical: boolean) => {
-    for (let k = Math.min(a, b); k <= Math.max(a, b); k++) {
-      const r = vertical ? k : row
-      const c = vertical ? row : k
-      const cell = cells[r]?.[c]
-      if (!cell) return false
-      for (const other of cell.edges) {
-        const o = edges[other]!
-        const e = edges[id]!
-        if (other !== id && o.from !== e.from && o.to !== e.to) return false
-      }
-      cell.edges.add(id)
-      if (vertical) cell.mask |= (k > Math.min(a, b) ? N : 0) | (k < Math.max(a, b) ? S : 0)
-      else cell.mask |= (k > Math.min(a, b) ? W : 0) | (k < Math.max(a, b) ? E : 0)
-    }
-    return true
-  }
   const labels: { row: number; col: number; text: string }[] = []
   for (let id = 0; id < edges.length; id++) {
     const edge = edges[id]!
-    const l = analysis.layerOf[edge.from]!
-    const ys = top[edge.from]! - shift + 1
-    const yt = top[edge.to]! - shift + 1
+    const l = layerOf[edge.from]!
+    const ys = top[edge.from]! + 1
+    const yt = top[edge.to]! + 1
     const sourceRight = left[l]! + width[edge.from]!
     const gx = left[l]! + layerWidth[l]!
     const gw = gutter[l]!
-    const arrowCol = gx + gw - 1
     const trunkAtTarget = outdeg(edge.from) === 1 && indeg(edge.to) > 1
     const trunk = trunkAtTarget ? gx + gw - 3 : gx + 1
-    if (!link(id, ys, sourceRight, trunk, false)) return undefined
-    if (ys !== yt && !link(id, trunk, ys, yt, true)) return undefined
-    if (!link(id, yt, trunk, arrowCol, false)) return undefined
+    if (!canvas.segment(id, edges, ys, sourceRight, trunk, false)) return undefined
+    if (ys !== yt && !canvas.segment(id, edges, trunk, ys, yt, true)) return undefined
+    if (!canvas.segment(id, edges, yt, trunk, gx + gw - 1, false)) return undefined
     if (edge.label) labels.push(trunkAtTarget ? { row: ys - 1, col: gx + 1, text: edge.label } : { row: yt - 1, col: gx + 3, text: edge.label })
   }
-  for (const row of cells) for (const cell of row) if (cell.mask) Object.assign(cell, { ch: GLYPH[cell.mask] ?? '─', kind: 'arrow' })
+  canvas.drawLines()
   for (const edge of edges) {
-    const l = analysis.layerOf[edge.from]!
-    put(top[edge.to]! - shift + 1, left[l]! + layerWidth[l]! + gutter[l]! - 1, '→', 'arrow')
+    const l = layerOf[edge.from]!
+    canvas.put(top[edge.to]! + 1, left[l]! + layerWidth[l]! + gutter[l]! - 1, '→', 'arrow')
   }
-  for (const label of labels) {
-    for (const [k, ch] of [...label.text].entries()) {
-      const cell = cells[label.row]?.[label.col + k]
-      if (!cell || cell.kind !== 'blank') return undefined
-      Object.assign(cell, { ch, kind: 'edge' })
-    }
-  }
-  return cells.map(row => toRuns(row))
+  for (const label of labels) if (!canvas.label(label.row, label.col, label.text)) return undefined
+  return canvas.runs()
 }
 
 /** Joins neighbouring cells of one kind into runs, dropping trailing blanks. */

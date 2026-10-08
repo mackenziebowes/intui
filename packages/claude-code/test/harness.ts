@@ -60,6 +60,8 @@ export type DrawOptions = {
   submitted?: string[]
   /** Notes already set, by note id. */
   notes?: Record<string, string>
+  /** Makes `press` or `submit` throw, to test that a drawer catches it. */
+  failOn?: 'press' | 'submit'
 }
 
 /** Draws a node (or a whole tree) as code would, returning the drawing and the recorded interactions. */
@@ -72,13 +74,19 @@ export function draw(root: object, options: DrawOptions = {}): { drawn: Drawn; r
     columns: options.columns ?? 80,
     source: 'toolu_test',
     pressed: id => options.pressed?.[id],
-    press: async (choiceId, optionId) => void recorded.presses.push({ choiceId, optionId }),
+    press: async (choiceId, optionId) => {
+      if (options.failOn === 'press') throw new Error('agent gone')
+      recorded.presses.push({ choiceId, optionId })
+    },
     field: (formId, fieldId) => recorded.fields[formId]?.[fieldId],
     setField: async (formId, fieldId, value) => {
       recorded.fields[formId] = { ...recorded.fields[formId], [fieldId]: value }
     },
     submitted: id => options.submitted?.includes(id) ?? false,
-    submit: async formId => void recorded.submits.push(formId),
+    submit: async formId => {
+      if (options.failOn === 'submit') throw new Error('agent gone')
+      recorded.submits.push(formId)
+    },
     note: id => recorded.notes[id],
     setNote: async (id, text) => {
       if (text === undefined) delete recorded.notes[id]
