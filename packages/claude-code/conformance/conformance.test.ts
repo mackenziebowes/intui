@@ -8,7 +8,7 @@
  *
  * Run with `bun run conformance` (builds, then `claude plugin test`).
  */
-import { expect, test } from 'claude-code/testing'
+import { expect, test, type TestBody } from 'claude-code/testing'
 import { core } from '@intui/core'
 
 const SURFACES = ['terminal', 'desktop', 'vscode', 'mobile'] as const
@@ -62,7 +62,7 @@ test('Chart and Stat in a show call are left to the engine', async $ => {
 
 // A tool returns a tree in an envelope (TOOLS.md). Every component, Chart and Stat
 // included, must draw from a ToolResult on every surface, in both result shapes.
-const resultMount = ($: Parameters<Parameters<typeof test>[1]>[0], surface: (typeof SURFACES)[number], output: unknown, id: string) =>
+const resultMount = ($: Parameters<TestBody>[0], surface: (typeof SURFACES)[number], output: unknown, id: string) =>
   $.ui.mount({
     plugin: 'intui',
     surface,
@@ -72,7 +72,7 @@ const resultMount = ($: Parameters<Parameters<typeof test>[1]>[0], surface: (typ
   })
 
 // One tree holding every component, so each element table is shown to draw
-// all of them from a tool result. Envelope shapes are covered by test/envelope.test.ts.
+// all of them from a tool result. The envelope's other shapes are checked below.
 const everything = { v: 1, root: { type: 'Group', direction: 'column', children: core.kinds.map(kind => kind.example) } }
 
 for (const surface of SURFACES) {
@@ -83,6 +83,22 @@ for (const surface of SURFACES) {
     await ui.unmount()
   })
 }
+
+// Every place TOOLS.md says a tool may put the envelope draws the tree.
+test('the envelope draws from each place a tool result can carry it', async $ => {
+  const envelope = { intui: { v: 1, root: { type: 'Stat', label: 'Visitors', value: 120 } } }
+  const shapes = {
+    'the result itself': envelope,
+    structuredContent: { content: [{ type: 'text', text: 'text form' }], structuredContent: envelope },
+    'a content text block': { content: [{ type: 'text', text: JSON.stringify(envelope) }] },
+    'the whole result as JSON text': JSON.stringify(envelope),
+  }
+  for (const [shape, output] of Object.entries(shapes)) {
+    const ui = await resultMount($, 'terminal', output, `conformance-shape-${shape}`)
+    expect(await ui.find({ text: /Visitors/ })).toBeDefined()
+    await ui.unmount()
+  }
+})
 
 test('a result that is not a tree, and one with a bad node, are left to the engine', async $ => {
   await expect(resultMount($, 'terminal', 'just text', 'conformance-not-tree')).rejects.toThrow(/no implementation for ui\.render/)

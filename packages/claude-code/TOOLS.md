@@ -36,5 +36,5 @@ If the server can't set `structuredContent`, return the envelope as the JSON tex
 ## Engine facts this relies on
 
 - `ui.render` matchers take string literals, so the hook matches `{ component: 'ToolResult' }` for every tool and checks `props.output` inside; `next(e)` hands anything else to the engine.
-- `ToolResult.output` is the tool's own result object, "the same one `ToolUse.output` carries"; the types don't fix its shape for plugin or MCP tools, hence the several places searched above. Conformance mounts one tree holding every component from a tool result on each surface; the envelope shapes are unit tests in `test/envelope.test.ts`.
+- `ToolResult.output` is the tool's own result object, "the same one `ToolUse.output` carries"; the types don't fix its shape for plugin or MCP tools, hence the several places searched above. Conformance mounts one tree holding every component from a tool result on each surface, and the envelope from each place listed above.
 - Known gap: the plugin test kit does not check a tool result's shape against the engine's output schema (an object result passed the kit and failed live). Conformance asserts the allowed shapes itself for the demo tool, but a new plugin tool needs the same assertion.

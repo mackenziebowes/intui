@@ -6,7 +6,7 @@ IntUI: a component protocol so agents can answer with interactive UI on any surf
 
 ```bash
 bun install
-bun test             # all tests
+bun run test         # every check: the web renderer in a browser, then the plugin through Claude Code's engine
 bun run typecheck    # tsc --noEmit
 bun run site         # build the docs site into site/dist
 ```
@@ -22,7 +22,13 @@ bun run site         # build the docs site into site/dist
 
 ## Tests and evals
 
-Follow the `test-design` and `eval-design` skills. In short: test contracts and tricky logic, not presentation; loop over surfaces only where a drawer branches on them; one real check through the engine per drawer; evals are trends we read, never gates.
+End to end only: every check drives the real program from the outside. No unit, smoke or integration tests; if you find one, delete it and add an end-to-end check where one is worth having. Test contracts and tricky behaviour, never for coverage.
+
+- `packages/claude-code/conformance/`: run by `claude plugin test` inside Claude Code's own engine. `conformance.test.ts` draws every component on every surface; `contracts.test.ts` calls the real `show` tool (refusals the model reads, numbers only from code) and presses and types into drawn Choices and Forms. A check that needs the plugin goes here.
+- `packages/web/e2e/`: `page.ts` draws trees with the real renderer; `browser.test.ts` opens it in headless Chromium through `agent-browser` and clicks and types. A check that needs the web renderer goes here.
+- `core` and `layout` have no checks of their own: they're exercised through both renderers.
+
+Evals (`evals/`) are trends we read, never gates (the `eval-design` skill). They run headless Claude, so ask Mackenzie before running them.
 
 ## Rules for core
 
@@ -41,5 +47,5 @@ Agents will add to this package while working on a specific product. These rules
 
 1. Add `packages/core/src/components/<name>.ts` with `defineKind`, following the existing ones.
 2. Register it in `core` in `catalog.ts` and export it from `index.ts`.
-3. The "every core component" tests pick it up from the catalog. Add tests for its validation rules and text form.
+3. Conformance draws it on every surface from the catalog with no change. Add an end-to-end check only for a contract it adds (a refusal the model must read, an event it sends).
 4. Every renderer must draw it, or fall back to its text form, before the next release.

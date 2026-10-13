@@ -49,7 +49,7 @@ tree.describe(IntuiEvent.press("toolu_1", "next", "park")); // 'Pressed "Park" i
 
 ```bash
 bun install
-bun test
+bun run test        # web renderer in a browser, plugin through Claude Code's engine
 bun run typecheck
 bun run site        # builds the docs site into site/dist
 ```

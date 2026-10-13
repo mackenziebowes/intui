@@ -54,12 +54,12 @@ await mkdir(join(out, 'types'), { recursive: true })
 await Bun.write(join(out, 'types/index.d.ts'), Bun.file(join(here, 'types/index.d.ts')))
 
 // Conformance tests run against the real engine with `claude plugin test <out>`.
-// A plugin folder can only hold its own files, so the test is bundled with
+// A plugin folder can only hold its own files, so the tests are bundled with
 // @intui/core; only the engine's modules stay external.
 const tests = await Bun.build({
-  entrypoints: [join(here, 'conformance/conformance.test.ts')],
+  entrypoints: [join(here, 'conformance/conformance.test.ts'), join(here, 'conformance/contracts.test.ts')],
   outdir: out,
-  naming: 'conformance.test.ts',
+  naming: '[name].ts',
   target: 'browser',
   format: 'esm',
   external: ['claude-code', 'claude-code/testing'],
