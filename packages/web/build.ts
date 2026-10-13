@@ -2,6 +2,7 @@
  * Builds the browser files into packages/web/dist:
  *   intui-web.js   ES module: render, textOf, markdownToHtml (core and marked bundled in)
  *   intui-web.css  the stylesheet
+ *   intui-page.css the opt-in page shell (background, width, gutter) for pages made only of trees
  *   demo.html      every core component's example at three widths; open it from disk
  */
 import { copyFile, mkdir, rm } from 'node:fs/promises'
@@ -26,5 +27,6 @@ for (const build of builds) {
   }
 }
 await copyFile(join(here, 'src/style.css'), join(out, 'intui-web.css'))
+await copyFile(join(here, 'src/page.css'), join(out, 'intui-page.css'))
 await copyFile(join(here, 'demo/demo.html'), join(out, 'demo.html'))
 console.log(`built ${out}`)

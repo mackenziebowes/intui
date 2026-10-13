@@ -48,9 +48,10 @@ beforeAll(async () => {
   })
   if (!built.success) throw new AggregateError(built.logs, 'the e2e page did not build')
   const css = await Bun.file(join(import.meta.dir, '../src/style.css')).text()
+  const shell = await Bun.file(join(import.meta.dir, '../src/page.css')).text()
   await Bun.write(
     join(dir, 'index.html'),
-    `<!doctype html><meta charset="utf-8"><title>intui e2e</title><style>${css}</style><body><script src="page.js"></script></body>`,
+    `<!doctype html><meta charset="utf-8"><title>intui e2e</title><style>${css}\n${shell}</style><body><script src="page.js"></script></body>`,
   )
   browser('open', `file://${join(dir, 'index.html')}`)
   browser('wait', 'body[data-ready="true"]')
@@ -210,6 +211,24 @@ describe('awkward trees', () => {
     for (const step of ['Alpha', 'Beta', 'Gamma']) expect(drawn.text).toContain(step)
     expect(drawn.text).toContain('One point')
     expect(drawn.spill).toBeLessThanOrEqual(0)
+  })
+})
+
+describe('page shell', () => {
+  test('with page.css, a standalone page in dark mode has a dark background under light text', () => {
+    const colours = page<{ bg: number[]; fg: number[]; transparent: boolean }>(`(() => {
+      document.documentElement.dataset.theme = 'dark'
+      const rgb = value => (value.match(/[\\d.]+/g) ?? []).slice(0, 3).map(Number)
+      const style = getComputedStyle(document.body)
+      const probe = document.createElement('canvas').getContext('2d')
+      const toRgb = colour => { probe.fillStyle = colour; probe.fillRect(0, 0, 1, 1); return [...probe.getImageData(0, 0, 1, 1).data].slice(0, 3) }
+      return { bg: toRgb(style.backgroundColor), fg: toRgb(style.color), transparent: style.backgroundColor === 'rgba(0, 0, 0, 0)' || style.backgroundColor === 'transparent' }
+    })()`)
+    const light = (rgb: number[]) => rgb.reduce((sum, channel) => sum + channel, 0) / 3
+    // A transparent body would read as black on the probe, so it must be a colour of its own.
+    expect(colours.transparent).toBe(false)
+    expect(light(colours.bg)).toBeLessThan(80)
+    expect(light(colours.fg)).toBeGreaterThan(180)
   })
 })
 
