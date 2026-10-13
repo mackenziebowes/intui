@@ -9,9 +9,15 @@ const text = (markdown: string): Node => ({ type: 'Text', markdown }) as Node
 
 const sections: Node[] = [
   text(`# 001: How sure a number is
-**Proposal, for review.** Nothing is built yet.
+**Accepted 2026-10-13; building.** The design moved during review: from an optional word beside the number to one tagged value.
 
-Mackenzie, 2026-10-13 14:57: *"Oh, yea, this is a no brainer - especially seeing it in the text form that you read. You need exactly that feature."*`),
+Mackenzie, 14:57: *"Oh, yea, this is a no brainer - especially seeing it in the text form that you read. You need exactly that feature."*
+
+Mackenzie, 15:03, on the first sketch: *"Classic production code - everything may be missing."* and *"what do you think about union types?"*
+
+Mackenzie, 15:13, on one-key objects: *"It would be difficult to extend certainty to be anything other than semantic - if an agent is semantically unsure or wanting to hedge a figure, fine, we solved that, but what if they want to indicate a standard deviation? A p-value?"*
+
+Mackenzie, 15:17: *"Yea, I like this model, send it"*`),
 
   text(`## The need
 A \`Stat\` or a chart point holds a bare number, so every number looks final. Code often knows better: a log only kept the count from the start of a stream (a floor), a total was extrapolated (an estimate), or the read failed (unknown, which today can only show as 0). Today command-hub's ledger drew 216 output tokens for a run that wrote 1,400 lines, and a hand-back said 105K tokens when it was 1.57M. The code knew; the tree had nowhere to say it.
@@ -19,19 +25,19 @@ A \`Stat\` or a chart point holds a bare number, so every number looks final. Co
 **Consumers (rule of two):** the command hub's token ledger and usage pages; any dashboard drawn with IntUI (labbook's, the plugin's own \`/intui\` numbers, which are estimates today).`),
 
   text(`## The type
-One word, written by code next to a number it wrote. Absent means \`exact\`, so every old tree means what it meant.`),
+A number becomes one value that says how sure it is. A bare number still means exact, so every old tree means what it meant. Each kind carries only its own fields, so an unknown can't hold a number and a floor can't lose its value.`),
   {
     type: 'Table',
-    caption: 'Certainty: the four variants',
+    caption: 'Reading: the four kinds built now',
     columns: [
-      { key: 'variant', label: 'Variant' },
+      { key: 'variant', label: 'Kind' },
       { key: 'means', label: 'Means' },
       { key: 'when', label: 'Code picks it when' },
       { key: 'drawn', label: 'Drawn as' },
       { key: 'text', label: 'Text form the model reads' },
     ],
     rows: [
-      { variant: 'exact', means: 'Counted, complete', when: 'Every source was read in full', drawn: '216', text: '216 tokens' },
+      { variant: 'exact (or a bare number)', means: 'Counted, complete', when: 'Every source was read in full', drawn: '216', text: '216 tokens' },
       { variant: 'atLeast', means: 'A floor: the real value may be higher', when: 'A source was partial (stream-start counts, a page of results)', drawn: '≥ 216', text: 'at least 216 tokens' },
       { variant: 'estimate', means: 'Inferred, not counted', when: 'Extrapolated, sampled, or priced from a guess', drawn: '~216', text: 'about 216 tokens' },
       { variant: 'unknown', means: "Couldn't be read; no value", when: 'The read failed or the source is missing', drawn: '— (unknown)', text: 'unknown' },
@@ -40,26 +46,25 @@ One word, written by code next to a number it wrote. Absent means \`exact\`, so 
 
   text(`## The schema change (all additive)
 \`\`\`ts
-export const CERTAINTIES =
-  ["exact", "atLeast", "estimate", "unknown"] as const
-export type Certainty = (typeof CERTAINTIES)[number]
+// On the wire: Stat.value, Stat.change.value, a Chart point's y
+value: number                                  // exact (every old tree)
+     | { kind: "exact";    value: number }
+     | { kind: "atLeast";  value: number }
+     | { kind: "estimate"; value: number }
+     | { kind: "unknown" }
 
-// Stat
-value?: number         // absent only when "unknown"
-certainty?: Certainty  // default "exact"
-change?: {
-  value: number
-  as: "amount" | "percent"
-  certainty?: Certainty
-}
+// Inside the code: parsed at the boundary into
+type Reading =
+  | { kind: "exact";    value: number }
+  | { kind: "atLeast";  value: number }
+  | { kind: "estimate"; value: number }
+  | { kind: "unknown" }
 
-// Chart point
-{
-  x: string | number
-  y?: number             // absent only when "unknown"
-  certainty?: Certainty
-}
-\`\`\``),
+// Built by code with constructors, never by hand:
+Reading.atLeast(216)   Reading.unknown()
+\`\`\`
+
+**How it grows.** A new kind is a new member of the union, with its own fields, and the compiler points at every drawer and text form that doesn't handle it. Planned, not built: \`{ kind: "spread", value, sd, n? }\` (216 ± 12, 1 sd) and \`{ kind: "interval", low, high, level }\` (200 to 230, 95%). A p-value describes a comparison, not one number, so it belongs on a Stat's change, between two series, or on a Claim, in a proposal of its own.`),
 
   {
     type: 'Table',
@@ -70,10 +75,10 @@ change?: {
       { key: 'refusal', label: 'Refusal the code author reads' },
     ],
     rows: [
-      { rule: 'unknown ⇔ no value', why: 'An unknown can never pass for 0, and a value can never be called unknown', refusal: 'Stat.value: a value marked "unknown" must leave value out; remove value, or say how sure it is' },
-      { rule: 'Absent certainty = exact', why: 'Old trees in transcripts keep their meaning', refusal: '(none: the default)' },
+      { rule: 'Each kind has exactly its fields', why: 'An unknown can never pass for 0; a floor can never lose its number', refusal: 'root.value: kind "unknown" has no value; remove value, or use kind "atLeast" or "estimate" if you have a number' },
+      { rule: 'A bare number = exact', why: 'Old trees in transcripts keep their meaning', refusal: '(none)' },
       { rule: 'Still writer: "code"', why: 'Only the code that read the source knows how sure it is', refusal: 'The model is refused Stat and Chart as today' },
-      { rule: 'Change has its own certainty', why: 'A change between two floors is itself unknown, and code should say so', refusal: '(none: optional, default exact)' },
+      { rule: 'Every value is its own reading', why: 'A change or one chart point can be a floor while the rest are exact', refusal: '(none)' },
     ],
   } as Node,
 
@@ -87,9 +92,9 @@ Each number starts as a read in code, settles into one variant, and keeps it all
       { id: 'atLeast', label: 'atLeast', detail: 'read partly' },
       { id: 'estimate', label: 'estimate', detail: 'inferred' },
       { id: 'unknown', label: 'unknown', detail: 'read failed: no value' },
-      { id: 'tree', label: 'Tree.of checks it', detail: 'unknown ⇔ no value' },
-      { id: 'draw', label: 'Renderer draws the mark', detail: '≥  ~  —' },
-      { id: 'words', label: 'toText writes the words', detail: 'at least · about · unknown' },
+      { id: 'tree', label: 'Tree.of parses it', detail: 'into a Reading' },
+      { id: 'draw', label: 'Renderer draws the mark', detail: 'switch on kind: ≥  ~  —' },
+      { id: 'words', label: 'toText writes the words', detail: 'switch on kind: at least · about · unknown' },
       { id: 'model', label: 'Model reads it back', detail: 'and repeats it honestly' },
     ],
     links: [
@@ -108,19 +113,22 @@ Each number starts as a read in code, settles into one variant, and keeps it all
   } as Node,
 
   text(`## Fallback
-A renderer that doesn't know \`certainty\` yet draws the Stat's text form, which already carries the words. Older copies of core refuse trees that use the new props (the schemas are strict); the hub and labbook build from this repo, so they update together.
+A renderer that doesn't know readings yet draws the Stat's text form, which already carries the words. Older copies of core refuse trees that use readings (the schemas are strict); the hub and labbook build from this repo, so they update together.
 
 ## What gets built (one lane)
-- \`core\`: the \`Certainty\` type, the Stat and Chart props, the invariant, the text forms.
+- \`core\`: the \`Reading\` union and its constructors, the wider Stat and Chart values, the text forms.
 - \`web\` and the Claude Code plugin: draw the marks; a chart breaks its line at an unknown point and marks floors and estimates.
-- Checks, end to end: the model's text form says "at least" / "about" / "unknown"; a tree with value and unknown is refused with the message above; an unknown never draws as 0; an old tree draws unchanged.`),
+- Checks, end to end: the model's text form says "at least" / "about" / "unknown"; an unknown with a value is refused with the message above; an unknown never draws as 0; an old tree draws unchanged.`),
 
-  text(`## Assumptions, each yours to accept or reject
-1. Four variants and no more: no "at most", no ranges like "between 2 and 5". Those would be a later proposal.
-2. \`unknown\` carries no reason text in this version. The tool's own result can say why.
-3. It's on \`Stat\` values and changes and on chart points only. \`Table\` cells stay plain, since the model writes tables.
-4. The word in the text form is English ("at least", "about"), like every other text form.
-5. Visible time (made at, data as of) is a separate lane after this one.`),
+  text(`## Settled in review
+1. The wire uses \`kind\` plus that kind's fields; a bare number still means exact.
+2. This lane builds exact, atLeast, estimate and unknown. Spread and interval are the planned way it grows, not built.
+3. P-values go with comparisons, in their own proposal.
+
+## Still open (assumptions, each yours to reject)
+1. \`unknown\` carries no reason text in this version; the tool's own result can say why.
+2. \`Table\` cells stay plain numbers, since the model writes tables.
+3. Visible time is the lane after this one; friendlier refusals the one after that.`),
 ]
 
 const root = { type: 'Group', direction: 'column', children: sections } as Node
