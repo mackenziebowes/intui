@@ -213,6 +213,26 @@ describe('awkward trees', () => {
   })
 })
 
+describe('Flow', () => {
+  test('in a row, a link that skips a layer is written in its source box, never drawn through the boxes between', () => {
+    const flow = page<{ direction: string; arrows: number; who: string; labels: string[] }>(`(() => {
+      const root = document.querySelector('#skipping')
+      const who = [...root.querySelectorAll('.intui-flow-step')].find(step => step.querySelector('.intui-flow-label').textContent === 'Who')
+      return {
+        direction: root.querySelector('.intui-flow-canvas').dataset.direction,
+        arrows: root.querySelectorAll('.intui-flow-arrow').length,
+        who: who.querySelector('.intui-flow-notes').textContent,
+        labels: [...root.querySelectorAll('.intui-flow-edge-label')].map(label => label.textContent),
+      }
+    })()`)
+    expect(flow.direction).toBe('row')
+    expect(flow.who).toContain('To Refused (notYours)')
+    // write→who, who→shape, shape→drawn, shape→refused, refused→text; the loop back is a note too.
+    expect(flow.arrows).toBe(5)
+    expect(flow.labels).not.toContain('notYours')
+  })
+})
+
 describe('readings: how sure a number is', () => {
   test('each kind draws its mark, and an unknown draws the word and no number', () => {
     // What a sighted reader sees: the screen-reader-only words are left out.

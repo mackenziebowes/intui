@@ -134,6 +134,28 @@ const readings: Node = {
   ],
 } as Node
 
+// A row with a link that skips a layer (who → refused) and a loop back (refused → write).
+const skipping: Node = {
+  type: 'Flow',
+  steps: [
+    { id: 'write', label: 'Write' },
+    { id: 'who', label: 'Who' },
+    { id: 'shape', label: 'Shape' },
+    { id: 'refused', label: 'Refused' },
+    { id: 'drawn', label: 'Drawn' },
+    { id: 'text', label: 'Gives up' },
+  ],
+  links: [
+    { from: 'write', to: 'who' },
+    { from: 'who', to: 'shape', label: 'yes' },
+    { from: 'who', to: 'refused', label: 'notYours' },
+    { from: 'shape', to: 'drawn', label: 'fits' },
+    { from: 'shape', to: 'refused', label: 'problems' },
+    { from: 'refused', to: 'write', label: 'retry' },
+    { from: 'refused', to: 'text', label: 'give up' },
+  ],
+} as Node
+
 type Fixture = { id: string; root: Node; options?: Partial<RenderOptions>; width?: number }
 
 const fixtures: Fixture[] = [
@@ -146,6 +168,7 @@ const fixtures: Fixture[] = [
   { id: 'form-odd', root: oddForm },
   { id: 'hostile', root: hostile },
   { id: 'awkward', root: awkward, width: 200 },
+  { id: 'skipping', root: skipping, width: 1200 },
   { id: 'readings', root: readings },
 ]
 

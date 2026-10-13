@@ -18,7 +18,8 @@ const COLUMN_BOX_MIN = 120
 const COLUMN_GAP = 12
 
 /**
- * - `row`: layers left to right, arrows between every linked pair.
+ * - `row`: layers left to right, arrows between neighbouring layers; a link that skips
+ *   a layer is written in its source box, never drawn through the boxes between.
  * - `column`: layers top to bottom, each layer's steps side by side.
  * - `list`: one box per line, in layer order. Only links between neighbours are drawn;
  *   the rest are written in the source's box, so no arrow ever crosses a box.
@@ -64,6 +65,13 @@ export function flowPlan(steps: readonly FlowStep[], links: readonly FlowLink[],
     analysis.back.filter(edge => edge.from === i).map(edge => ({ text: `Back to ${steps[edge.to]!.label}${suffix(edge)}`, kind: 'back' as const })),
   )
   let edges = analysis.edges
+  // In a row, a link that skips a layer would be drawn through the boxes between
+  // (and its label hidden under them), so it is written in its source box instead.
+  if (direction === 'row') {
+    const next = (edge: Edge) => analysis.layerOf[edge.to] === analysis.layerOf[edge.from]! + 1
+    for (const edge of edges.filter(e => !next(e))) notes[edge.from]!.push({ text: `To ${steps[edge.to]!.label}${suffix(edge)}`, kind: 'link' })
+    edges = edges.filter(next)
+  }
   if (direction === 'list') {
     const position = new Map(analysis.layers.flat().map((step, k) => [step, k]))
     const adjacent = (edge: Edge) => position.get(edge.to) === position.get(edge.from)! + 1
