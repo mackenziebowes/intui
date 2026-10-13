@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'bun:test'
-import { blockedNote, missingRequired, parseNumber, summarize } from '../src/draw/form-logic'
+import { blockedNote, missingRequired, summarize } from '../src/draw/form-logic'
 import { form as formDrawer } from '../src/draw/form'
 import { draw, findAll, press, textOf, type Drawn } from './harness'
 
@@ -17,12 +17,6 @@ const typeInto = (drawn: Drawn, label: string, value: string) =>
   (findAll(drawn, 'Input').find(i => String(i.props.label).startsWith(label))!.props.onInput as (v: string) => unknown)(value)
 
 describe('form logic', () => {
-  test('parseNumber: valid, invalid and cleared', () => {
-    expect(parseNumber(' 12.5 ')).toEqual({ kind: 'value', value: 12.5 })
-    expect(parseNumber('-3e2')).toEqual({ kind: 'value', value: -300 })
-    expect(parseNumber('')).toEqual({ kind: 'cleared' })
-    for (const bad of ['abc', '0x10', 'Infinity', '1,5', '1.2.3']) expect(parseNumber(bad).kind).toBe('invalid')
-  })
   test('missingRequired treats blank text as missing', () => {
     expect(missingRequired(fields, () => undefined)).toEqual(['Title'])
     expect(missingRequired(fields, () => '  ')).toEqual(['Title'])

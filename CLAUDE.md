@@ -1,6 +1,6 @@
 # CLAUDE.md
 
-IntUI: a component protocol so agents can answer with interactive UI on any surface. `packages/core` is the protocol; each renderer is its own package.
+IntUI: a component protocol so agents can answer with interactive UI on any surface. `packages/core` is the protocol; each renderer is its own package, and `packages/layout` holds the data math they share (chart scales, flow layering), so renderers never copy from each other.
 
 ## Commands
 

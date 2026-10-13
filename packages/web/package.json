@@ -1,0 +1,25 @@
+{
+  "name": "@intui/web",
+  "version": "0.1.0",
+  "description": "Draws IntUI trees as DOM in the browser: semantic HTML, SVG charts, real controls.",
+  "type": "module",
+  "license": "MIT",
+  "exports": {
+    ".": "./src/index.ts",
+    "./paths": "./src/paths.ts",
+    "./style.css": "./src/style.css"
+  },
+  "scripts": {
+    "build": "bun build.ts",
+    "demo": "bun build.ts && echo \"open packages/web/dist/demo.html\"",
+    "typecheck": "tsc --noEmit -p ."
+  },
+  "dependencies": {
+    "@intui/core": "workspace:*",
+    "@intui/layout": "workspace:*",
+    "marked": "18.1.0"
+  },
+  "devDependencies": {
+    "happy-dom": "20.14.5"
+  }
+}

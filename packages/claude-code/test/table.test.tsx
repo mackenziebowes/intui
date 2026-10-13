@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'bun:test'
-import { allocateWidths, alignOf, layoutTable } from '../src/draw/table-layout'
+import { allocateWidths, layoutTable } from '../src/draw/table-layout'
 import { draw, findAll, textOf } from './harness'
 
 const cols = [
@@ -13,13 +13,6 @@ const rows = [
 const many = Array.from({ length: 6 }, (_, i) => ({ key: `k${i}`, label: `Column ${i}` }))
 
 describe('table layout', () => {
-  test('alignment: explicit wins, all-number columns go right', () => {
-    expect(alignOf(cols[1]!, rows)).toBe('end')
-    expect(alignOf(cols[0]!, rows)).toBe('start')
-    expect(alignOf({ ...cols[1]!, align: 'start' }, rows)).toBe('start')
-    expect(alignOf(cols[1]!, [{ count: 1 }, { count: 'n/a' }])).toBe('start')
-  })
-
   test('allocateWidths keeps short columns and shrinks the widest', () => {
     expect(allocateWidths([5, 30], [4, 4], 20)).toEqual([5, 13])
     expect(allocateWidths([5, 8], [4, 4], 80)).toEqual([5, 8])

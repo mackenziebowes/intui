@@ -59,4 +59,9 @@ describe("events", () => {
   test("names the bad field when an event doesn't parse", () => {
     expect(() => IntuiEvent.parse({ v: 1, source: "t", target: "next", action: "press" })).toThrow('value: this is required; add "value"');
   });
+
+  test("an empty submit is refused for a required field named constructor", () => {
+    const odd = Tree.of({ type: "Form", id: "odd", fields: [{ id: "constructor", label: "Ctor", input: "text", required: true }], submitLabel: "Go" } as never);
+    expect(() => odd.verify(IntuiEvent.submit("t", "odd", {}))).toThrow('required field "Ctor" left empty');
+  });
 });

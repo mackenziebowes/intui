@@ -1,4 +1,4 @@
-import { formatValue, markerGlyph, placeLabels, project, withUnit, type ChartModel } from './chart-scale'
+import { formatValue, markerGlyph, placeLabels, project, withUnit, type ChartModel } from '@intui/layout'
 
 /** How a run of text is drawn; the drawer maps each to element props through theme.ts. */
 export type Style = 'primary' | 'baseline' | 'comparison' | 'guide' | 'axis' | 'marker' | 'plain'

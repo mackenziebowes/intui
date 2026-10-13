@@ -63,8 +63,13 @@ export class Tree {
 
   /** Markdown for the whole tree: what the model reads back, and every surface's fallback. */
   toText(): string {
-    const text = (node: Node): string => this.catalog.kindOf(node).toText(node, text);
-    return text(this.root);
+    return this.textOf(this.root);
+  }
+
+  /** Markdown for one node of this tree, written by the catalog the tree was parsed with. */
+  textOf(node: Node): string {
+    const text = (child: Node): string => this.catalog.kindOf(child).toText(child, text);
+    return text(node);
   }
 
   toJSON(): TreeData {

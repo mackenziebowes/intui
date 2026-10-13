@@ -73,7 +73,7 @@ export class IntuiEvent {
       const wrong = valueProblem(field, value);
       if (wrong) return wrong;
     }
-    const missing = component.fields.filter((field) => field.required && !(field.id in data.value));
+    const missing = component.fields.filter((field) => field.required && !Object.hasOwn(data.value, field.id));
     return missing.length ? `required ${missing.length === 1 ? "field" : "fields"} ${missing.map((f) => `"${f.label}"`).join(", ")} left empty` : null;
   }
 

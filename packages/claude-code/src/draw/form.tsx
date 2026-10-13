@@ -1,8 +1,9 @@
 import type { FieldValue, FormField, FormProps } from '@intui/core'
 import type { ElementTable } from 'claude-code'
+import { parseNumber } from '@intui/layout'
 import { defineDrawer, type DrawContext } from './drawer'
 import { describeError } from './choice-view'
-import { blockedNote, checkboxLabel, fieldLabel, missingRequired, parseNumber, summarize } from './form-logic'
+import { blockedNote, checkboxLabel, fieldLabel, missingRequired, summarize } from './form-logic'
 
 type Fields = ElementTable<'terminal'>
 const fieldElements = (ctx: DrawContext) => (ctx.surface === 'mobile' ? undefined : (ctx.el as unknown as Fields))

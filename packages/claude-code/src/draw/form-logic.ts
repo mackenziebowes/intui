@@ -1,20 +1,5 @@
 import type { FieldValue, FormField } from '@intui/core'
 
-export type NumberInput =
-  | { kind: 'value'; value: number }
-  | { kind: 'cleared' }
-  | { kind: 'invalid'; note: string }
-
-const NUMBER = /^[+-]?(\d+\.?\d*|\.\d+)(e[+-]?\d+)?$/i
-
-/** Reads what was typed into a number field. Never throws. */
-export function parseNumber(raw: string): NumberInput {
-  const trimmed = raw.trim()
-  if (trimmed === '') return { kind: 'cleared' }
-  const value = NUMBER.test(trimmed) ? Number(trimmed) : NaN
-  return Number.isFinite(value) ? { kind: 'value', value } : { kind: 'invalid', note: `"${trimmed.slice(0, 20)}" is not a number` }
-}
-
 const isEmpty = (value: FieldValue | undefined) => value === undefined || (typeof value === 'string' && value.trim() === '')
 
 /** Labels of required fields with no value yet. A required checkbox counts once it has been set either way. */

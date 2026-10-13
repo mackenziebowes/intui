@@ -1,4 +1,5 @@
 import { cellText, type CellValue, type TableColumn } from '@intui/core'
+import { alignOf } from '@intui/layout'
 
 /** Cells between columns. */
 export const GAP = 2
@@ -18,13 +19,6 @@ export function truncate(text: string, width: number): string {
 export function pad(text: string, width: number, align: 'start' | 'end'): string {
   const cut = truncate(text, width)
   return align === 'end' ? cut.padStart(width) : cut.padEnd(width)
-}
-
-/** Columns whose present values are all numbers align right unless the column says otherwise. */
-export function alignOf(column: TableColumn, rows: Record<string, CellValue>[]): 'start' | 'end' {
-  if (column.align) return column.align
-  const values = rows.map(row => row[column.key]).filter(value => value !== null && value !== undefined)
-  return values.length > 0 && values.every(value => typeof value === 'number') ? 'end' : 'start'
 }
 
 /**

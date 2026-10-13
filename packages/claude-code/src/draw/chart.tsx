@@ -1,8 +1,8 @@
 import type { ChartProps } from '@intui/core'
 import type { ElementTable } from 'claude-code'
 import { defineDrawer } from './drawer'
-import { buildModel } from './chart-scale'
-import { buildSvg, describe, type SvgColors } from './chart-svg'
+import { buildModel, describeChart } from '@intui/layout'
+import { buildSvg, type SvgColors } from './chart-svg'
 import { legendRows, markerRows, plotRows, type Row, type Style } from './chart-text'
 import { ACCENT, SVG, TONE_COLOR } from './theme'
 
@@ -57,7 +57,7 @@ export const chart = defineDrawer<ChartProps>({
       plot = asRows(rows)
     } else {
       const width = Math.min(columns * PIXELS_PER_COLUMN, MAX_SVG_WIDTH)
-      plot = <el.Svg source={buildSvg(model, width, Math.round(width * 0.45), SVG_COLORS)} alt={describe(model, props.title)} />
+      plot = <el.Svg source={buildSvg(model, width, Math.round(width * 0.45), SVG_COLORS)} alt={describeChart(model, props.title)} />
     }
     return (
       <el.Box flexDirection="column">

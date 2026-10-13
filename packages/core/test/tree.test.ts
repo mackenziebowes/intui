@@ -108,4 +108,9 @@ describe("text forms", () => {
     const tree = Tree.parse({ v: 1, root: { type: "Table", columns: [{ key: "a", label: "A" }], rows: [{ a: "x | y" }] } });
     expect(tree.toText()).toContain("x \\| y");
   });
+
+  test("textOf gives one node's text form, using the catalog the tree was parsed with", () => {
+    const tree = Tree.parse({ v: 1, root: { type: "Group", children: [{ type: "Label", text: "ok" }, { type: "Text", markdown: "hi" }] } });
+    expect(tree.textOf({ type: "Label", text: "ok", tone: "neutral" } as never)).toBe("[ok]");
+  });
 });

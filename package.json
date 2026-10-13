@@ -6,11 +6,12 @@
     "packages/*"
   ],
   "scripts": {
-    "test": "bun test packages/core packages/claude-code/test",
-    "typecheck": "tsc --noEmit && tsc --noEmit -p packages/claude-code && tsc --noEmit -p packages/claude-code/tsconfig.test.json",
+    "test": "bun test packages/core packages/layout/test packages/claude-code/test packages/web/test",
+    "typecheck": "tsc --noEmit && tsc --noEmit -p packages/claude-code && tsc --noEmit -p packages/claude-code/tsconfig.test.json && tsc --noEmit -p packages/web && tsc --noEmit -p packages/layout",
     "site": "bun site/build.ts",
     "site:dev": "bun site/build.ts && bunx serve site/dist",
-    "plugin": "bun packages/claude-code/build.ts"
+    "plugin": "bun packages/claude-code/build.ts",
+    "web": "bun packages/web/build.ts"
   },
   "devDependencies": {
     "@types/bun": "latest",

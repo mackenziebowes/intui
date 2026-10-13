@@ -1,10 +1,6 @@
 import { formatNumber, type Change } from '@intui/core'
+import { direction } from '@intui/layout'
 import { fit } from './label-shape'
-
-/** Which way a change went. Direction only: whether it is good news is the tone's job. */
-export function direction(change: Change): 'up' | 'down' | 'flat' {
-  return change.value > 0 ? 'up' : change.value < 0 ? 'down' : 'flat'
-}
 
 const MARKER = { up: '▲', down: '▼', flat: '–' } as const
 

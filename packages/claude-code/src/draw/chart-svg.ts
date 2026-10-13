@@ -1,4 +1,4 @@
-import { formatValue, markerGlyph, placeLabels, project, withUnit, type ChartModel } from './chart-scale'
+import { formatValue, markerGlyph, placeLabels, project, withUnit, type ChartModel } from '@intui/layout'
 
 export type SvgColors = {
   /** Series and marker colors by role; text and grid use `quiet`. */
@@ -87,14 +87,4 @@ export function buildSvg(model: ChartModel, width: number, height: number, color
   }
   out.push('</svg>')
   return out.join('')
-}
-
-/** What the drawing says for a reader who can't see it. */
-export function describe(model: ChartModel, title?: string): string {
-  const parts = model.series.map(s => {
-    const values = s.values.filter((v): v is number => v !== undefined)
-    return `${s.label} from ${formatValue(Math.min(...values))} to ${formatValue(Math.max(...values))}`
-  })
-  const markers = model.markers.length > 0 ? `; markers: ${model.markers.map(m => `${m.at} ${m.label}`).join(', ')}` : ''
-  return `${model.kind} chart${title ? ` "${title}"` : ''}${model.unit ? ` in ${model.unit}` : ''}: ${parts.join('; ')}${markers}`
 }

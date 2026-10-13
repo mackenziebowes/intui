@@ -1,0 +1,997 @@
+/*
+ * @intui/web stylesheet.
+ *
+ * Tokens: a host page sets any of the public --intui-* properties, on :root or on
+ * any ancestor of .intui, and they win over the defaults below. Map your own:
+ *
+ *   .intui { --intui-fg: var(--text); --intui-accent: var(--accent); }
+ *
+ * Public tokens
+ *   --intui-font, --intui-font-mono       type (default: the host's font)
+ *   --intui-fg, --intui-muted             text, secondary text
+ *   --intui-bg                            behind the tree (default transparent)
+ *   --intui-surface                       inside boxes, buttons and inputs
+ *   --intui-line, --intui-line-strong     hairlines, control borders
+ *   --intui-accent, --intui-on-accent     the primary action and its text
+ *   --intui-positive, --intui-warning, --intui-critical   tones
+ *   --intui-series-primary, --intui-series-baseline, --intui-series-comparison, --intui-marker
+ *   --intui-radius                        corner radius of boxes and controls
+ *
+ * Theme: follows the system, or [data-theme="light|dark"] on .intui or any ancestor.
+ * Props are meanings; this file decides looks: .intui-tone-*, .intui-role-*.
+ */
+
+.intui {
+  --_font: var(--intui-font, inherit);
+  --_mono: var(--intui-font-mono, ui-monospace, "SF Mono", "Cascadia Code", Menlo, Consolas, monospace);
+  --_fg: var(--intui-fg, oklch(0.24 0.012 75));
+  --_muted: var(--intui-muted, oklch(0.5 0.012 75));
+  --_bg: var(--intui-bg, transparent);
+  --_surface: var(--intui-surface, oklch(0.995 0.002 75));
+  --_line: var(--intui-line, oklch(0.9 0.006 75));
+  --_line-strong: var(--intui-line-strong, oklch(0.78 0.008 75));
+  --_accent: var(--intui-accent, oklch(0.47 0.12 252));
+  --_on-accent: var(--intui-on-accent, oklch(0.99 0.004 252));
+  --_positive: var(--intui-positive, oklch(0.5 0.12 152));
+  --_warning: var(--intui-warning, oklch(0.56 0.13 68));
+  --_critical: var(--intui-critical, oklch(0.52 0.17 27));
+  --_series-primary: var(--intui-series-primary, var(--_accent));
+  --_series-baseline: var(--intui-series-baseline, var(--_muted));
+  --_series-comparison: var(--intui-series-comparison, oklch(0.62 0.11 195));
+  --_marker: var(--intui-marker, var(--_warning));
+  --_radius: var(--intui-radius, 6px);
+  --_gap: 0.75em;
+
+  container: intui / inline-size;
+  min-width: 0;
+  color: var(--_fg);
+  background: var(--_bg);
+  font-family: var(--_font);
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+  -webkit-text-size-adjust: 100%;
+}
+
+@media (prefers-color-scheme: dark) {
+  .intui:not([data-theme="light"]):not(:where([data-theme="light"]) .intui) {
+    --_fg: var(--intui-fg, oklch(0.93 0.006 75));
+    --_muted: var(--intui-muted, oklch(0.7 0.01 75));
+    --_surface: var(--intui-surface, oklch(0.25 0.006 75));
+    --_line: var(--intui-line, oklch(0.34 0.008 75));
+    --_line-strong: var(--intui-line-strong, oklch(0.46 0.01 75));
+    --_accent: var(--intui-accent, oklch(0.76 0.1 252));
+    --_on-accent: var(--intui-on-accent, oklch(0.2 0.03 252));
+    --_positive: var(--intui-positive, oklch(0.76 0.13 152));
+    --_warning: var(--intui-warning, oklch(0.8 0.12 75));
+    --_critical: var(--intui-critical, oklch(0.74 0.14 27));
+    --_series-comparison: var(--intui-series-comparison, oklch(0.78 0.09 195));
+    color-scheme: dark;
+  }
+}
+
+.intui[data-theme="dark"],
+:where([data-theme="dark"]) .intui:not([data-theme="light"]) {
+  --_fg: var(--intui-fg, oklch(0.93 0.006 75));
+  --_muted: var(--intui-muted, oklch(0.7 0.01 75));
+  --_surface: var(--intui-surface, oklch(0.25 0.006 75));
+  --_line: var(--intui-line, oklch(0.34 0.008 75));
+  --_line-strong: var(--intui-line-strong, oklch(0.46 0.01 75));
+  --_accent: var(--intui-accent, oklch(0.76 0.1 252));
+  --_on-accent: var(--intui-on-accent, oklch(0.2 0.03 252));
+  --_positive: var(--intui-positive, oklch(0.76 0.13 152));
+  --_warning: var(--intui-warning, oklch(0.8 0.12 75));
+  --_critical: var(--intui-critical, oklch(0.74 0.14 27));
+  --_series-comparison: var(--intui-series-comparison, oklch(0.78 0.09 195));
+  color-scheme: dark;
+}
+
+.intui[data-theme="light"] {
+  color-scheme: light;
+}
+
+.intui *,
+.intui *::before,
+.intui *::after {
+  box-sizing: border-box;
+}
+
+.intui ::selection {
+  background: color-mix(in oklab, var(--_accent) 28%, transparent);
+}
+
+.intui :focus-visible {
+  outline: 2px solid var(--_accent);
+  outline-offset: 2px;
+}
+
+.intui-sr {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.intui-muted {
+  color: var(--_muted);
+}
+
+/* Tones: what a value means. Text stays readable by mixing the tone toward the foreground. */
+.intui-tone-neutral { --_tone: var(--_fg); }
+.intui-tone-muted { --_tone: var(--_muted); }
+.intui-tone-positive { --_tone: var(--_positive); }
+.intui-tone-warning { --_tone: var(--_warning); }
+.intui-tone-critical { --_tone: var(--_critical); }
+
+/* ---- Text ---- */
+
+.intui-text {
+  max-width: 70ch;
+}
+
+.intui-text > :first-child { margin-top: 0; }
+.intui-text > :last-child { margin-bottom: 0; }
+
+.intui-text p,
+.intui-text ul,
+.intui-text ol,
+.intui-text pre,
+.intui-text blockquote,
+.intui-text table {
+  margin: 0 0 0.65em;
+}
+
+.intui-text h1,
+.intui-text h2,
+.intui-text h3,
+.intui-text h4,
+.intui-text h5,
+.intui-text h6 {
+  margin: 1.1em 0 0.35em;
+  line-height: 1.25;
+  font-weight: 650;
+  text-wrap: balance;
+}
+
+/* One step of 1.25 between sizes: 0.8em small, 1em body, 1.25em, 1.5625em; Stat values at 1.95em. */
+.intui-text h1 { font-size: 1.5625em; }
+.intui-text h2 { font-size: 1.25em; }
+.intui-text h3,
+.intui-text h4,
+.intui-text h5,
+.intui-text h6 { font-size: 1em; }
+
+.intui-text ul,
+.intui-text ol {
+  padding-left: 1.4em;
+}
+
+.intui-text li + li { margin-top: 0.2em; }
+
+.intui-text a {
+  color: var(--_accent);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.18em;
+}
+
+.intui-text code {
+  font-family: var(--_mono);
+  font-size: 0.9em;
+  padding: 0.08em 0.3em;
+  border-radius: 4px;
+  background: color-mix(in oklab, var(--_fg) 7%, transparent);
+}
+
+.intui-text pre {
+  overflow-x: auto;
+  padding: 0.7em 0.85em;
+  border: 1px solid var(--_line);
+  border-radius: var(--_radius);
+  background: color-mix(in oklab, var(--_fg) 4%, transparent);
+  overflow-wrap: normal;
+}
+
+.intui-text pre code {
+  padding: 0;
+  background: none;
+  font-size: 0.8em;
+}
+
+.intui-text blockquote {
+  padding: 0.1em 0 0.1em 0.9em;
+  border-left: 1px solid var(--_line-strong);
+  color: var(--_muted);
+}
+
+.intui-text hr {
+  border: 0;
+  border-top: 1px solid var(--_line);
+  margin: 1em 0;
+}
+
+.intui-text img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 4px;
+}
+
+.intui-text table {
+  border-collapse: collapse;
+  font-variant-numeric: tabular-nums;
+  display: block;
+  overflow-x: auto;
+}
+
+.intui-text th,
+.intui-text td {
+  padding: 0.3em 0.75em 0.3em 0;
+  border-bottom: 1px solid var(--_line);
+  text-align: left;
+}
+
+/* ---- Group ---- */
+
+.intui-group {
+  display: flex;
+  gap: var(--_gap);
+  min-width: 0;
+}
+
+.intui-group--column {
+  flex-direction: column;
+  gap: 1em;
+}
+
+.intui-group--row {
+  flex-flow: row wrap;
+  align-items: baseline;
+  column-gap: 1.25em;
+}
+
+.intui-group--column > * { min-width: 0; }
+.intui-group--row > * { min-width: 0; max-width: 100%; }
+
+/* Big pieces in a row share it instead of shrinking to their content. */
+.intui-group--row > :is(.intui-chart, .intui-flow, .intui-table, .intui-form, .intui-group--column) {
+  flex: 1 1 18em;
+}
+
+@container intui (max-width: 30em) {
+  .intui-group--row:has(> :is(.intui-chart, .intui-flow, .intui-table, .intui-form, .intui-group--column)) {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}
+
+/* ---- Label ---- */
+
+.intui-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35em;
+  padding: 0.1em 0.55em;
+  border-radius: 999px;
+  font-size: 0.8em;
+  font-weight: 550;
+  line-height: 1.5;
+  white-space: nowrap;
+  color: color-mix(in oklab, var(--_tone) 78%, var(--_fg));
+  background: color-mix(in oklab, var(--_tone) 12%, transparent);
+  box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--_tone) 24%, transparent);
+}
+
+.intui-label.intui-tone-neutral {
+  color: var(--_fg);
+  background: color-mix(in oklab, var(--_fg) 6%, transparent);
+  box-shadow: inset 0 0 0 1px var(--_line);
+}
+
+.intui-label.intui-tone-muted {
+  color: var(--_muted);
+  background: transparent;
+  box-shadow: inset 0 0 0 1px var(--_line);
+}
+
+/* ---- Stat ---- */
+
+.intui-stat {
+  display: grid;
+  gap: 0.1em;
+  min-width: 7em;
+  font-variant-numeric: tabular-nums;
+}
+
+.intui-stat p { margin: 0; }
+
+.intui-stat-label {
+  color: var(--_muted);
+  font-size: 0.8em;
+}
+
+.intui-stat-value {
+  font-size: 1.95em;
+  font-weight: 650;
+  line-height: 1.15;
+  letter-spacing: -0.015em;
+}
+
+.intui-stat-change {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35em;
+  font-size: 0.8em;
+  font-weight: 550;
+  color: color-mix(in oklab, var(--_tone) 85%, var(--_fg));
+}
+
+.intui-stat.intui-tone-neutral .intui-stat-change { color: var(--_muted); }
+
+.intui-stat-change svg {
+  fill: currentColor;
+  flex: none;
+}
+
+/* ---- Table ---- */
+
+.intui-table {
+  min-width: 0;
+}
+
+.intui-table-scroll {
+  overflow-x: auto;
+  border-radius: 2px;
+}
+
+.intui-table table {
+  width: auto;
+  min-width: min(100%, 30em);
+  border-collapse: collapse;
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: normal;
+}
+
+.intui-table caption {
+  caption-side: top;
+  text-align: left;
+  color: var(--_muted);
+  font-size: 0.8em;
+  padding-bottom: 0.4em;
+}
+
+.intui-table th,
+.intui-table td {
+  padding: 0.45em 1em 0.45em 0;
+  text-align: left;
+  vertical-align: top;
+  border-bottom: 1px solid var(--_line);
+}
+
+.intui-table th:last-child,
+.intui-table td:last-child { padding-right: 0; }
+
+.intui-table th {
+  font-size: 0.8em;
+  font-weight: 600;
+  color: var(--_muted);
+  border-bottom-color: var(--_line-strong);
+  white-space: nowrap;
+}
+
+.intui-table .is-end { text-align: right; }
+
+.intui-table tbody tr:last-child td { border-bottom: 0; }
+
+.intui-empty {
+  margin: 0.5em 0 0;
+  color: var(--_muted);
+  font-size: 0.8em;
+}
+
+/* In a narrow column, a table of three or more columns becomes one block per row. */
+@container intui (max-width: 30em) {
+  .intui-table--stackable thead {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+  }
+
+  .intui-table--stackable table,
+  .intui-table--stackable tbody,
+  .intui-table--stackable tr,
+  .intui-table--stackable td {
+    display: block;
+  }
+
+  .intui-table--stackable caption { display: block; }
+
+  .intui-table--stackable tr {
+    padding: 0.55em 0;
+    border-bottom: 1px solid var(--_line);
+  }
+
+  .intui-table--stackable tbody tr:last-child { border-bottom: 0; }
+
+  .intui-table--stackable td {
+    display: grid;
+    grid-template-columns: minmax(6em, 38%) 1fr;
+    gap: 0.75em;
+    padding: 0.12em 0;
+    border: 0;
+    text-align: left;
+  }
+
+  .intui-table--stackable td.is-end { text-align: left; }
+
+  .intui-table--stackable td::before {
+    content: attr(data-label);
+    color: var(--_muted);
+    font-size: 0.8em;
+  }
+
+  .intui-table--stackable td:first-child {
+    font-weight: 600;
+  }
+}
+
+/* ---- Chart ---- */
+
+.intui-chart {
+  margin: 0;
+  min-width: 0;
+}
+
+.intui-chart-title {
+  font-weight: 600;
+  margin-bottom: 0.4em;
+}
+
+.intui-chart-plot {
+  width: 100%;
+  min-width: 0;
+}
+
+.intui-chart-plot svg {
+  display: block;
+  overflow: visible;
+  font-family: var(--_font);
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+}
+
+.intui-chart-grid line {
+  stroke: var(--_line);
+  stroke-width: 1;
+  shape-rendering: crispEdges;
+}
+
+.intui-chart-grid line.intui-chart-zero { stroke: var(--_line-strong); }
+
+.intui-chart text { fill: var(--_muted); }
+
+.intui-chart-axis line {
+  stroke: var(--_line-strong);
+  shape-rendering: crispEdges;
+}
+
+.intui-chart-unit { font-size: 12px; }
+
+.intui-chart-markers line {
+  stroke: var(--_marker);
+  stroke-dasharray: 2 3;
+}
+
+.intui-chart-markers circle { fill: color-mix(in oklab, var(--_marker) 18%, var(--_surface)); stroke: var(--_marker); }
+.intui-chart-markers text { fill: color-mix(in oklab, var(--_marker) 70%, var(--_fg)); font-size: 11px; font-weight: 650; }
+
+.intui-role-primary { --_series: var(--_series-primary); }
+.intui-role-baseline { --_series: var(--_series-baseline); }
+.intui-role-comparison { --_series: var(--_series-comparison); }
+
+.intui-chart-line {
+  fill: none;
+  stroke: var(--_series);
+  stroke-width: 2.25;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+}
+
+.intui-role-baseline .intui-chart-line { stroke-width: 1.75; stroke-dasharray: 6 4; }
+.intui-role-comparison .intui-chart-line { stroke-width: 1.75; }
+
+.intui-chart-dot {
+  fill: var(--_series);
+  stroke: var(--_surface);
+  stroke-width: 1.5;
+}
+
+.intui-role-baseline .intui-chart-dot { fill: var(--_surface); stroke: var(--_series); }
+
+rect.intui-role-primary { fill: var(--_series); }
+rect.intui-role-baseline { fill: color-mix(in oklab, var(--_series) 40%, transparent); stroke: var(--_series); stroke-width: 1; stroke-dasharray: 3 2; }
+rect.intui-role-comparison { fill: var(--_series); }
+
+.intui-chart-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3em 1.1em;
+  margin: 0.6em 0 0;
+  padding: 0;
+  list-style: none;
+  font-size: 0.8em;
+}
+
+.intui-chart-legend li {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45em;
+}
+
+.intui-swatch {
+  flex: none;
+  width: 1.15em;
+  height: 0;
+  border-top: 2.5px solid var(--_series);
+  border-radius: 2px;
+}
+
+.intui-chart-legend .intui-role-baseline .intui-swatch { border-top-style: dashed; border-top-width: 2px; }
+.intui-chart--bar .intui-swatch { height: 0.7em; border: 0; background: var(--_series); }
+.intui-chart--bar .intui-role-baseline .intui-swatch { background: color-mix(in oklab, var(--_series) 40%, transparent); outline: 1px dashed var(--_series); outline-offset: -1px; }
+
+.intui-chart-notes {
+  margin: 0.5em 0 0;
+  padding: 0;
+  list-style: none;
+  font-size: 0.8em;
+  display: grid;
+  gap: 0.25em;
+}
+
+.intui-chart-notes li {
+  display: flex;
+  gap: 0.5em;
+  align-items: baseline;
+}
+
+.intui-chart-glyph {
+  flex: none;
+  display: inline-grid;
+  place-items: center;
+  width: 1.45em;
+  height: 1.45em;
+  border-radius: 50%;
+  font-size: 0.8em;
+  font-weight: 650;
+  color: color-mix(in oklab, var(--_marker) 70%, var(--_fg));
+  background: color-mix(in oklab, var(--_marker) 18%, transparent);
+  box-shadow: inset 0 0 0 1px var(--_marker);
+  transform: translateY(-0.05em);
+}
+
+/* ---- Text-form disclosure (Chart, Flow) ---- */
+
+.intui-as-text {
+  margin-top: 0.5em;
+  font-size: 0.8em;
+}
+
+.intui-as-text summary {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35em;
+  cursor: pointer;
+  color: var(--_muted);
+  border-radius: 4px;
+  list-style: none;
+  min-height: 1.75em;
+}
+
+.intui-as-text summary::-webkit-details-marker { display: none; }
+
+.intui-as-text summary::before {
+  content: "";
+  width: 0.4em;
+  height: 0.4em;
+  border-right: 1.5px solid currentColor;
+  border-bottom: 1.5px solid currentColor;
+  transform: rotate(-45deg);
+  transition: transform 160ms cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+
+.intui-as-text[open] summary::before { transform: rotate(45deg); }
+
+.intui-as-text summary:hover { color: var(--_fg); }
+
+.intui-as-text > .intui-text {
+  margin-top: 0.5em;
+  padding: 0.6em 0.8em;
+  border: 1px solid var(--_line);
+  border-radius: var(--_radius);
+}
+
+/* ---- Flow ---- */
+
+.intui-flow {
+  margin: 0;
+  min-width: 0;
+}
+
+.intui-flow-canvas {
+  position: relative;
+  --intui-flow-gutter: 44px;
+}
+
+.intui-flow-layers,
+.intui-flow-layer > ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.intui-flow-layers {
+  display: flex;
+  position: relative;
+  z-index: 1;
+}
+
+.intui-flow-layer > ul {
+  display: flex;
+  gap: 0.75em;
+}
+
+.intui-flow-canvas[data-direction="row"] .intui-flow-layers {
+  flex-direction: row;
+  align-items: center;
+  gap: var(--intui-flow-gutter);
+}
+
+.intui-flow-canvas[data-direction="row"] .intui-flow-layer {
+  flex: 1 1 0;
+  min-width: 0;
+  max-width: 17em;
+}
+
+.intui-flow-canvas[data-direction="row"] .intui-flow-layer > ul { flex-direction: column; }
+
+.intui-flow-canvas:not([data-direction="row"]) .intui-flow-layers {
+  flex-direction: column;
+  align-items: stretch;
+  gap: 2.25em;
+}
+
+/* A column only happens when each layer's steps fit side by side (flowPlan checks), so they never wrap. */
+.intui-flow-canvas:not([data-direction="row"]) .intui-flow-layer > ul {
+  flex-flow: row nowrap;
+  justify-content: center;
+}
+
+.intui-flow-canvas:not([data-direction="row"]) .intui-flow-step {
+  flex: 1 1 0;
+  min-width: 0;
+  max-width: 24em;
+}
+
+.intui-flow-canvas[data-direction="list"] .intui-flow-layers,
+.intui-flow-canvas[data-direction="list"] .intui-flow-layer > ul {
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0.6em;
+}
+
+.intui-flow-canvas[data-direction="list"] .intui-flow-step[data-arrow-in] {
+  margin-top: 1.65em;
+}
+
+.intui-flow-canvas[data-direction="list"] .intui-flow-step {
+  flex: none;
+  max-width: none;
+}
+
+.intui-flow-step {
+  display: grid;
+  gap: 0.15em;
+  padding: 0.6em 0.8em;
+  border: 1px solid var(--_line-strong);
+  border-radius: var(--_radius);
+  background: var(--_surface);
+  box-shadow: 0 1px 2px color-mix(in oklab, var(--_fg) 6%, transparent);
+}
+
+.intui-flow-label {
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+.intui-flow-detail {
+  font-size: 0.8em;
+  color: var(--_muted);
+  line-height: 1.4;
+}
+
+.intui-flow-note {
+  font-size: 0.8em;
+  color: var(--_accent);
+  line-height: 1.4;
+}
+
+.intui-flow-notes { display: grid; }
+.intui-flow-notes:empty { display: none; }
+.intui-flow-note--back::before { content: "\21A9\FE0E\00A0"; }
+.intui-flow-note--link::before { content: "\2192\FE0E\00A0"; }
+
+.intui-flow-edges {
+  position: absolute;
+  inset: 0;
+  overflow: visible;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.intui-flow-arrow {
+  fill: none;
+  stroke: var(--_line-strong);
+  stroke-width: 1.5;
+}
+
+.intui-flow-head { fill: var(--_line-strong); }
+
+.intui-flow-edge-label {
+  font-family: var(--_font);
+  font-size: 12px;
+  fill: var(--_muted);
+  paint-order: stroke;
+  stroke: var(--intui-bg, var(--_surface));
+  stroke-width: 5px;
+  stroke-linejoin: round;
+}
+
+/* ---- Controls (Choice, Form, copy) ---- */
+
+.intui-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4em;
+  min-height: 2.25rem;
+  padding: 0.35em 0.95em;
+  border: 1px solid var(--_line-strong);
+  border-radius: var(--_radius);
+  background: var(--_surface);
+  color: var(--_fg);
+  font: inherit;
+  font-weight: 550;
+  line-height: 1.25;
+  cursor: pointer;
+  transition: background-color 150ms ease-out, border-color 150ms ease-out, color 150ms ease-out;
+}
+
+.intui-button:hover:not(:disabled) {
+  border-color: color-mix(in oklab, var(--_fg) 40%, var(--_line-strong));
+  background: color-mix(in oklab, var(--_fg) 4%, var(--_surface));
+}
+
+.intui-button:active:not(:disabled) { background: color-mix(in oklab, var(--_fg) 9%, var(--_surface)); }
+
+.intui-button--primary {
+  border-color: var(--_accent);
+  background: var(--_accent);
+  color: var(--_on-accent);
+}
+
+.intui-button--primary:hover:not(:disabled) {
+  border-color: color-mix(in oklab, var(--_accent) 86%, var(--_fg));
+  background: color-mix(in oklab, var(--_accent) 86%, var(--_fg));
+}
+
+.intui-button--primary:active:not(:disabled) { background: color-mix(in oklab, var(--_accent) 76%, var(--_fg)); }
+
+.intui-button--quiet {
+  min-height: 1.9rem;
+  padding: 0.2em 0.6em;
+  border-color: transparent;
+  background: transparent;
+  color: var(--_muted);
+  font-size: 0.8em;
+  font-weight: 500;
+}
+
+.intui-button--quiet:hover:not(:disabled) {
+  color: var(--_fg);
+  border-color: var(--_line);
+  background: transparent;
+}
+
+.intui-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.intui [aria-busy="true"] .intui-button:disabled { cursor: progress; }
+
+.intui-icon {
+  flex: none;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+@media (pointer: coarse) {
+  .intui-button { min-height: 2.75rem; }
+  .intui-button--quiet { min-height: 2.5rem; }
+}
+
+.intui-status {
+  margin: 0;
+  font-size: 0.8em;
+  color: var(--_muted);
+}
+
+.intui-status:empty { display: none; }
+.intui-status.is-error { color: var(--_critical); }
+
+.intui-choice {
+  display: grid;
+  gap: 0.6em;
+}
+
+.intui-choice-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5em;
+}
+
+/* Answered: the pick stays legible; the rest step back. */
+.intui-choice.is-used .intui-button:disabled { opacity: 1; cursor: default; }
+.intui-choice.is-used .intui-button:not(.is-chosen) { color: var(--_muted); border-color: var(--_line); background: transparent; text-decoration: line-through; text-decoration-color: color-mix(in oklab, var(--_muted) 60%, transparent); }
+.intui-choice.is-used .intui-button.is-chosen { border-color: var(--_accent); background: color-mix(in oklab, var(--_accent) 12%, var(--_surface)); color: var(--_fg); }
+.intui-choice.is-used .intui-button.is-chosen .intui-icon { color: var(--_accent); }
+
+@container intui (max-width: 22em) {
+  .intui-choice-options { flex-direction: column; align-items: stretch; }
+}
+
+.intui-form {
+  display: grid;
+  gap: 0.9em;
+  max-width: 34em;
+  margin: 0;
+}
+
+.intui-field {
+  display: grid;
+  gap: 0.3em;
+}
+
+.intui-field > label {
+  font-size: 0.8em;
+  font-weight: 600;
+  display: flex;
+  gap: 0.5em;
+  align-items: baseline;
+}
+
+.intui-required {
+  font-size: inherit;
+  font-weight: 450;
+  color: var(--_muted);
+}
+
+.intui-field input:not([type="checkbox"]),
+.intui-field select,
+.intui-copy-box {
+  width: 100%;
+  min-height: 2.25rem;
+  padding: 0.4em 0.65em;
+  border: 1px solid var(--_line-strong);
+  border-radius: var(--_radius);
+  background: var(--_surface);
+  color: var(--_fg);
+  font: inherit;
+  line-height: 1.3;
+  caret-color: var(--_accent);
+  transition: border-color 150ms ease-out, box-shadow 150ms ease-out;
+}
+
+.intui-field select {
+  appearance: none;
+  padding-right: 2em;
+  background-image: linear-gradient(45deg, transparent 50%, var(--_muted) 50%), linear-gradient(-45deg, transparent 50%, var(--_muted) 50%);
+  background-position: calc(100% - 1.05em) 55%, calc(100% - 0.75em) 55%;
+  background-size: 0.3em 0.3em;
+  background-repeat: no-repeat;
+}
+
+@media (pointer: coarse) {
+  .intui-field input:not([type="checkbox"]),
+  .intui-field select { min-height: 2.75rem; font-size: max(1em, 16px); }
+}
+
+.intui-field input:not([type="checkbox"]):hover:not(:disabled),
+.intui-field select:hover:not(:disabled) { border-color: color-mix(in oklab, var(--_fg) 40%, var(--_line-strong)); }
+
+.intui-field input:not([type="checkbox"]):focus-visible,
+.intui-field select:focus-visible {
+  outline: none;
+  border-color: var(--_accent);
+  box-shadow: 0 0 0 3px color-mix(in oklab, var(--_accent) 25%, transparent);
+}
+
+.intui-field [aria-invalid="true"] { border-color: var(--_critical); }
+.intui-field [aria-invalid="true"]:focus-visible { border-color: var(--_critical); box-shadow: 0 0 0 3px color-mix(in oklab, var(--_critical) 22%, transparent); }
+
+.intui-field :disabled { opacity: 0.7; cursor: not-allowed; }
+
+.intui-field--checkbox > label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55em;
+  font-weight: 500;
+  font-size: 1em;
+  cursor: pointer;
+  min-height: 1.75rem;
+}
+
+.intui-field--checkbox input {
+  width: 1.05em;
+  height: 1.05em;
+  margin: 0;
+  accent-color: var(--_accent);
+}
+
+.intui-field-error {
+  margin: 0;
+  font-size: 0.8em;
+  color: var(--_critical);
+}
+
+.intui-field-error:empty { display: none; }
+
+.intui-form-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5em 0.9em;
+}
+
+.intui-form.is-used .intui-button:disabled { opacity: 1; cursor: default; border-color: var(--_accent); background: color-mix(in oklab, var(--_accent) 12%, var(--_surface)); color: var(--_fg); }
+.intui-form.is-used .intui-icon { color: var(--_accent); }
+
+.intui-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.25em 0.6em;
+  margin-top: 0.75em;
+  margin-left: -0.6em;
+}
+
+.intui-copy-box {
+  margin-top: 0.4em;
+  font-family: var(--_mono);
+  font-size: 0.8em;
+  resize: vertical;
+}
+
+.intui-fallback {
+  padding: 0.5em 0.75em;
+  border: 1px dashed var(--_line-strong);
+  border-radius: var(--_radius);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .intui * { transition: none !important; }
+}
+
+/* A used-up form shows what was sent, so its values stay fully legible. */
+.intui-form.is-used .intui-field :disabled {
+  opacity: 1;
+  cursor: default;
+  background: transparent;
+  border-style: dashed;
+}

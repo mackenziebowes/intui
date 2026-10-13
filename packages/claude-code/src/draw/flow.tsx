@@ -1,8 +1,8 @@
 import type { FlowProps, FlowStep } from '@intui/core'
 import type { RenderElement } from 'claude-code'
+import { analyse } from '@intui/layout'
 import { defineDrawer, type DrawContext } from './drawer'
 import {
-  analyse,
   arrowText,
   asSequence,
   backNotes,

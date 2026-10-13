@@ -1,4 +1,6 @@
 :root {
+  --font-sans: "Public Sans", system-ui, sans-serif;
+  --font-mono: "Overpass Mono", ui-monospace, monospace;
   --bg: #f7f6f2;
   --surface: #ffffff;
   --ink: #16191d;
@@ -48,7 +50,7 @@ body {
   margin: 0;
   background: var(--bg);
   color: var(--ink);
-  font: 16px/1.6 "Instrument Sans", system-ui, sans-serif;
+  font: 16px/1.6 var(--font-sans);
 }
 
 main {
@@ -61,7 +63,7 @@ section { padding: 40px 0; border-bottom: 1px solid var(--line); }
 section:last-child { border-bottom: 0; }
 
 .hero { padding: 72px 0 48px; }
-.eyebrow { color: var(--accent); font: 500 13px/1 "JetBrains Mono", monospace; letter-spacing: 0.02em; margin: 0 0 16px; }
+.eyebrow { color: var(--accent); font: 500 13px/1 var(--font-mono); letter-spacing: 0.02em; margin: 0 0 16px; }
 h1 { font-size: clamp(48px, 10vw, 80px); line-height: 1; letter-spacing: -0.04em; margin: 0 0 12px; }
 .lede { font-size: 22px; color: var(--muted); margin: 0 0 24px; }
 h2 { font-size: 24px; letter-spacing: -0.02em; margin: 0 0 20px; }
@@ -72,7 +74,7 @@ a { color: var(--accent); }
 .links a { font-weight: 600; text-decoration: none; }
 .links a:hover { text-decoration: underline; }
 
-code, pre { font-family: "JetBrains Mono", ui-monospace, monospace; font-size: 13px; }
+code, pre { font-family: var(--font-mono); font-size: 13px; }
 :not(pre) > code { background: var(--code-bg); padding: 1px 5px; border-radius: 4px; }
 pre {
   background: var(--code-bg);
@@ -92,7 +94,7 @@ pre.text { background: var(--surface); white-space: pre-wrap; }
 
 .toc { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 24px; }
 .toc a {
-  font: 500 13px/1 "JetBrains Mono", monospace;
+  font: 500 13px/1 var(--font-mono);
   text-decoration: none;
   padding: 7px 10px;
   border: 1px solid var(--line);
@@ -112,7 +114,7 @@ pre.text { background: var(--surface); white-space: pre-wrap; }
 .component header { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
 .component > p { color: var(--muted); margin: 6px 0 16px; }
 
-.tag { font: 500 12px/1 "JetBrains Mono", monospace; padding: 5px 8px; border-radius: 999px; }
+.tag { font: 500 12px/1 var(--font-mono); padding: 5px 8px; border-radius: 999px; }
 .tag.anyone { background: var(--accent-soft); color: var(--accent); }
 .tag.code { background: var(--warn-soft); color: var(--warn); }
 

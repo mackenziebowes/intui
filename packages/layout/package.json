@@ -1,0 +1,16 @@
+{
+  "name": "@intui/layout",
+  "version": "0.1.0",
+  "description": "Renderer-neutral data math for IntUI: chart scales, flow layering and small helpers every renderer needs.",
+  "type": "module",
+  "license": "MIT",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit -p ."
+  },
+  "dependencies": {
+    "@intui/core": "workspace:*"
+  }
+}

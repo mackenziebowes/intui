@@ -11,6 +11,7 @@
     "typecheck": "tsc --noEmit -p ."
   },
   "dependencies": {
-    "@intui/core": "workspace:*"
+    "@intui/core": "workspace:*",
+    "@intui/layout": "workspace:*"
   }
 }
