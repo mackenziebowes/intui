@@ -1,0 +1,32 @@
+/*
+ * Opt-in shell for a page that is nothing but IntUI trees (a review page, a
+ * proposal, a dashboard): a background and text colour that follow the same
+ * theme as .intui, a readable width, and a 16px gutter on phones. A host page
+ * with its own layout doesn't need it. Theme: the system, or data-theme on <html>.
+ */
+:root {
+  color-scheme: light dark;
+  --_page-bg: var(--intui-page-bg, oklch(0.985 0.003 75));
+  --_page-fg: var(--intui-fg, oklch(0.24 0.012 75));
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --_page-bg: var(--intui-page-bg, oklch(0.18 0.004 75));
+    --_page-fg: var(--intui-fg, oklch(0.93 0.006 75));
+  }
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --_page-bg: var(--intui-page-bg, oklch(0.18 0.004 75));
+  --_page-fg: var(--intui-fg, oklch(0.93 0.006 75));
+}
+:root[data-theme="light"] {
+  color-scheme: light;
+}
+body {
+  margin: 0 auto;
+  max-width: 72rem;
+  padding: 24px 16px 64px;
+  background: var(--_page-bg);
+  color: var(--_page-fg);
+}
