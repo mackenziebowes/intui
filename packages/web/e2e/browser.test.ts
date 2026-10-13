@@ -212,3 +212,139 @@ describe('awkward trees', () => {
     expect(drawn.spill).toBeLessThanOrEqual(0)
   })
 })
+
+describe('readings: how sure a number is', () => {
+  test('each kind draws its mark, and an unknown draws the word and no number', () => {
+    // What a sighted reader sees: the screen-reader-only words are left out.
+    const seen = `(el) => { const c = el.cloneNode(true); c.querySelectorAll('.intui-sr').forEach(n => n.remove()); return c.textContent.replace(/\\s+/g, ' ').trim() }`
+    const stats = page<{ label: string; value: string; change: string | null; data: string[] }[]>(`(() => { const seen = ${seen}; return [...document.querySelectorAll('#readings .intui-stat')].map(s => ({
+      label: s.querySelector('.intui-stat-label').textContent,
+      value: seen(s.querySelector('.intui-stat-value')),
+      change: s.querySelector('.intui-stat-change') ? seen(s.querySelector('.intui-stat-change')) : null,
+      data: [...s.querySelectorAll('.intui-stat-value data')].map(d => d.getAttribute('value')),
+    })) })()`)
+    const by = Object.fromEntries(stats.map(s => [s.label, s]))
+    expect(by.Exact!.value).toBe('216 tokens')
+    expect(by.Floor!.value).toBe('≥ 216 tokens')
+    expect(by.Floor!.change).toContain('≥ 4%')
+    expect(by.Guess!.value).toBe('~216 tokens')
+    expect(by.Guess!.change).toContain('~3')
+    // A lost reading is the word, never a digit, and carries no machine-readable value.
+    expect(by.Lost!.value).toBe('— unknown')
+    expect(by.Lost!.value).not.toMatch(/\d/)
+    expect(by.Lost!.data).toEqual([])
+    expect(by.Lost!.change).toBe('— unknown')
+    // A change follows its own reading: the value stays a number while its change is lost.
+    expect(by['Sure but change lost']!.value).toBe('7')
+    expect(by['Sure but change lost']!.change).toBe('— unknown')
+  })
+
+  test('a chart with an unknown point still draws, breaks its line there, and marks floors and estimates', () => {
+    const chart = page<{ paths: number; unknown: number; unknownTitle: string; floors: number; hollow: number; dots: number; label: string; text: string }>(`(() => {
+      const fig = [...document.querySelectorAll('#readings .intui-chart')][0]
+      return {
+        paths: fig.querySelectorAll('.intui-chart-line').length,
+        unknown: fig.querySelectorAll('.intui-chart-unknown').length,
+        unknownTitle: fig.querySelector('.intui-chart-unknown title')?.textContent ?? '',
+        floors: fig.querySelectorAll('.intui-chart-floor').length,
+        hollow: fig.querySelectorAll('.intui-chart-dot.is-estimate').length,
+        dots: fig.querySelectorAll('.intui-chart-dot').length,
+        label: fig.querySelector('svg').getAttribute('aria-label'),
+        text: fig.querySelector('.intui-as-text').textContent,
+      }
+    })()`)
+    // Mon, a gap, then Wed to Fri: two runs, not one line through the lost day.
+    expect(chart.paths).toBe(2)
+    expect(chart.dots).toBe(4)
+    expect(chart.unknown).toBe(1)
+    expect(chart.unknownTitle).toContain('Tue')
+    expect(chart.unknownTitle).toContain('unknown')
+    expect(chart.floors).toBe(1)
+    expect(chart.hollow).toBe(1)
+    expect(chart.label).toContain('1 unknown')
+    expect(chart.text).toContain('unknown')
+    expect(chart.text).toContain('at least 30')
+    expect(chart.text).toContain('about 25')
+  })
+
+  test('a chart whose every point is unknown draws no line or bar and no made-up range', () => {
+    const drawn = page<{ marks: number; unknown: number; label: string }>(`(() => {
+      const fig = [...document.querySelectorAll('#readings .intui-chart')][1]
+      return {
+        marks: fig.querySelectorAll('rect, .intui-chart-line, .intui-chart-dot').length,
+        unknown: fig.querySelectorAll('.intui-chart-unknown').length,
+        label: fig.querySelector('svg').getAttribute('aria-label'),
+      }
+    })()`)
+    expect(drawn.marks).toBe(0)
+    expect(drawn.unknown).toBe(2)
+    expect(drawn.label).toContain('no readable values')
+    expect(drawn.label).not.toMatch(/Infinity/)
+  })
+
+  test('a change that rounds to 0 reads as flat, not as an up arrow with a plus sign', () => {
+    const tiny = page<{ way: string; text: string; words: string }>(`(() => {
+      const stat = [...document.querySelectorAll('#readings .intui-stat')].find(s => s.querySelector('.intui-stat-label').textContent === 'Tiny')
+      const change = stat.querySelector('.intui-stat-change')
+      return { way: change.querySelector('path').getAttribute('d'), text: change.textContent, words: window.intuiChecks.readingText }
+    })()`)
+    expect(tiny.way).toBe('M1 4h8v2H1Z')
+    expect(tiny.text).not.toContain('+')
+    expect(tiny.words).toContain('**Tiny:** 5 (about 0%)')
+  })
+
+  test('an all-unknown chart draws no number on its axis, since there is no range to show', () => {
+    const drawn = page<{ ticks: number; digits: string }>(`(() => {
+      const fig = [...document.querySelectorAll('#readings .intui-chart')][1]
+      return {
+        ticks: fig.querySelectorAll('.intui-chart-grid text, .intui-chart-grid line').length,
+        digits: [...fig.querySelectorAll('svg text')].map(t => t.textContent).filter(t => /\\d/.test(t)).join(','),
+      }
+    })()`)
+    expect(drawn.ticks).toBe(0)
+    expect(drawn.digits).toBe('')
+  })
+
+  test('a floor bar carries its own mark, where an exact bar has none', () => {
+    const bars = page<{ floors: number; stroke: string; centered: boolean; bars: number }>(`(() => {
+      const fig = [...document.querySelectorAll('#readings .intui-chart')][2]
+      const floor = fig.querySelector('.intui-chart-floor')
+      const bar = fig.querySelector('rect[data-reading="atLeast"]')
+      const f = floor.getBBox(), b = bar.getBBox()
+      return {
+        bars: fig.querySelectorAll('rect[data-reading]').length,
+        floors: fig.querySelectorAll('.intui-chart-floor').length,
+        stroke: getComputedStyle(floor).stroke,
+        centered: Math.abs(f.x + f.width / 2 - (b.x + b.width / 2)) < 1 && f.y + f.height <= b.y + 0.5,
+      }
+    })()`)
+    expect(bars.bars).toBe(3)
+    expect(bars.floors).toBe(1)
+    expect(bars.stroke).not.toBe('none')
+    expect(bars.centered).toBe(true)
+  })
+
+  test('single points between unknowns keep their dots past 24 x values', () => {
+    const dots = page<number>(`[...document.querySelectorAll('#readings .intui-chart')][3].querySelectorAll('.intui-chart-dot').length`)
+    expect(dots).toBe(15)
+  })
+
+  test("the model's text form says at least, about and unknown", () => {
+    const { readingText } = page<{ readingText: string }>('window.intuiChecks')
+    expect(readingText).toContain('**Floor:** at least 216 tokens (at least +4%)')
+    expect(readingText).toContain('**Guess:** about 216 tokens (about -3)')
+    expect(readingText).toContain('**Lost:** unknown (unknown)')
+    expect(readingText).toContain('| Tue | unknown |')
+  })
+
+  test('kind unknown with a value is refused with its path and what to do', () => {
+    const { refusal } = page<{ refusal: string }>('window.intuiChecks')
+    expect(refusal).toContain('root.value: kind "unknown" has no value; remove value, or use kind "atLeast" or "estimate" if you have a number')
+  })
+
+  test('a tree of exact numbers writes back as bare numbers, so older copies still read it', () => {
+    const { roundTrip, roundTripFrom } = page<{ roundTrip: string; roundTripFrom: string }>('window.intuiChecks')
+    expect(roundTrip).toBe(roundTripFrom)
+    expect(typeof JSON.parse(roundTrip).root.value).toBe('number')
+  })
+})

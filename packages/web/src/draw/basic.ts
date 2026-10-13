@@ -1,6 +1,6 @@
-import { cellText, formatNumber, type GroupProps, type LabelProps, type StatProps, type TableProps, type TextProps } from '@intui/core'
-import type { Drawer } from '../dom'
-import { alignOf, direction } from '@intui/layout'
+import { cellText, formatNumber, never, type Reading, type GroupProps, type LabelProps, type StatProps, type TableProps, type TextProps } from '@intui/core'
+import type { Dom, Drawer } from '../dom'
+import { alignOf, changeShape, READING_MARK } from '@intui/layout'
 import { markdownToHtml } from '../markdown'
 
 export const text: Drawer<TextProps> = (props, { dom }) => dom.html('div', { class: 'intui-text' }, markdownToHtml(props.markdown))
@@ -14,18 +14,45 @@ export const label: Drawer<LabelProps> = (props, { dom }) =>
 const ARROW = { up: 'M5 1 9 8H1Z', down: 'M5 9 1 2H9Z', flat: 'M1 4h8v2H1Z' } as const
 const SPOKEN = { up: 'up', down: 'down', flat: 'unchanged,' } as const
 
+const SPOKEN_KIND = { exact: '', atLeast: 'at least ', estimate: 'about ', unknown: '' } as const
+
+/** A reading as a drawn figure: its mark, the number, and the words a screen reader says. */
+function figure(dom: Dom, text: string, reading: Reading): HTMLElement[] {
+  switch (reading.kind) {
+    case 'exact':
+    case 'atLeast':
+    case 'estimate':
+      return [
+        dom.el('span', { class: 'intui-sr' }, SPOKEN_KIND[reading.kind]),
+        dom.el('span', { class: 'intui-reading-mark', 'aria-hidden': 'true' }, READING_MARK[reading.kind]),
+        dom.el('data', { value: reading.value }, text),
+      ]
+    case 'unknown':
+      return [dom.el('span', { class: 'intui-reading-none', 'aria-hidden': 'true' }, '—'), dom.el('span', { class: 'intui-reading-word' }, ' unknown')]
+    default:
+      return never(reading)
+  }
+}
+
 export const stat: Drawer<StatProps> = (props, { dom }) => {
-  const value = dom.el('data', { value: props.value }, formatNumber(props.value, props.unit))
+  const readingText = props.value.kind === 'unknown' ? '' : formatNumber(props.value.value, props.unit)
+  const value = dom.el('span', { class: 'intui-reading', 'data-reading': props.value.kind }, ...figure(dom, readingText, props.value))
   const change = props.change
     ? (() => {
-        const way = direction(props.change)
-        const size = formatNumber(Math.abs(props.change.value), props.change.as === 'percent' ? '%' : undefined)
+        const shape = changeShape(props.change)
+        const unit = props.change.as === 'percent' ? '%' : undefined
+        const text = shape.figure === undefined ? '' : formatNumber(shape.figure, unit)
+        const arrow = shape.way
+          ? [
+              dom.svg('svg', { viewBox: '0 0 10 10', width: 10, height: 10, 'aria-hidden': 'true' }, dom.svg('path', { d: ARROW[shape.way] })),
+              dom.el('span', { class: 'intui-sr' }, SPOKEN[shape.way] + ' '),
+            ]
+          : []
         return dom.el(
           'p',
-          { class: 'intui-stat-change' },
-          dom.svg('svg', { viewBox: '0 0 10 10', width: 10, height: 10, 'aria-hidden': 'true' }, dom.svg('path', { d: ARROW[way] })),
-          dom.el('span', { class: 'intui-sr' }, `${SPOKEN[way]} `),
-          size,
+          { class: 'intui-stat-change', 'data-reading': shape.kind },
+          ...arrow,
+          dom.el('span', { class: 'intui-reading' }, ...figure(dom, text, props.change.value)),
         )
       })()
     : null

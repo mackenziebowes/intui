@@ -1,6 +1,6 @@
-import { formatNumber, type ChartProps } from '@intui/core'
+import { formatNumber, type ChartProps, type ReadingKind } from '@intui/core'
 import { chartLayout, pathData } from '../chart-layout'
-import { buildModel, describeChart, type ChartModel } from '@intui/layout'
+import { buildModel, chartLabel, type ChartModel } from '@intui/layout'
 import type { DrawContext, Drawer } from '../dom'
 import { markdownToHtml } from '../markdown'
 
@@ -17,7 +17,7 @@ export const chart: Drawer<ChartProps> = (props, ctx) => {
   if (model.markers.length > 0) figure.append(markerList(model, ctx))
   figure.append(asText(ctx, ctx.text(props), 'Show data'))
 
-  const label = describeChart(model, props.title)
+  const label = chartLabel(model, props.title)
   let drawn = -1
   ctx.onWidth(plot, width => {
     const w = Math.max(160, Math.floor(width))
@@ -33,7 +33,10 @@ function svgFor(model: ChartModel, props: ChartProps, width: number, ctx: DrawCo
   const g = chartLayout(model, width, ctx.measureIn(host, AXIS_FONT))
   const svg = dom.svg('svg', { viewBox: `0 0 ${g.width} ${g.height}`, width: g.width, height: g.height, role: 'img', 'aria-label': label })
   const t = (n: number) => Number(n.toFixed(1))
-  const value = (v: number) => formatNumber(v, props.unit)
+  const WORDS = { exact: '', atLeast: 'at least ', estimate: 'about ', unknown: '' } as const
+  const value = (v: number, kind: ReadingKind) => `${WORDS[kind]}${formatNumber(v, props.unit)}`
+  const floor = (x: number, y: number, role: string) =>
+    dom.svg('path', { class: `intui-chart-floor intui-role-${role}`, d: `M${t(x - 4)} ${t(y - 6)}L${t(x)} ${t(y - 10)}L${t(x + 4)} ${t(y - 6)}`, 'aria-hidden': 'true' })
 
   const grid = dom.svg('g', { class: 'intui-chart-grid' })
   for (const tick of g.ticks) {
@@ -57,27 +60,40 @@ function svgFor(model: ChartModel, props: ChartProps, width: number, ctx: DrawCo
     marks.append(
       dom.svg(
         'rect',
-        { class: `intui-role-${series.role}`, x: t(bar.x), y: t(bar.y), width: t(bar.width), height: t(bar.height), rx: Math.min(2, bar.width / 4) },
-        dom.svg('title', {}, `${series.label}, ${model.xs[bar.index]}: ${value(bar.value)}`),
+        { class: `intui-role-${series.role} intui-chart-bar${bar.kind === 'estimate' ? ' is-estimate' : ''}`, 'data-reading': bar.kind, x: t(bar.x), y: t(bar.y), width: t(bar.width), height: t(bar.height), rx: Math.min(2, bar.width / 4) },
+        dom.svg('title', {}, `${series.label}, ${model.xs[bar.index]}: ${value(bar.value, bar.kind)}`),
       ),
     )
+    if (bar.kind === 'atLeast') marks.append(floor(bar.x + bar.width / 2, bar.y, series.role))
   }
   for (const line of g.lines) {
     const series = model.series[line.series]!
     const layer = dom.svg('g', { class: `intui-role-${series.role}` })
     for (const run of line.runs) layer.append(dom.svg('path', { class: 'intui-chart-line', d: pathData(run) }))
-    if (model.xs.length <= 24) {
-      for (const p of line.runs.flat()) {
+    // Past 24 x values dots would crowd, but a point alone between gaps has no line to show it.
+    {
+      for (const run of line.runs) for (const p of model.xs.length <= 24 || run.length === 1 ? run : []) {
         layer.append(
           dom.svg(
             'circle',
-            { class: 'intui-chart-dot', cx: t(p.x), cy: t(p.y), r: series.role === 'primary' ? 3.5 : 2.5 },
-            dom.svg('title', {}, `${series.label}, ${model.xs[p.index]}: ${value(p.value)}`),
+            { class: `intui-chart-dot${p.kind === 'estimate' ? ' is-estimate' : ''}`, 'data-reading': p.kind, cx: t(p.x), cy: t(p.y), r: series.role === 'primary' ? 3.5 : 2.5 },
+            dom.svg('title', {}, `${series.label}, ${model.xs[p.index]}: ${value(p.value, p.kind)}`),
           ),
         )
+        if (p.kind === 'atLeast') layer.append(floor(p.x, p.y - (series.role === 'primary' ? 3.5 : 2.5) + 4, series.role))
       }
     }
     marks.append(layer)
+  }
+  for (const u of g.unknowns) {
+    const series = model.series[u.series]!
+    marks.append(
+      dom.svg(
+        'path',
+        { class: 'intui-chart-unknown', 'data-reading': 'unknown', d: `M${t(u.x - 4)} ${t(g.plot.bottom - 8)}L${t(u.x + 4)} ${t(g.plot.bottom - 2)}M${t(u.x + 4)} ${t(g.plot.bottom - 8)}L${t(u.x - 4)} ${t(g.plot.bottom - 2)}` },
+        dom.svg('title', {}, `${series.label}, ${model.xs[u.index]}: unknown`),
+      ),
+    )
   }
   svg.append(marks)
 

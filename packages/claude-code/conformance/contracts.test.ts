@@ -101,6 +101,78 @@ test("a chart a tool returns reads back to the model as a table of its numbers",
   expect(text).toMatch(/\| \w+ \| \d+/)
 })
 
+test("a floor, an estimate and an unknown a tool returns read back to the model in words, and an unknown is never a 0", async ($, on) => {
+  session(on)
+  const answer = (await $.tool.call({ tool: 'mcp__intui__demo_chart', input: {}, tool_use_id: 'contracts-readings' } as never)) as { result?: unknown }
+  const text = String(answer.result)
+  expect(text).toContain('**Sample logged events:** at least 216 events (about +4%)')
+  expect(text).toContain('**Sample cost:** unknown')
+  expect(text).toContain('| Tue | about 180 | 115 |')
+  expect(text).toContain('| Wed | unknown | at least 105 |')
+  // The unknown Stat draws its word, not a number.
+  const ui = await $.ui.mount({
+    plugin: 'intui',
+    surface: 'terminal',
+    component: 'ToolResult',
+    props: { tool_use_id: 'contracts-readings', tool: 'mcp__intui__demo_chart', output: answer.result, isErrored: false },
+    viewport: { columns: 100, rows: 60 },
+  })
+  expect(await ui.find({ text: /^— unknown$/ })).toBeDefined()
+  expect(await ui.find({ text: /≥ 216 events/ })).toBeDefined()
+  expect(await ui.find({ text: /~180/ })).toBeUndefined()
+  await ui.unmount()
+})
+
+const resultRow = ($: Engine, output: unknown, id: string, surface: 'terminal' | 'desktop' = 'terminal') =>
+  $.ui.mount({
+    plugin: 'intui',
+    surface,
+    component: 'ToolResult',
+    props: { tool_use_id: id, tool: 'mcp__intui__demo_chart', output, isErrored: false },
+    viewport: { columns: 100, rows: 60 },
+  })
+
+test('kind unknown carrying a value is refused for that reason: the same Stat without the value draws', async ($, on) => {
+  session(on)
+  const stat = (value: object) => ({ intui: { v: 1, root: { type: 'Stat', label: 'Tokens', value } } })
+  const ui = await resultRow($, stat({ kind: 'unknown' }), 'contracts-unknown-ok')
+  expect(await ui.find({ text: /^— unknown$/ })).toBeDefined()
+  await ui.unmount()
+  await expect(resultRow($, stat({ kind: 'unknown', value: 3 }), 'contracts-unknown-with-value')).rejects.toThrow(/no implementation for ui\.render/)
+})
+
+test('the terminal lists an unknown point and its line breaks there, and the unknown is not drawn as a 0', async ($, on) => {
+  session(on)
+  const answer = (await $.tool.call({ tool: 'mcp__intui__demo_chart', input: {}, tool_use_id: 'contracts-terminal-unknown' } as never)) as { result?: unknown }
+  const ui = await resultRow($, answer.result, 'contracts-terminal-unknown')
+  // The note under the chart names the unknown point.
+  expect(await ui.find({ text: /— unknown \(the line breaks\): This week Wed/ })).toBeDefined()
+  // The axis fits the readable numbers (105 to 180). An unknown read as 0 would pull its floor down to 0.
+  expect(await ui.find({ text: /100 visitors/ })).toBeDefined()
+  expect(await ui.find({ text: /(^|\s)0 visitors/ })).toBeUndefined()
+  await ui.unmount()
+})
+
+for (const surface of ['terminal', 'desktop'] as const) {
+  test(`${surface}: a chart with no readable number draws its words, not a made-up axis`, async ($, on) => {
+    session(on)
+    const lost = { intui: { v: 1, root: { type: 'Chart', kind: 'line', unit: 'visitors', series: [{ label: 'Lost', points: [{ x: 'Mon', y: { kind: 'unknown' } }, { x: 'Tue', y: { kind: 'unknown' } }] }] } } }
+    const ui = await resultRow($, lost, `contracts-all-unknown-${surface}`, surface)
+    expect(await ui.find({ text: /unknown/ })).toBeDefined()
+    expect(await ui.find({ text: /┤/ })).toBeUndefined()
+    expect(await ui.findAll({ type: 'Svg' })).toHaveLength(0)
+    await ui.unmount()
+  })
+}
+
+test('the model still cannot write a Stat, even one that says how sure it is', async ($, on) => {
+  session(on)
+  const stat = { v: 1, root: { type: 'Stat', label: 'Visitors', value: { kind: 'atLeast', value: 120 } } }
+  const text = refusal(await show($, stat, 'contracts-stat-reading'))
+  expect(text).toMatch(/Stat/)
+  expect(text).toMatch(/code|tool/i)
+})
+
 test('show refuses two Choices with the same id, since a press could not say which', async ($, on) => {
   session(on)
   const twin = { type: 'Choice', id: 'twin', options: [{ id: 'a', label: 'A' }] }

@@ -995,3 +995,16 @@ rect.intui-role-comparison { fill: var(--_series); }
   background: transparent;
   border-style: dashed;
 }
+
+/* ---- Readings: how sure a number is ---- */
+
+.intui-reading-mark { font-weight: 450; color: var(--_muted); margin-inline-end: 0.08em; }
+.intui-reading-none { color: var(--_muted); }
+.intui-reading-word { font-size: 0.4em; font-weight: 500; letter-spacing: 0; color: var(--_muted); }
+.intui-stat-change .intui-reading-word { font-size: 1em; }
+.intui-stat-change .intui-reading-mark { font-weight: inherit; }
+
+.intui-chart-floor { fill: none; stroke: var(--_series); stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
+.intui-chart-dot.is-estimate { fill: var(--_surface); stroke: var(--_series); stroke-width: 1.5; }
+.intui-chart-bar.is-estimate { fill-opacity: 0.45; stroke: var(--_series); stroke-dasharray: 3 2; }
+.intui-chart-unknown { stroke: var(--_muted); stroke-width: 1.5; stroke-linecap: round; fill: none; }

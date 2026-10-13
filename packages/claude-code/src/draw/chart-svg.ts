@@ -41,6 +41,10 @@ export function buildSvg(model: ChartModel, width: number, height: number, color
   const yAt = (v: number) => y1 - project(v, model.domain, y1 - y0)
   const color = (role: string) => colors[role as 'primary' | 'baseline' | 'comparison']
   const out: string[] = []
+  const floor = (x: number, y: number, stroke: string) =>
+    `<path d="M${round(x - 4)} ${round(y - 4)}L${round(x)} ${round(y - 8)}L${round(x + 4)} ${round(y - 4)}" fill="none" stroke="${stroke}" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>`
+  const cross = (x: number, y: number, stroke: string) =>
+    `<path d="M${round(x - 3)} ${round(y - 7)}L${round(x + 3)} ${round(y - 1)}M${round(x + 3)} ${round(y - 7)}L${round(x - 3)} ${round(y - 1)}" fill="none" stroke="${stroke}" stroke-width="1.5" stroke-linecap="round"/>`
   const text = (x: number, y: number, anchor: string, fill: string, body: string) =>
     out.push(`<text x="${round(x)}" y="${round(y)}" text-anchor="${anchor}" fill="${fill}">${escapeXml(body)}</text>`)
 
@@ -63,21 +67,49 @@ export function buildSvg(model: ChartModel, width: number, height: number, color
     const zero = yAt(Math.max(model.domain.lo, Math.min(0, model.domain.hi)))
     model.series.forEach((series, s) =>
       series.values.forEach((v, i) => {
+        if (series.kinds[i] === 'unknown') out.push(cross(xAt(i) - (bar * model.series.length) / 2 + s * bar + bar / 2, y1, colors.quiet))
         if (v === undefined) return
         const x = xAt(i) - (bar * model.series.length) / 2 + s * bar
         const y = yAt(v)
         const opacity = series.role === 'primary' ? 1 : series.role === 'comparison' ? 0.55 : 0.6
-        out.push(`<rect x="${round(x)}" y="${round(Math.min(y, zero))}" width="${round(bar - 1)}" height="${round(Math.max(1, Math.abs(zero - y)))}" fill="${color(series.role)}" fill-opacity="${opacity}"/>`)
+        const kind = series.kinds[i]
+        const look = kind === 'estimate' ? ` fill-opacity="0.35" stroke="${color(series.role)}" stroke-dasharray="3 2"` : ` fill-opacity="${opacity}"`
+        out.push(`<rect x="${round(x)}" y="${round(Math.min(y, zero))}" width="${round(bar - 1)}" height="${round(Math.max(1, Math.abs(zero - y)))}" fill="${color(series.role)}"${look}/>`)
+        if (kind === 'atLeast') out.push(floor(x + (bar - 1) / 2, Math.min(y, zero) - 2, color(series.role)))
       }),
     )
   } else {
     for (const series of model.series) {
-      const points = series.values.flatMap((v, i) => (v === undefined ? [] : [[xAt(i), yAt(v)] as const]))
+      // A missing or unknown value breaks the line: one path per run of points.
+      const runs: (readonly [number, number])[][] = [[]]
+      series.values.forEach((v, i) => {
+        if (v === undefined) {
+          if (runs[runs.length - 1]!.length > 0) runs.push([])
+          return
+        }
+        runs[runs.length - 1]!.push([xAt(i), yAt(v)] as const)
+      })
       const dash = series.role === 'baseline' ? ' stroke-dasharray="6 4"' : ''
       const opacity = series.role === 'comparison' ? ' stroke-opacity="0.55"' : ''
       const stroke = series.role === 'primary' ? 2.5 : 1.75
-      out.push(`<path d="${pathData(points)}" fill="none" stroke="${color(series.role)}" stroke-width="${stroke}" stroke-linejoin="round" stroke-linecap="round"${dash}${opacity}/>`)
-      if (n <= 24) for (const [x, y] of points) out.push(`<circle cx="${round(x)}" cy="${round(y)}" r="${series.role === 'primary' ? 3 : 2}" fill="${color(series.role)}"${opacity.replace('stroke', 'fill')}/>`)
+      for (const points of runs.filter(run => run.length > 0)) {
+        out.push(`<path d="${pathData(points)}" fill="none" stroke="${color(series.role)}" stroke-width="${stroke}" stroke-linejoin="round" stroke-linecap="round"${dash}${opacity}/>`)
+      }
+      series.kinds.forEach((kind, i) => {
+        if (kind === 'unknown') out.push(cross(xAt(i), y1, colors.quiet))
+      })
+      const r = series.role === 'primary' ? 3 : 2
+      // Past 24 x values dots would crowd, but a point alone between gaps has no line to show it.
+      {
+        series.values.forEach((v, i) => {
+          if (v === undefined) return
+          if (n > 24 && (series.values[i - 1] !== undefined || series.values[i + 1] !== undefined)) return
+          const kind = series.kinds[i]
+          const fill = kind === 'estimate' ? ` fill="none" stroke="${color(series.role)}"` : ` fill="${color(series.role)}"${opacity.replace('stroke', 'fill')}`
+          out.push(`<circle cx="${round(xAt(i))}" cy="${round(yAt(v))}" r="${r}"${fill}/>`)
+          if (kind === 'atLeast') out.push(floor(xAt(i), yAt(v) - r - 2, color(series.role)))
+        })
+      }
     }
   }
   const labels = model.xs.map(String)

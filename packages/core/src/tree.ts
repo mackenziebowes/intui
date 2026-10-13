@@ -4,6 +4,7 @@ import type { ChoiceProps } from "./components/choice";
 import type { FormProps } from "./components/form";
 import type { IntuiEvent } from "./event";
 import { IntuiError, problemsFrom, type Problem } from "./problems";
+import { toWire } from "./reading";
 
 /** The protocol version every tree carries. Changes to the schema are additive only. */
 export const VERSION = 1;
@@ -73,7 +74,7 @@ export class Tree {
   }
 
   toJSON(): TreeData {
-    return { v: VERSION, root: this.root };
+    return { v: VERSION, root: toWire(this.root) as Node };
   }
 
   /** The `Choice` or `Form` with this id. */

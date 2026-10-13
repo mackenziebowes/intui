@@ -1,4 +1,4 @@
-import type { ChartProps, SeriesRole } from '@intui/core'
+import type { ChartProps, ReadingKind, SeriesRole } from '@intui/core'
 
 export type Domain = { lo: number; hi: number }
 
@@ -7,9 +7,15 @@ export type ChartModel = {
   unit?: string
   /** Ordered categories, in the order they first appear: the same reading as the text form. */
   xs: (string | number)[]
-  series: { label: string; role: SeriesRole; values: (number | undefined)[] }[]
+  /**
+   * `values` is the number at each x, undefined where there is none: no point, or an
+   * unknown one. `kinds` says why, and how sure the rest are: undefined is no point.
+   */
+  series: { label: string; role: SeriesRole; values: (number | undefined)[]; kinds: (ReadingKind | undefined)[] }[]
   domain: Domain
   /** Numbered markers; `index` is the category they sit on, absent when no x matches. */
+  /** False when no point has a number (all unknown or missing): there is no range to draw an axis for. */
+  readable: boolean
   markers: { n: number; at: string | number; label: string; index?: number }[]
 }
 
@@ -109,7 +115,11 @@ export function buildModel(props: ChartProps): ChartModel {
   const series = props.series.map(s => ({
     label: s.label,
     role: s.role,
-    values: xs.map(x => s.points.find(point => point.x === x)?.y),
+    values: xs.map(x => {
+      const y = s.points.find(point => point.x === x)?.y
+      return y === undefined || y.kind === 'unknown' ? undefined : y.value
+    }),
+    kinds: xs.map(x => s.points.find(point => point.x === x)?.y.kind),
   }))
   const all = series.flatMap(s => s.values).filter((v): v is number => v !== undefined)
   const markers = props.annotations.map((a, i) => {
@@ -121,7 +131,9 @@ export function buildModel(props: ChartProps): ChartModel {
     ...(props.unit ? { unit: props.unit } : {}),
     xs,
     series,
-    domain: niceDomain(Math.min(...all), Math.max(...all), props.kind),
+    // A chart whose every point is unknown has no range to fit; a unit-wide one keeps the axes honest.
+    readable: all.length > 0,
+    domain: all.length > 0 ? niceDomain(Math.min(...all), Math.max(...all), props.kind) : niceDomain(0, 1, props.kind),
     markers,
   }
 }

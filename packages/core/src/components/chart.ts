@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { defineKind, type Node } from "../component";
+import { Reading, readingSchema, readingText } from "../reading";
 import { cell, markdownTable } from "../text";
 
 /**
@@ -12,7 +13,7 @@ export type SeriesRole = (typeof SERIES_ROLES)[number];
 export interface Point {
   /** A category, or an ISO date for time series. */
   x: string | number;
-  y: number;
+  y: Reading;
 }
 
 export interface Series {
@@ -53,7 +54,7 @@ export const Chart = defineKind<ChartProps>({
             label: z.string().min(1),
             role: z.enum(SERIES_ROLES).default("primary"),
             points: z
-              .array(z.strictObject({ x: z.union([z.string(), z.number()]), y: z.number() }))
+              .array(z.strictObject({ x: z.union([z.string(), z.number()]), y: readingSchema() }))
               .min(1, "a series needs at least one point"),
           }),
         )
@@ -67,7 +68,10 @@ export const Chart = defineKind<ChartProps>({
     const headers = ["", ...props.series.map(headerOf)];
     const rows = xs.map((x) => [
       cell(x),
-      ...props.series.map((series) => cell(series.points.find((point) => point.x === x)?.y)),
+      ...props.series.map((series) => {
+        const point = series.points.find((p) => p.x === x);
+        return point ? cell(readingText(point.y)) : "";
+      }),
     ]);
     const about = [`${props.kind} chart`, props.unit].filter(Boolean).join(", ");
     const parts = [props.title ? `**${props.title}** (${about})` : `(${about})`, markdownTable(headers, rows)];
@@ -82,8 +86,8 @@ export const Chart = defineKind<ChartProps>({
     title: "Visitors",
     unit: "visitors",
     series: [
-      { label: "This week", role: "primary", points: [{ x: "Mon", y: 120 }, { x: "Tue", y: 180 }, { x: "Wed", y: 90 }] },
-      { label: "Usual", role: "baseline", points: [{ x: "Mon", y: 110 }, { x: "Tue", y: 115 }, { x: "Wed", y: 105 }] },
+      { label: "This week", role: "primary", points: [{ x: "Mon", y: Reading.exact(120) }, { x: "Tue", y: Reading.exact(180) }, { x: "Wed", y: Reading.exact(90) }] },
+      { label: "Usual", role: "baseline", points: [{ x: "Mon", y: Reading.exact(110) }, { x: "Tue", y: Reading.exact(115) }, { x: "Wed", y: Reading.exact(105) }] },
     ],
     annotations: [{ at: "Tue", label: "New pricing page" }],
   },

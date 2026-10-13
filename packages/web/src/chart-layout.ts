@@ -3,6 +3,7 @@
  * marker goes at a given pixel width. The drawer turns it into elements; the
  * look (colours, dashes) is the stylesheet's job, keyed on each series' role.
  */
+import type { ReadingKind } from '@intui/core'
 import { formatValue, markerGlyph, niceStep, placeLabels, project, withUnit, type ChartModel, type Domain } from '@intui/layout'
 
 /** Width of a string in CSS pixels at the axis font. */
@@ -12,8 +13,8 @@ export type Measure = (text: string) => number
 export const estimateWidth: Measure = text => [...text].length * 7
 
 export type Tick = { value: number; y: number; label: string }
-export type LinePoint = { index: number; x: number; y: number; value: number }
-export type Bar = { series: number; index: number; x: number; y: number; width: number; height: number; value: number }
+export type LinePoint = { index: number; x: number; y: number; value: number; kind: ReadingKind }
+export type Bar = { series: number; index: number; x: number; y: number; width: number; height: number; value: number; kind: ReadingKind }
 
 export type ChartGeometry = {
   width: number
@@ -29,6 +30,8 @@ export type ChartGeometry = {
   bars: Bar[]
   /** Per series, runs of consecutive points; a missing value breaks the line. */
   lines: { series: number; runs: LinePoint[][] }[]
+  /** Points that are unknown: no mark on the data, only here, at the foot of their x. */
+  unknowns: { series: number; index: number; x: number }[]
 }
 
 /** Rounds away floating-point noise, as chart-scale does. */
@@ -57,12 +60,13 @@ export const chartHeight = (width: number) => (width < 420 ? 200 : 240)
 export function chartLayout(model: ChartModel, width: number, measure: Measure = estimateWidth, height = chartHeight(width)): ChartGeometry {
   const top = model.markers.some(m => m.index !== undefined) ? 22 : 10
   const bottom = height - 26
-  const values = yTicks(model.domain, bottom - top)
+  // With no readable number there is no range: no ticks, so no axis number that was made up.
+  const values = model.readable ? yTicks(model.domain, bottom - top) : []
   const labelWith = (unit: boolean) => values.map(v => (unit ? withUnit(formatValue(v), model.unit) : formatValue(v)))
   let labels = labelWith(true)
-  let gutter = Math.max(...labels.map(measure)) + 10
+  let gutter = labels.length > 0 ? Math.max(...labels.map(measure)) + 10 : 10
   let unitCaption: string | undefined
-  if (model.unit && gutter > width * 0.3) {
+  if (model.readable && model.unit && gutter > width * 0.3) {
     labels = labelWith(false)
     gutter = Math.max(...labels.map(measure)) + 10
     unitCaption = model.unit
@@ -82,6 +86,7 @@ export function chartLayout(model: ChartModel, width: number, measure: Measure =
 
   const bars: Bar[] = []
   const lines: ChartGeometry['lines'] = []
+  const unknowns: ChartGeometry['unknowns'] = []
   if (isBar) {
     const count = model.series.length
     const group = slot * 0.72
@@ -90,21 +95,23 @@ export function chartLayout(model: ChartModel, width: number, measure: Measure =
     const base = yAt(Math.max(model.domain.lo, Math.min(0, model.domain.hi)))
     model.series.forEach((series, s) =>
       series.values.forEach((value, index) => {
+        if (series.kinds[index] === 'unknown') unknowns.push({ series: s, index, x: xAt(index) - group / 2 + s * (barWidth + gap) + barWidth / 2 })
         if (value === undefined) return
         const x = xAt(index) - group / 2 + s * (barWidth + gap) + gap / 2
         const y = yAt(value)
-        bars.push({ series: s, index, x, y: Math.min(y, base), width: barWidth, height: Math.max(1, Math.abs(base - y)), value })
+        bars.push({ series: s, index, x, y: Math.min(y, base), width: barWidth, height: Math.max(1, Math.abs(base - y)), value, kind: series.kinds[index]! })
       }),
     )
   } else {
     model.series.forEach((series, s) => {
       const runs: LinePoint[][] = [[]]
       series.values.forEach((value, index) => {
+        if (series.kinds[index] === 'unknown') unknowns.push({ series: s, index, x: xAt(index) })
         if (value === undefined) {
           if (runs[runs.length - 1]!.length > 0) runs.push([])
           return
         }
-        runs[runs.length - 1]!.push({ index, x: xAt(index), y: yAt(value), value })
+        runs[runs.length - 1]!.push({ index, x: xAt(index), y: yAt(value), value, kind: series.kinds[index]! })
       })
       lines.push({ series: s, runs: runs.filter(run => run.length > 0) })
     })
@@ -130,6 +137,7 @@ export function chartLayout(model: ChartModel, width: number, measure: Measure =
     markers,
     bars,
     lines,
+    unknowns,
   }
 }
 

@@ -1,9 +1,9 @@
 import type { ChartProps } from '@intui/core'
 import type { ElementTable } from 'claude-code'
 import { defineDrawer } from './drawer'
-import { buildModel, describeChart } from '@intui/layout'
+import { buildModel, chartLabel } from '@intui/layout'
 import { buildSvg, type SvgColors } from './chart-svg'
-import { legendRows, markerRows, plotRows, type Row, type Style } from './chart-text'
+import { legendRows, markerRows, plotRows, readingRows, type Row, type Style } from './chart-text'
 import { ACCENT, SVG, TONE_COLOR } from './theme'
 
 /** Narrower than this the plot has no room, so the chart is its text form. */
@@ -42,6 +42,8 @@ export const chart = defineDrawer<ChartProps>({
     const fallback = <el.Markdown text={text(props)} />
     if (columns < MIN_COLUMNS) return fallback
     const model = buildModel(props)
+    // No number to put on an axis: the text form says it, rather than a made-up range.
+    if (!model.readable) return fallback
     const asRows = (rows: Row[]) =>
       rows.map(row => (
         <el.Box flexDirection="row">
@@ -57,7 +59,7 @@ export const chart = defineDrawer<ChartProps>({
       plot = asRows(rows)
     } else {
       const width = Math.min(columns * PIXELS_PER_COLUMN, MAX_SVG_WIDTH)
-      plot = <el.Svg source={buildSvg(model, width, Math.round(width * 0.45), SVG_COLORS)} alt={describeChart(model, props.title)} />
+      plot = <el.Svg source={buildSvg(model, width, Math.round(width * 0.45), SVG_COLORS)} alt={chartLabel(model, props.title)} />
     }
     return (
       <el.Box flexDirection="column">
@@ -65,6 +67,7 @@ export const chart = defineDrawer<ChartProps>({
         {asRows(legendRows(model, columns))}
         {plot as never}
         {asRows(markerRows(model))}
+        {asRows(readingRows(model))}
       </el.Box>
     )
   },

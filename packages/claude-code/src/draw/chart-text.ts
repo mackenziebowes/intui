@@ -65,7 +65,15 @@ export function plotLine(model: ChartModel, width: number, height = PLOT_ROWS): 
   const dotX = (i: number) => (n === 1 ? Math.floor((W - 1) / 2) : Math.round((i * (W - 1)) / (n - 1)))
   const dotY = (v: number) => Math.round((H - 1) - project(v, model.domain, H - 1))
   for (const series of model.series) {
-    const points = series.values.flatMap((v, i) => (v === undefined ? [] : [[dotX(i), dotY(v)] as const]))
+    // A missing or unknown value breaks the line: runs of consecutive points, each drawn alone.
+    const runs: (readonly [number, number])[][] = [[]]
+    series.values.forEach((v, i) => {
+      if (v === undefined) {
+        if (runs[runs.length - 1]!.length > 0) runs.push([])
+        return
+      }
+      runs[runs.length - 1]!.push([dotX(i), dotY(v)] as const)
+    })
     let step = 0
     const mark = (x: number, y: number) => {
       if (series.role === 'baseline' && step++ % 8 >= 5) return
@@ -74,8 +82,10 @@ export function plotLine(model: ChartModel, width: number, height = PLOT_ROWS): 
       masks[row]![col]! |= BRAILLE_BIT[x % 2]![y % 4]!
       owner[row]![col] = Math.max(owner[row]![col]!, PRIORITY[series.role])
     }
-    if (points.length === 1) mark(...points[0]!)
-    points.slice(1).forEach(([x, y], i) => lineDots(...points[i]!, x, y).forEach(([px, py]) => mark(px, py)))
+    for (const points of runs) {
+      if (points.length === 1) mark(...points[0]!)
+      points.slice(1).forEach(([x, y], i) => lineDots(...points[i]!, x, y).forEach(([px, py]) => mark(px, py)))
+    }
   }
   const style = (p: number): Style => (p === 3 ? 'primary' : p === 2 ? 'comparison' : 'baseline')
   return masks.map((row, r) =>
@@ -147,6 +157,7 @@ export function yLabels(model: ChartModel, withTheUnit: boolean): { top: string;
  * the x axis and its labels. Undefined when it can't be drawn sensibly in `columns`.
  */
 export function plotRows(model: ChartModel, columns: number): Row[] | undefined {
+  if (!model.readable) return undefined
   let labels = yLabels(model, true)
   const unitNote = labels.gutter > Math.floor(columns * 0.4) && model.unit
   if (unitNote) labels = yLabels(model, false)
@@ -195,4 +206,20 @@ export function markerRows(model: ChartModel): Row[] {
     { text: m.index === undefined ? '·' : markerGlyph(m.n), style: 'marker' },
     { text: ` ${m.at}: ${m.label}${m.index === undefined ? ' (no matching x)' : ''}`, style: 'plain' },
   ])
+}
+
+/**
+ * What the plot can't show: points that are at least, about or unknown, listed by series and x.
+ * A braille dot or a block can't wear a mark, so the words go under the chart.
+ */
+export function readingRows(model: ChartModel): Row[] {
+  const lines: [string, string][] = [
+    ['atLeast', '≥ at least'],
+    ['estimate', '~ about'],
+    ['unknown', '— unknown (the line breaks)'],
+  ]
+  return lines.flatMap(([kind, head]) => {
+    const where = model.series.flatMap(s => s.kinds.flatMap((k, i) => (k === kind ? [`${s.label} ${model.xs[i]}`] : [])))
+    return where.length === 0 ? [] : [[{ text: `${head}: ${where.join(', ')}`, style: 'plain' as Style }]]
+  })
 }

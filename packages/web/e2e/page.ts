@@ -3,12 +3,13 @@
  * each in its own section. Events land in `window.intuiEvents` as JSON, so a
  * check reads exactly what a host's `onEvent` received.
  */
-import { IntuiEvent, Tree, type Node } from '@intui/core'
+import { IntuiEvent, Reading, Tree, type Node } from '@intui/core'
 import { render, type RenderOptions } from '../src/index'
 
 declare global {
   interface Window {
     intuiEvents: { fixture: string; event: unknown; fits: boolean }[]
+    intuiChecks: { refusal: string; roundTrip: string; roundTripFrom: string; readingText: string }
   }
 }
 window.intuiEvents = []
@@ -83,6 +84,56 @@ const awkward: Node = {
   ],
 } as Node
 
+// Numbers that say how sure they are: one Stat per kind, a change that follows its own reading, and charts
+// with a floor, an estimate and an unknown point.
+const readings: Node = {
+  type: 'Group',
+  direction: 'column',
+  children: [
+    { type: 'Stat', label: 'Exact', value: 216, unit: 'tokens', change: { value: 18, as: 'percent' } },
+    { type: 'Stat', label: 'Floor', value: Reading.atLeast(216), unit: 'tokens', change: { value: Reading.atLeast(4), as: 'percent' } },
+    { type: 'Stat', label: 'Guess', value: Reading.estimate(216), unit: 'tokens', change: { value: Reading.estimate(-3), as: 'amount' } },
+    { type: 'Stat', label: 'Lost', value: Reading.unknown(), unit: 'tokens', change: { value: Reading.unknown(), as: 'percent' } },
+    { type: 'Stat', label: 'Tiny', value: 5, change: { value: Reading.estimate(0.001), as: 'percent' } },
+    { type: 'Stat', label: 'Sure but change lost', value: 7, change: { value: Reading.unknown(), as: 'amount' } },
+    {
+      type: 'Chart',
+      kind: 'line',
+      title: 'Tokens by day',
+      unit: 'tokens',
+      series: [
+        {
+          label: 'Mine',
+          points: [{ x: 'Mon', y: 10 }, { x: 'Tue', y: Reading.unknown() }, { x: 'Wed', y: Reading.atLeast(30) }, { x: 'Thu', y: Reading.estimate(25) }, { x: 'Fri', y: 40 }],
+        },
+      ],
+    },
+    {
+      type: 'Chart',
+      kind: 'bar',
+      title: 'Every point lost',
+      series: [{ label: 'Nothing', points: [{ x: 'a', y: Reading.unknown() }, { x: 'b', y: Reading.unknown() }] }],
+    },
+    {
+      type: 'Chart',
+      kind: 'bar',
+      title: 'Bars by day',
+      series: [{ label: 'Bars', points: [{ x: 'Mon', y: 100 }, { x: 'Tue', y: Reading.atLeast(180) }, { x: 'Wed', y: Reading.estimate(120) }] }],
+    },
+    {
+      type: 'Chart',
+      kind: 'line',
+      title: 'Alternating',
+      series: [
+        {
+          label: 'Every other day',
+          points: Array.from({ length: 30 }, (_, i) => ({ x: `d${i}`, y: i % 2 === 0 ? Reading.exact(10 + i) : Reading.unknown() })),
+        },
+      ],
+    },
+  ],
+} as Node
+
 type Fixture = { id: string; root: Node; options?: Partial<RenderOptions>; width?: number }
 
 const fixtures: Fixture[] = [
@@ -95,6 +146,7 @@ const fixtures: Fixture[] = [
   { id: 'form-odd', root: oddForm },
   { id: 'hostile', root: hostile },
   { id: 'awkward', root: awkward, width: 200 },
+  { id: 'readings', root: readings },
 ]
 
 for (const fixture of fixtures) {
@@ -113,5 +165,21 @@ for (const fixture of fixtures) {
   }
   section.append(render(tree, { source: `toolu_${fixture.id}`, onEvent: record, ...fixture.options }))
   document.body.append(section)
+}
+// What code sees when it parses readings: the refusal it reads, and what an exact-only tree writes back.
+const refused = (input: unknown) => {
+  try {
+    Tree.of(input as Node)
+    return 'parsed'
+  } catch (error) {
+    return (error as Error).message
+  }
+}
+const oldTree = { type: 'Stat', label: 'Visitors', value: 1204, change: { value: 18, as: 'percent' }, tone: 'positive' }
+window.intuiChecks = {
+  refusal: refused({ type: 'Stat', label: 'Tokens', value: { kind: 'unknown', value: 3 } }),
+  roundTrip: JSON.stringify(Tree.of(oldTree as Node).toJSON()),
+  roundTripFrom: JSON.stringify({ v: 1, root: oldTree }),
+  readingText: Tree.of(readings).toText(),
 }
 document.body.dataset.ready = 'true'
