@@ -100,6 +100,44 @@ test('the envelope draws from each place a tool result can carry it', async $ =>
   }
 })
 
+// Trees that once hung or overflowed a drawer: a Flow with a self loop and a cycle
+// with no start, a one-point chart, a wide table, all in a very narrow row.
+const awkward = {
+  v: 1,
+  root: {
+    type: 'Group',
+    direction: 'column',
+    children: [
+      {
+        type: 'Flow',
+        steps: [{ id: 'a', label: 'Alpha step with a long label' }, { id: 'b', label: 'Beta' }, { id: 'c', label: 'Gamma' }],
+        links: [{ from: 'a', to: 'a' }, { from: 'a', to: 'b' }, { from: 'b', to: 'c' }, { from: 'c', to: 'a', label: 'again' }],
+      },
+      { type: 'Chart', kind: 'line', title: 'One point', series: [{ label: 'Only', points: [{ x: 'Mon', y: 3 }] }] },
+      {
+        type: 'Table',
+        columns: ['one', 'two', 'three', 'four', 'five', 'six'].map(key => ({ key, label: `Column ${key}` })),
+        rows: [Object.fromEntries(['one', 'two', 'three', 'four', 'five', 'six'].map(key => [key, 'a fairly long cell value']))],
+      },
+    ],
+  },
+}
+
+for (const surface of SURFACES) {
+  test(`awkward trees still draw in 20 columns on ${surface}, and every Flow step is shown`, async $ => {
+    const ui = await $.ui.mount({
+      plugin: 'intui',
+      surface,
+      component: 'ToolResult',
+      props: { tool_use_id: `conformance-awkward-${surface}`, tool: 'mcp__intui__demo_chart', output: { intui: awkward }, isErrored: false },
+      viewport: { columns: 20, rows: 40 },
+    })
+    expect(await ui.drawn()).toBeDefined()
+    for (const step of [/Alpha/, /Beta/, /Gamma/]) expect(await ui.find({ text: step })).toBeDefined()
+    await ui.unmount()
+  })
+}
+
 test('a result that is not a tree, and one with a bad node, are left to the engine', async $ => {
   await expect(resultMount($, 'terminal', 'just text', 'conformance-not-tree')).rejects.toThrow(/no implementation for ui\.render/)
   const badNode = { intui: { v: 1, root: { type: 'Stat', label: 'x' } } }

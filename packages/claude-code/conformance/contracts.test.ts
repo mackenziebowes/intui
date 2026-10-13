@@ -75,6 +75,40 @@ test('show refuses a bad tree with every problem, its path, and what to do', asy
   expect(text).toMatch(/nowhere/)
 })
 
+// The result is the model's only memory of what it showed, so it must hold the content faithfully.
+test("show's text form keeps a table's cells, even ones holding a pipe", async ($, on) => {
+  session(on)
+  const table = {
+    v: 1,
+    root: {
+      type: 'Table',
+      columns: [{ key: 'cmd', label: 'Command' }, { key: 'does', label: 'Does' }],
+      rows: [{ cmd: 'ls | wc -l', does: 'counts files' }],
+    },
+  }
+  const text = String((await show($, table, 'contracts-table')).result)
+  expect(text).toContain('| Command | Does |')
+  expect(text).toContain('ls \\| wc -l')
+  expect(text).toContain('counts files')
+})
+
+test("a chart a tool returns reads back to the model as a table of its numbers", async ($, on) => {
+  session(on)
+  const answer = (await $.tool.call({ tool: 'mcp__intui__demo_chart', input: {}, tool_use_id: 'contracts-demo' } as never)) as { result?: unknown }
+  const text = String(answer.result)
+  expect(text).toMatch(/chart/)
+  expect(text).toMatch(/\| --- \|/)
+  expect(text).toMatch(/\| \w+ \| \d+/)
+})
+
+test('show refuses two Choices with the same id, since a press could not say which', async ($, on) => {
+  session(on)
+  const twin = { type: 'Choice', id: 'twin', options: [{ id: 'a', label: 'A' }] }
+  const text = refusal(await show($, { v: 1, root: { type: 'Group', children: [twin, twin] } }, 'contracts-dup'))
+  expect(text).toMatch(/twin/)
+  expect(text).toMatch(/id/)
+})
+
 test('show refuses a tree with no version, and asks for one', async ($, on) => {
   session(on)
   const text = refusal(await show($, { root: { type: 'Text', markdown: 'hi' } }, 'contracts-no-v'))
@@ -171,7 +205,7 @@ test('a Form refuses a number with a typo instead of sending it empty', async ($
   await ui.input({ key: `${id}:root:field:qty`, text: '4o', kind: 'change' })
   await ui.press({ key: `${id}:root:submit` })
   expect(prompts).toHaveLength(0)
-  expect(await ui.find({ text: /Qty/ })).toBeDefined()
+  expect(await ui.find({ text: /"4o" is not a number/ })).toBeDefined()
   await ui.input({ key: `${id}:root:field:qty`, text: '40', kind: 'change' })
   await ui.select({ key: `${id}:root:field:kind`, value: 'b' })
   await ui.press({ key: `${id}:root:submit` })
@@ -186,7 +220,7 @@ test('/intui counts shows and refusals by component, with no content', async ($,
   await show($, { v: 1, root: { type: 'Text', markdown: 'secret words' } }, 'contracts-count-1')
   await show($, { v: 1, root: { type: 'Nope' } }, 'contracts-count-2')
   const { text } = (await $.command.run({ command: 'intui' } as never)) as { text: string }
-  expect(text).toMatch(/Text/)
-  expect(text).toMatch(/refus/i)
+  expect(text).toMatch(/\| Refused \| 1 \(50%\) \|/)
+  expect(text).toMatch(/\| Text \| 1 \|/)
   expect(text).not.toContain('secret words')
 })

@@ -45,7 +45,7 @@ const hostile: Node = {
     '| --- | --- |',
     '| <span onclick="window.pwned=\'table\'">cell</span> | x |',
     '',
-    '[plain](javascript:window.pwned="link") [cased](JaVaScRiPt:alert(1)) [spaced]( javascript:alert(1)) [entity](javascript&#58;alert(1))',
+    '[tab](<java\tscript:window.pwned="tab">) [plain](javascript:window.pwned="link") [cased](JaVaScRiPt:alert(1)) [spaced]( javascript:alert(1)) [entity](javascript&#58;alert(1))',
     '',
     '[safe link](https://example.com) ![outside](https://example.com/x.png) ![protocol-relative](//example.com/y.png)',
     '',
@@ -53,7 +53,37 @@ const hostile: Node = {
   ].join('\n'),
 } as Node
 
-type Fixture = { id: string; root: Node; options?: Partial<RenderOptions> }
+// Field ids that collide with Object.prototype's keys.
+const oddForm: Node = {
+  type: 'Form',
+  id: 'odd',
+  fields: [
+    { id: 'constructor', label: 'Ctor', input: 'text', required: true },
+    { id: '__proto__', label: 'Proto', input: 'text', required: false },
+  ],
+  submitLabel: 'Go',
+} as Node
+
+// Trees that once hung or overflowed a drawer, drawn in a narrow column.
+const awkward: Node = {
+  type: 'Group',
+  direction: 'column',
+  children: [
+    {
+      type: 'Flow',
+      steps: [{ id: 'a', label: 'Alpha step with a long label' }, { id: 'b', label: 'Beta' }, { id: 'c', label: 'Gamma' }],
+      links: [{ from: 'a', to: 'a' }, { from: 'a', to: 'b' }, { from: 'b', to: 'c' }, { from: 'c', to: 'a', label: 'again' }],
+    },
+    { type: 'Chart', kind: 'line', title: 'One point', series: [{ label: 'Only', points: [{ x: 'Mon', y: 3 }] }] },
+    {
+      type: 'Table',
+      columns: ['one', 'two', 'three', 'four', 'five', 'six'].map(key => ({ key, label: `Column ${key}` })),
+      rows: [Object.fromEntries(['one', 'two', 'three', 'four', 'five', 'six'].map(key => [key, 'a fairly long cell value']))],
+    },
+  ],
+} as Node
+
+type Fixture = { id: string; root: Node; options?: Partial<RenderOptions>; width?: number }
 
 const fixtures: Fixture[] = [
   { id: 'choice', root: choice },
@@ -62,13 +92,16 @@ const fixtures: Fixture[] = [
   { id: 'choice-readonly', root: choice, options: { onEvent: undefined } },
   { id: 'form', root: form },
   { id: 'form-submitted', root: form, options: { submitted: id => (id === 'new-idea' ? { title: 'Sent before', urgent: true } : undefined) } },
+  { id: 'form-odd', root: oddForm },
   { id: 'hostile', root: hostile },
+  { id: 'awkward', root: awkward, width: 200 },
 ]
 
 for (const fixture of fixtures) {
   const tree = Tree.of(fixture.root)
   const section = document.createElement('section')
   section.id = fixture.id
+  if (fixture.width) section.style.width = `${fixture.width}px`
   const record = (event: IntuiEvent) => {
     let fits = true
     try {

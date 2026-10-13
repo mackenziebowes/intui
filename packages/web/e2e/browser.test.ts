@@ -6,7 +6,7 @@
  *
  *   bun test packages/web/e2e
  */
-import { afterAll, beforeAll, describe, expect, test } from 'bun:test'
+import { afterAll, beforeAll, beforeEach, describe, expect, test } from 'bun:test'
 import { mkdtemp, rm } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
@@ -53,6 +53,12 @@ beforeAll(async () => {
     `<!doctype html><meta charset="utf-8"><title>intui e2e</title><style>${css}</style><body><script src="page.js"></script></body>`,
   )
   browser('open', `file://${join(dir, 'index.html')}`)
+  browser('wait', 'body[data-ready="true"]')
+})
+
+// A fresh page per check, so no check leans on what an earlier one typed or pressed.
+beforeEach(() => {
+  browser('reload')
   browser('wait', 'body[data-ready="true"]')
 })
 
@@ -116,6 +122,23 @@ describe('Form', () => {
     expect(events('form')).toHaveLength(0)
   })
 
+  test('an unchecked checkbox is sent as false, not left out', () => {
+    browser('fill', field('title'), 'x')
+    submit()
+    expect(events('form').map(e => e.event.value)).toEqual([{ title: 'x', urgent: false }])
+  })
+
+  test('field ids like constructor and __proto__ submit like any other', () => {
+    browser('fill', '#form-odd [name="constructor"]', 'built')
+    browser('fill', '#form-odd [name="__proto__"]', 'plain')
+    browser('click', '#form-odd button[type="submit"]')
+    settle()
+    const sent = events('form-odd')
+    expect(sent).toHaveLength(1)
+    expect(JSON.stringify(sent[0]!.event.value)).toBe('{"constructor":"built","__proto__":"plain"}')
+    expect(sent[0]!.fits).toBe(true)
+  })
+
   test('a submit sends typed values: trimmed text, parsed numbers, empty optionals left out', () => {
     browser('fill', field('title'), '  Web renderer  ')
     browser('fill', field('points'), '3.5')
@@ -152,7 +175,7 @@ describe('Form', () => {
 describe('Markdown', () => {
   test('hostile Markdown runs nothing, keeps no handler or script, and loads nothing from outside', () => {
     // Raw HTML is dropped whole, so there is nothing to hover or click; an onerror would have fired on load.
-    const found = page<{ pwned: unknown; scripts: number; handlers: number; jsLinks: number; outsideImages: number; code: string; safeLink: string | null }>(`(() => {
+    const found = page<{ scriptText: boolean; pwned: unknown; scripts: number; handlers: number; jsLinks: number; outsideImages: number; code: string; safeLink: string | null }>(`(() => {
       const root = document.querySelector('#hostile')
       const all = [...root.querySelectorAll('*')]
       return {
@@ -163,6 +186,7 @@ describe('Markdown', () => {
         jsLinks: [...root.querySelectorAll('a')].filter(a => a.protocol === 'javascript:').length,
         outsideImages: [...root.querySelectorAll('img')].filter(img => /^(https?:)?\\/\\//.test(img.getAttribute('src') ?? '')).length,
         code: root.querySelector('code')?.textContent ?? '',
+        scriptText: root.textContent.includes('window.pwned'),
         safeLink: root.querySelector('a[href="https://example.com"]')?.textContent ?? null,
       }
     })()`)
@@ -170,8 +194,21 @@ describe('Markdown', () => {
     expect(found.scripts).toBe(0)
     expect(found.handlers).toBe(0)
     expect(found.jsLinks).toBe(0)
+    expect(found.scriptText).toBe(false)
     expect(found.outsideImages).toBe(0)
     expect(found.code).toContain('<script>')
     expect(found.safeLink).toBe('safe link')
+  })
+})
+
+describe('awkward trees', () => {
+  test('a cyclic Flow, a one-point chart and a wide table draw in 200px without spilling, every step shown', () => {
+    const drawn = page<{ text: string; spill: number }>(`(() => {
+      const root = document.querySelector('#awkward')
+      return { text: root.textContent, spill: root.scrollWidth - root.clientWidth }
+    })()`)
+    for (const step of ['Alpha', 'Beta', 'Gamma']) expect(drawn.text).toContain(step)
+    expect(drawn.text).toContain('One point')
+    expect(drawn.spill).toBeLessThanOrEqual(0)
   })
 })
