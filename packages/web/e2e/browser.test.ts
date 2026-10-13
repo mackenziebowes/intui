@@ -213,6 +213,18 @@ describe('awkward trees', () => {
   })
 })
 
+describe('Text', () => {
+  test('a code block uses the width it is given, not the prose measure, so a long line is not cut off', () => {
+    const sizes = page<{ pre: number; scroll: number; p: number }>(`(() => {
+      const root = document.querySelector('#code')
+      const pre = root.querySelector('pre')
+      return { pre: pre.clientWidth, scroll: pre.scrollWidth, p: root.querySelector('p').getBoundingClientRect().width }
+    })()`)
+    expect(sizes.pre).toBeGreaterThan(sizes.p)
+    expect(sizes.scroll).toBeLessThanOrEqual(sizes.pre)
+  })
+})
+
 describe('Flow', () => {
   test('in a row, a link that skips a layer is written in its source box, never drawn through the boxes between', () => {
     const flow = page<{ direction: string; arrows: number; who: string; labels: string[] }>(`(() => {

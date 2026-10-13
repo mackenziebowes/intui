@@ -127,7 +127,8 @@
 
 /* ---- Text ---- */
 
-.intui-text {
+/* The reading measure is for prose; code and tables use the width they're given. */
+.intui-text > :not(pre, table) {
   max-width: 70ch;
 }
 

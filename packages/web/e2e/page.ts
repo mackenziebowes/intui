@@ -169,6 +169,11 @@ const fixtures: Fixture[] = [
   { id: 'hostile', root: hostile },
   { id: 'awkward', root: awkward, width: 200 },
   { id: 'skipping', root: skipping, width: 1200 },
+  {
+    id: 'code',
+    root: { type: 'Text', markdown: 'A short paragraph.\n\n```ts\n' + 'const aLongTypeSketch = { kind: "expires", at: Instant, until: Instant } // read then; stale once the clock passes until\n```' } as Node,
+    width: 1200,
+  },
   { id: 'readings', root: readings },
 ]
 
