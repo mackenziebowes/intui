@@ -1,0 +1,18 @@
+[package]
+name = "intui-event"
+version = "0.1.0"
+edition = "2021"
+
+[[bin]]
+name = "intui-event"
+path = "src/main.rs"
+
+[dependencies]
+intui-types = { path = "../intui-types" }
+
+[dev-dependencies]
+serde_json = { version = "1", features = ["float_roundtrip"] }
+
+[[test]]
+name = "event_parity"
+path = "../tests/event_parity.rs"

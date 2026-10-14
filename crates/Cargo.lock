@@ -43,6 +43,14 @@ dependencies = [
 ]
 
 [[package]]
+name = "intui-event"
+version = "0.1.0"
+dependencies = [
+ "intui-types",
+ "serde_json",
+]
+
+[[package]]
 name = "intui-layout"
 version = "0.1.0"
 dependencies = [

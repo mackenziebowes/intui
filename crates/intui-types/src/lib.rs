@@ -20,6 +20,10 @@ pub mod generated {
 }
 
 mod edge;
+mod event;
+mod event_edge;
+mod event_refusal;
+mod fit;
 mod json;
 mod node;
 mod read;
@@ -30,7 +34,10 @@ mod schema;
 pub mod forms;
 
 pub use edge::{parse, parse_json};
-pub use json::{Json, JsonFault, JsonObject, JsonType, MAX_DEPTH};
+pub use event::{ComponentId, Event, FieldValue, Source, ValueType, Values};
+pub use event_edge::{parse_event, parse_event_json};
+pub use event_refusal::{EventIssue, EventIssueKind, EventProblem, EventRefusal};
+pub use json::{parse as read_json, Json, JsonFault, JsonObject, JsonType, Unreadable, MAX_DEPTH};
 pub use node::{Drawn, Kind, Node, Tree, UnknownKind};
 pub use reading::{Finite, Reading, ReadingKind};
 pub use refusal::{Expected, LongRule, MinimumRule, Problem, ProblemKind, ReadingProblem, Refusal, Seen, ShortRule};

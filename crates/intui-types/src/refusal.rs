@@ -172,7 +172,7 @@ pub enum ReadingProblem {
 
 const KIND_LIST: &str = "\"exact\", \"atLeast\", \"estimate\", \"unknown\"";
 
-fn quoted(keys: &[String]) -> String {
+pub(crate) fn quoted(keys: &[String]) -> String {
     keys.iter().map(|key| format!("\"{key}\"")).collect::<Vec<_>>().join(", ")
 }
 

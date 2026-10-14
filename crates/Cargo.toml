@@ -1,3 +1,3 @@
 [workspace]
 resolver = "2"
-members = ["intui-types", "intui-layout", "intui-text"]
+members = ["intui-types", "intui-layout", "intui-text", "intui-event"]
