@@ -92,6 +92,31 @@ test("show's text form keeps a table's cells, even ones holding a pipe", async (
   expect(text).toContain('counts files')
 })
 
+test('a table cell left out under a built-in property name reads and draws empty, not as native code', async ($, on) => {
+  session(on)
+  const table = {
+    v: 1,
+    root: {
+      type: 'Table',
+      columns: ['constructor', 'toString', 'a'].map(key => ({ key, label: key })),
+      rows: [{ a: 1 }, Object.fromEntries([['constructor', 'x']])],
+    },
+  }
+  const text = String((await show($, table, 'contracts-built-in-cells')).result)
+  expect(text).not.toContain('native code')
+  expect(text).toContain('| x |  |  |')
+  const ui = await $.ui.mount({
+    plugin: 'intui',
+    surface: 'terminal',
+    component: 'ToolUse',
+    props: { tool_use_id: 'contracts-built-in-cells', tool: 'mcp__intui__show', input: table, isRunning: false, isErrored: false, isInterrupted: false },
+    viewport: { columns: 100, rows: 40 },
+  })
+  expect(await ui.find({ text: /native code/ })).toBeUndefined()
+  expect(await ui.find({ text: /constructor/ })).toBeDefined()
+  await ui.unmount()
+})
+
 test("a chart a tool returns reads back to the model as a table of its numbers", async ($, on) => {
   session(on)
   const answer = (await $.tool.call({ tool: 'mcp__intui__demo_chart', input: {}, tool_use_id: 'contracts-demo' } as never)) as { result?: unknown }

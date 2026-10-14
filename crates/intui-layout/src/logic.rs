@@ -1,9 +1,10 @@
 //! Small decisions renderers share: column alignment, typed numbers, a chart read aloud,
 //! the mark before a reading, how a change points.
 
-use crate::chart_scale::{format_value, ChartModel};
-use intui_text::numbers::shown_number;
-use intui_types::generated::tree as gen;
+use crate::chart_scale::{format_value, Category, ChartModel};
+use crate::words;
+use intui_text::numbers::{js_to_string, shown_number};
+use intui_types::forms::{Cell, Change, Column, Row, TableColumnAlign};
 use intui_types::{Reading, ReadingKind};
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -13,18 +14,14 @@ pub enum Align {
 }
 
 /// Columns whose present values are all numbers align right unless the column says otherwise.
-pub fn align_of(column: &gen::TableColumn, rows: &[std::collections::HashMap<String, gen::TableRowsItemValue>]) -> Align {
+pub fn align_of(column: &Column, rows: &[Row]) -> Align {
     match column.align {
-        Some(gen::TableColumnAlign::Start) => return Align::Start,
-        Some(gen::TableColumnAlign::End) => return Align::End,
+        Some(TableColumnAlign::Start) => return Align::Start,
+        Some(TableColumnAlign::End) => return Align::End,
         None => {}
     }
-    let values: Vec<&gen::TableRowsItemValue> = rows
-        .iter()
-        .filter_map(|row| row.get(column.key.as_str()))
-        .filter(|value| !matches!(value, gen::TableRowsItemValue::Null))
-        .collect();
-    if !values.is_empty() && values.iter().all(|value| matches!(value, gen::TableRowsItemValue::Number(_))) {
+    let values: Vec<&Cell> = rows.iter().map(|row| row.cell(&column.key)).filter(|cell| !matches!(cell, Cell::Empty)).collect();
+    if !values.is_empty() && values.iter().all(|cell| matches!(cell, Cell::Number(_))) {
         Align::End
     } else {
         Align::Start
@@ -91,68 +88,52 @@ pub fn parse_number(raw: &str) -> NumberInput {
         Some(value) => NumberInput::Value(value),
         None => {
             let shown: Vec<u16> = trimmed.encode_utf16().take(20).collect();
-            NumberInput::Invalid { note: format!("\"{}\" is not a number", String::from_utf16_lossy(&shown)) }
+            NumberInput::Invalid { note: words::not_a_number(&String::from_utf16_lossy(&shown)) }
         }
     }
 }
 
 /// What a chart says for a reader who can't see it, including points that are floors, estimates or unknown.
 pub fn chart_label(model: &ChartModel, title: Option<&str>) -> String {
-    let parts: Vec<String> = model
+    let series: Vec<String> = model
         .series
         .iter()
         .map(|s| {
-            let values: Vec<f64> = s.values.iter().flatten().copied().collect();
+            let values = s.values();
             let range = if values.is_empty() {
-                "has no readable values".to_string()
+                words::NO_READABLE_VALUES.to_string()
             } else {
                 let min = values.iter().copied().fold(f64::INFINITY, f64::min);
                 let max = values.iter().copied().fold(f64::NEG_INFINITY, f64::max);
-                format!("from {} to {}", format_value(min), format_value(max))
+                words::value_range(&format_value(min), &format_value(max))
             };
-            let count = |kind: ReadingKind| s.kinds.iter().filter(|k| **k == Some(kind)).count();
-            let notes: Vec<String> = [
-                (count(ReadingKind::AtLeast), "at least"),
-                (count(ReadingKind::Estimate), "about"),
-                (count(ReadingKind::Unknown), "unknown"),
-            ]
-            .into_iter()
-            .filter(|(n, _)| *n > 0)
-            .map(|(n, word)| format!("{n} {word}"))
-            .collect();
-            let notes = if notes.is_empty() { String::new() } else { format!(" ({})", notes.join(", ")) };
-            format!("{} {range}{notes}", s.label)
+            let notes: Vec<String> = [ReadingKind::AtLeast, ReadingKind::Estimate, ReadingKind::Unknown]
+                .into_iter()
+                .filter_map(|kind| {
+                    let count = (0..model.xs.len()).filter(|index| s.kind_at(*index) == Some(kind)).count();
+                    if count > 0 { words::count_of(kind, count) } else { None }
+                })
+                .collect();
+            words::series_summary(&s.label, &range, &notes)
         })
         .collect();
-    let markers = if model.markers.is_empty() {
-        String::new()
-    } else {
-        let list: Vec<String> = model
-            .markers
-            .iter()
-            .map(|m| {
-                let at = match &m.at {
-                    crate::chart_scale::Category::Number(number) => intui_text::numbers::js_to_string(*number),
-                    crate::chart_scale::Category::Text(text) => text.clone(),
-                };
-                format!("{at} {}", m.label)
-            })
-            .collect();
-        format!("; markers: {}", list.join(", "))
-    };
-    let title = title.filter(|title| !title.is_empty()).map(|title| format!(" \"{title}\"")).unwrap_or_default();
-    let unit = model.unit.as_ref().map(|unit| format!(" in {unit}")).unwrap_or_default();
-    format!("{} chart{title}{unit}: {}{markers}", model.kind, parts.join("; "))
+    let markers: Vec<String> = model
+        .markers
+        .iter()
+        .map(|m| {
+            let at = match &m.at {
+                Category::Number(number) => js_to_string(*number),
+                Category::Text(text) => text.clone(),
+            };
+            format!("{at} {}", m.label)
+        })
+        .collect();
+    words::chart_summary(model.kind, title, model.unit.as_deref(), &series, &words::marker_summary(&markers))
 }
 
 /// The mark a renderer puts before a number: a floor and an estimate say so; an exact number and an unknown wear none.
 pub fn reading_mark(kind: ReadingKind) -> &'static str {
-    match kind {
-        ReadingKind::Exact => "",
-        ReadingKind::AtLeast => "≥ ",
-        ReadingKind::Estimate => "~",
-        ReadingKind::Unknown => "",
-    }
+    words::reading_mark(kind)
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -162,29 +143,71 @@ pub enum Way {
     Flat,
 }
 
-/// How a Stat's change draws: which way it points (none when the reading can't say) and the figure beside it.
+/// A change that points somewhere, and the size of the move.
 #[derive(Clone, Copy, Debug, PartialEq)]
-pub struct ChangeShape {
-    pub way: Option<Way>,
-    pub figure: Option<f64>,
-    pub kind: ReadingKind,
+pub struct Pointing {
+    pub way: Way,
+    pub figure: f64,
 }
 
-/// A floor below zero has no direction (it may still be positive), so it keeps its sign instead of an arrow.
-/// Whether a change is good news is the tone's job.
-pub fn change_shape(change: &gen::StatChange) -> ChangeShape {
-    match Reading::from(&change.value) {
-        Reading::Unknown => ChangeShape { way: None, figure: None, kind: ReadingKind::Unknown },
-        Reading::AtLeast(value) => {
-            let shown = shown_number(value);
-            ChangeShape { way: (shown > 0.0).then_some(Way::Up), figure: Some(shown), kind: ReadingKind::AtLeast }
+/// How a Stat's change draws, one variant per certainty. A floor below zero has no direction (it may still
+/// be positive), so it keeps its sign instead of an arrow. Whether a change is good news is the tone's job.
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub enum ChangeShape {
+    /// Couldn't be read: no arrow, no figure.
+    Unknown,
+    /// A floor above zero: it points up.
+    AtLeastRising { figure: f64 },
+    /// A floor at or below zero: the figure keeps its sign and nothing points.
+    AtLeastSigned { figure: f64 },
+    Exact(Pointing),
+    Estimate(Pointing),
+}
+
+impl ChangeShape {
+    pub fn way(self) -> Option<Way> {
+        match self {
+            ChangeShape::Unknown | ChangeShape::AtLeastSigned { .. } => None,
+            ChangeShape::AtLeastRising { .. } => Some(Way::Up),
+            ChangeShape::Exact(pointing) | ChangeShape::Estimate(pointing) => Some(pointing.way),
         }
-        Reading::Exact(value) => shaped(value, ReadingKind::Exact),
-        Reading::Estimate(value) => shaped(value, ReadingKind::Estimate),
+    }
+
+    pub fn figure(self) -> Option<f64> {
+        match self {
+            ChangeShape::Unknown => None,
+            ChangeShape::AtLeastRising { figure } | ChangeShape::AtLeastSigned { figure } => Some(figure),
+            ChangeShape::Exact(pointing) | ChangeShape::Estimate(pointing) => Some(pointing.figure),
+        }
+    }
+
+    pub fn kind(self) -> ReadingKind {
+        match self {
+            ChangeShape::Unknown => ReadingKind::Unknown,
+            ChangeShape::AtLeastRising { .. } | ChangeShape::AtLeastSigned { .. } => ReadingKind::AtLeast,
+            ChangeShape::Exact(_) => ReadingKind::Exact,
+            ChangeShape::Estimate(_) => ReadingKind::Estimate,
+        }
     }
 }
 
-fn shaped(value: f64, kind: ReadingKind) -> ChangeShape {
+pub fn change_shape(change: &Change) -> ChangeShape {
+    match change.value {
+        Reading::Unknown => ChangeShape::Unknown,
+        Reading::AtLeast(value) => {
+            let shown = shown_number(value.get());
+            if shown > 0.0 {
+                ChangeShape::AtLeastRising { figure: shown }
+            } else {
+                ChangeShape::AtLeastSigned { figure: shown }
+            }
+        }
+        Reading::Exact(value) => ChangeShape::Exact(pointing(value.get())),
+        Reading::Estimate(value) => ChangeShape::Estimate(pointing(value.get())),
+    }
+}
+
+fn pointing(value: f64) -> Pointing {
     let shown = shown_number(value);
     let way = if shown > 0.0 {
         Way::Up
@@ -193,5 +216,5 @@ fn shaped(value: f64, kind: ReadingKind) -> ChangeShape {
     } else {
         Way::Flat
     };
-    ChangeShape { way: Some(way), figure: Some(shown.abs()), kind }
+    Pointing { way, figure: shown.abs() }
 }

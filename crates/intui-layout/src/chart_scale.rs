@@ -1,8 +1,9 @@
 //! Chart scales: a readable y range, short axis numbers, which x labels fit.
 
 use intui_text::numbers::{js_round_significant, js_to_fixed, js_to_string};
-use intui_types::generated::tree as gen;
+use intui_types::forms::{self, ChartKind, ChartSeriesRole, Position};
 use intui_types::{Reading, ReadingKind};
+use unicode_general_category::{get_general_category, GeneralCategory};
 
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub struct Domain {
@@ -17,20 +18,11 @@ pub enum Category {
     Text(String),
 }
 
-impl From<&gen::ChartPointX> for Category {
-    fn from(x: &gen::ChartPointX) -> Category {
-        match x {
-            gen::ChartPointX::Number(number) => Category::Number(*number),
-            gen::ChartPointX::String(text) => Category::Text(text.clone()),
-        }
-    }
-}
-
-impl From<&gen::ChartAnnotationAt> for Category {
-    fn from(at: &gen::ChartAnnotationAt) -> Category {
-        match at {
-            gen::ChartAnnotationAt::Number(number) => Category::Number(*number),
-            gen::ChartAnnotationAt::String(text) => Category::Text(text.clone()),
+impl From<&Position> for Category {
+    fn from(position: &Position) -> Category {
+        match position {
+            Position::Number(number) => Category::Number(number.get()),
+            Position::Text(text) => Category::Text(text.clone()),
         }
     }
 }
@@ -38,11 +30,35 @@ impl From<&gen::ChartAnnotationAt> for Category {
 #[derive(Clone, Debug, PartialEq)]
 pub struct ModelSeries {
     pub label: String,
-    pub role: gen::ChartSeriesRole,
-    /// The number at each x; `None` where there is no point or an unknown one.
-    pub values: Vec<Option<f64>>,
-    /// Why, and how sure the rest are; `None` is no point.
-    pub kinds: Vec<Option<ReadingKind>>,
+    pub role: ChartSeriesRole,
+    /// What the series says at each x; `None` where it has no point there.
+    pub readings: Vec<Option<Reading>>,
+}
+
+impl ModelSeries {
+    /// The number at the x in place `index`; `None` where there is no point or an unknown one.
+    pub fn value_at(&self, index: usize) -> Option<f64> {
+        self.readings.get(index).copied().flatten().and_then(Reading::value)
+    }
+
+    /// How sure the point at `index` is; `None` where there is no point.
+    pub fn kind_at(&self, index: usize) -> Option<ReadingKind> {
+        self.readings.get(index).copied().flatten().map(Reading::kind)
+    }
+
+    /// Every number the series holds, skipping gaps and unknowns.
+    pub fn values(&self) -> Vec<f64> {
+        self.readings.iter().flatten().filter_map(|reading| reading.value()).collect()
+    }
+}
+
+/// Where a marker sits on the plot.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum MarkerSite {
+    /// On the category in this place of the x axis.
+    OnCategory(usize),
+    /// No category matches it, so it can't be drawn on the plot.
+    Unplaced,
 }
 
 #[derive(Clone, Debug, PartialEq)]
@@ -50,21 +66,26 @@ pub struct Marker {
     pub n: usize,
     pub at: Category,
     pub label: String,
-    /// The category it sits on; `None` when no x matches.
-    pub index: Option<usize>,
+    pub site: MarkerSite,
 }
 
-/// The chart as a plain model: aligned values, a y domain and numbered markers.
+/// The y range a chart can be drawn on: there is one only when some point has a number.
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub enum Scale {
+    Readable(Domain),
+    /// No point has a number, so there is no range to draw an axis for.
+    Unreadable,
+}
+
+/// The chart as a plain model: aligned readings, a scale and numbered markers.
 #[derive(Clone, Debug, PartialEq)]
 pub struct ChartModel {
-    pub kind: gen::ChartKind,
+    pub kind: ChartKind,
     pub unit: Option<String>,
     /// Categories in the order they first appear: the same reading as the text form.
     pub xs: Vec<Category>,
     pub series: Vec<ModelSeries>,
-    pub domain: Domain,
-    /// False when no point has a number, so there is no range to draw an axis for.
-    pub readable: bool,
+    pub scale: Scale,
     pub markers: Vec<Marker>,
 }
 
@@ -103,8 +124,8 @@ pub fn nice_step(raw: f64) -> f64 {
 }
 
 /// The y range to draw: bars start at zero, lines hug their data, both on round numbers.
-pub fn nice_domain(min: f64, max: f64, kind: gen::ChartKind) -> Domain {
-    let bar = matches!(kind, gen::ChartKind::Bar);
+pub fn nice_domain(min: f64, max: f64, kind: ChartKind) -> Domain {
+    let bar = matches!(kind, ChartKind::Bar);
     let mut lo = if bar { min.min(0.0) } else { min };
     let mut hi = if bar { max.max(0.0) } else { max };
     if lo == hi {
@@ -153,11 +174,26 @@ pub fn with_unit(value: &str, unit: Option<&str>) -> String {
     let first = chars.next().expect("unit is not empty");
     if chars.next().is_none() && "$€£¥".contains(first) {
         format!("{unit}{value}")
-    } else if !first.is_alphabetic() && !first.is_numeric() {
+    } else if !is_letter_or_number(first) {
         format!("{value}{unit}")
     } else {
         format!("{value} {unit}")
     }
+}
+
+/// JavaScript's `\p{L}` or `\p{N}`: the Unicode general categories Letter and Number.
+fn is_letter_or_number(c: char) -> bool {
+    matches!(
+        get_general_category(c),
+        GeneralCategory::UppercaseLetter
+            | GeneralCategory::LowercaseLetter
+            | GeneralCategory::TitlecaseLetter
+            | GeneralCategory::ModifierLetter
+            | GeneralCategory::OtherLetter
+            | GeneralCategory::DecimalNumber
+            | GeneralCategory::LetterNumber
+            | GeneralCategory::OtherNumber
+    )
 }
 
 /// Where `value` falls on a 0..size axis, 0 at `lo`.
@@ -219,9 +255,9 @@ fn fill(clamped: &impl Fn(usize) -> f64, widths: &[f64], gap: f64, a: usize, b: 
 }
 
 /// The chart as a plain model.
-pub fn build_model(chart: &gen::Chart) -> ChartModel {
+pub fn build_model(chart: &forms::Chart) -> ChartModel {
     let mut xs: Vec<Category> = Vec::new();
-    for point in chart.series.iter().flat_map(|series| &series.points) {
+    for point in chart.series.iter().flat_map(|series| series.points.iter()) {
         let x = match Category::from(&point.x) {
             Category::Number(number) if number == 0.0 => Category::Number(0.0),
             other => other,
@@ -233,42 +269,34 @@ pub fn build_model(chart: &gen::Chart) -> ChartModel {
     let series: Vec<ModelSeries> = chart
         .series
         .iter()
-        .map(|s| {
-            let readings: Vec<Option<Reading>> = xs
-                .iter()
-                .map(|x| s.points.iter().find(|point| Category::from(&point.x) == *x).map(|point| Reading::from(&point.y)))
-                .collect();
-            ModelSeries {
-                label: s.label.to_string(),
-                role: s.role,
-                values: readings.iter().map(|reading| reading.and_then(Reading::value)).collect(),
-                kinds: readings.iter().map(|reading| reading.map(Reading::kind)).collect(),
-            }
+        .map(|s| ModelSeries {
+            label: s.label.clone(),
+            role: s.role,
+            readings: xs.iter().map(|x| s.points.iter().find(|point| Category::from(&point.x) == *x).map(|point| point.y)).collect(),
         })
         .collect();
-    let all: Vec<f64> = series.iter().flat_map(|s| s.values.iter().flatten().copied()).collect();
+    let all: Vec<f64> = series.iter().flat_map(ModelSeries::values).collect();
     let markers = chart
         .annotations
         .iter()
         .enumerate()
         .map(|(i, annotation)| {
             let at = Category::from(&annotation.at);
-            let index = xs.iter().position(|x| *x == at);
-            Marker { n: i + 1, at, label: annotation.label.to_string(), index }
+            let site = xs.iter().position(|x| *x == at).map_or(MarkerSite::Unplaced, MarkerSite::OnCategory);
+            Marker { n: i + 1, at, label: annotation.label.clone(), site }
         })
         .collect();
-    let domain = if all.is_empty() {
-        nice_domain(0.0, 1.0, chart.kind)
+    let scale = if all.is_empty() {
+        Scale::Unreadable
     } else {
-        nice_domain(all.iter().copied().fold(f64::INFINITY, f64::min), all.iter().copied().fold(f64::NEG_INFINITY, f64::max), chart.kind)
+        Scale::Readable(nice_domain(all.iter().copied().fold(f64::INFINITY, f64::min), all.iter().copied().fold(f64::NEG_INFINITY, f64::max), chart.kind))
     };
     ChartModel {
         kind: chart.kind,
         unit: chart.unit.clone().filter(|unit| !unit.is_empty()),
         xs,
         series,
-        domain,
-        readable: !all.is_empty(),
+        scale,
         markers,
     }
 }

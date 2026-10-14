@@ -18,5 +18,5 @@ export { Form, type FormField, type FormProps } from "./components/form";
 export { Group, type GroupProps } from "./components/group";
 export { Label, TONES, type LabelProps, type Tone } from "./components/label";
 export { Stat, type ChangeReading, type StatProps } from "./components/stat";
-export { Table, type CellValue, type TableColumn, type TableProps } from "./components/table";
+export { Table, cellOf, type CellValue, type TableColumn, type TableProps } from "./components/table";
 export { Text, type TextProps } from "./components/text";

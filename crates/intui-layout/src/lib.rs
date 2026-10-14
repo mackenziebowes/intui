@@ -8,10 +8,11 @@
 mod chart_scale;
 mod flow_analysis;
 mod logic;
+mod words;
 
 pub use chart_scale::{
     build_model, format_value, marker_glyph, nice_domain, nice_step, place_labels, project, with_unit, Category, ChartModel, Domain,
-    Marker, ModelSeries, PlacedLabel,
+    Marker, MarkerSite, ModelSeries, PlacedLabel, Scale,
 };
-pub use flow_analysis::{analyse, break_cycles, resolve_edges, Analysis, Edge};
-pub use logic::{align_of, change_shape, chart_label, parse_number, reading_mark, Align, ChangeShape, NumberInput, Way};
+pub use flow_analysis::{analyse, resolve_edges, Analysis, Edge, LayerIndex};
+pub use logic::{align_of, change_shape, chart_label, parse_number, reading_mark, Align, ChangeShape, NumberInput, Pointing, Way};

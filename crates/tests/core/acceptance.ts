@@ -1,4 +1,4 @@
-/** Prints core's verdict on every tree: `{ accepted: [...names], refused: [{ name, json, words, message }] }`. */
+/** Prints core's verdict on every tree: `{ accepted: [{ name, json, symptom?, verdict }], refused: [{ name, json, words, symptom?, verdict }] }`. */
 import { Tree } from "../../../packages/core/src/index";
 import { accepted, refusals } from "./trees";
 
@@ -7,13 +7,13 @@ const verdict = (json: string): { ok: true } | { ok: false; message: string } =>
     Tree.parse(JSON.parse(json));
     return { ok: true };
   } catch (error) {
-    return { ok: false, message: (error as Error).message };
+    return { ok: false, message: error instanceof Error ? error.message : String(error) };
   }
 };
 
 console.log(
   JSON.stringify({
-    accepted: accepted.map(({ name, json }) => ({ name, json, verdict: verdict(json) })),
+    accepted: accepted.map((tree) => ({ ...tree, verdict: verdict(tree.json) })),
     refused: refusals.map((tree) => ({ ...tree, verdict: verdict(tree.json) })),
   }),
 );

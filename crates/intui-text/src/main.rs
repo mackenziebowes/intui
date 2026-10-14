@@ -3,23 +3,28 @@
 //! A tree that can't be shown prints the refusal on stderr and exits 1; unreadable
 //! input exits 2. The checks drive this binary against core's `Tree.toText()`.
 
+mod cli_error;
+
+use cli_error::CliError;
 use std::io::Read;
 use std::process::ExitCode;
 
-fn main() -> ExitCode {
+fn run() -> Result<String, CliError> {
     let mut input = String::new();
-    if let Err(error) = std::io::stdin().read_to_string(&mut input) {
-        eprintln!("Couldn't read stdin ({error}); pipe a tree as JSON into intui-text");
-        return ExitCode::from(2);
-    }
-    match intui_types::parse(&input) {
-        Ok(tree) => {
-            print!("{}", intui_text::to_text(&tree));
+    std::io::stdin().read_to_string(&mut input).map_err(|error| CliError::StdinUnreadable { why: error.to_string() })?;
+    let tree = intui_types::parse(&input).map_err(CliError::Refused)?;
+    Ok(intui_text::to_text(&tree))
+}
+
+fn main() -> ExitCode {
+    match run() {
+        Ok(text) => {
+            print!("{text}");
             ExitCode::SUCCESS
         }
-        Err(refusal) => {
-            eprintln!("{refusal}");
-            ExitCode::from(1)
+        Err(error) => {
+            eprintln!("{error}");
+            error.exit_code()
         }
     }
 }

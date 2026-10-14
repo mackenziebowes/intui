@@ -9,6 +9,9 @@ import { cell, markdownTable } from "../text";
 
 export type CellValue = string | number | boolean | null;
 
+/** The cell a row holds under a column's key, or undefined when the row leaves it out. Only the row's own keys count, so a column named `constructor` is empty, not Object's constructor. */
+export const cellOf = (row: Record<string, CellValue>, key: string): CellValue | undefined => (Object.hasOwn(row, key) ? row[key] : undefined);
+
 export interface TableColumn {
   key: string;
   label: string;
@@ -62,7 +65,7 @@ export const Table = defineKind<TableProps>({
   toText: (props) => {
     const table = markdownTable(
       props.columns.map((column) => cell(column.label)),
-      props.rows.map((row) => props.columns.map((column) => cell(row[column.key]))),
+      props.rows.map((row) => props.columns.map((column) => cell(cellOf(row, column.key)))),
     );
     return props.caption ? `${props.caption}\n\n${table}` : table;
   },

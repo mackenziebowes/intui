@@ -2,14 +2,19 @@
  * Trees the parity checks put to core and to Rust. A tree is JSON text, so a value
  * like -0 (which JSON.stringify would lose) reaches both sides as written.
  */
-import { core, Reading, Tree, type Node } from "../../../packages/core/src/index";
+import { core, Reading, Tree } from "../../../packages/core/src/index";
 
-export type Accepted = { name: string; json: string };
+/**
+ * `symptom`: a fixture that guards one fixed bug carries the bug's symptom, and its own check names it; the
+ * general checks leave such fixtures out so a regression fails under the name of what went wrong.
+ */
+export type Accepted = { name: string; json: string; symptom?: string };
 /** `words`: "same" when Rust must say what core says; "paths" when only the places must agree. */
-export type Refused = { name: string; json: string; words: "same" | "paths" };
+export type Refused = { name: string; json: string; words: "same" | "paths"; symptom?: string };
 
 const wire = (root: unknown) => JSON.stringify({ v: 1, root });
-const tree = (root: Node) => JSON.stringify(Tree.of(root).toJSON());
+/** A tree as core itself writes it: parsed as code's, so readings made with `Reading` keep their wire form. */
+const tree = (root: unknown) => JSON.stringify(Tree.parse({ v: 1, root }, { author: "code" }).toJSON());
 
 const group = (...children: unknown[]) => ({ type: "Group", direction: "column", children });
 const stat = (value: unknown, extra: object = {}) => ({ type: "Stat", label: "N", value, ...extra });
@@ -21,19 +26,48 @@ const NUMBERS = [
   -1234.5678, 1e6, 1234567.891, 123456789.123456, 0.1 + 0.2, 1e21, 1.5e21, 1e-7, -0.001, 5e-324, 1e300, 12345678901234567890, 0.30000000000000004, 100, -100.5, 7.999, 8.995,
 ];
 
+// Doubles that need all seventeen significant digits to come back the same: a parser that rounds a little
+// differently lands one unit in the last place away, which only shows where text prints the full number.
+const LONG_DIGITS = (() => {
+  let seed = 4101999;
+  const next = () => {
+    seed = (Math.imul(seed, 1664525) + 1013904223) >>> 0;
+    return seed / 2 ** 32;
+  };
+  const random = Array.from({ length: 60 }, () => Number((next() * 10 ** Math.floor(next() * 12 - 3)).toPrecision(17)));
+  return [462.66749999999996, 210179042.53676534, 0.1 + 0.7, 1.0000000000000002, 123456789.12345679, ...random];
+})();
+
+/** What went wrong before each fix, in the words a person would use; the checks that guard a fix are named for it. */
+export const SYMPTOMS = {
+  longDecimal: "a decimal with seventeen digits comes out one digit off",
+  nullOnOptional: "null on an optional prop is read as absent",
+  deepGroup: "a Group nested about sixty levels deep is called not JSON",
+  severalProblems: "only the first problem in a node is listed",
+  loneSurrogate: "a lone surrogate escape is called not JSON",
+  tooBigForADouble: "a number too big for a double is called not JSON",
+  omittedCellOnBuiltIn: "an omitted table cell under a built-in property name prints native code",
+} as const;
+
+const nested = (depth: number): unknown => {
+  let node: unknown = { type: "Text", markdown: "deep" };
+  for (let level = 0; level < depth; level++) node = { type: "Group", direction: "column", children: [node] };
+  return node;
+};
+
 const negativeZero = "__NEGATIVE_ZERO__";
 const written = (value: unknown) => JSON.stringify(value, (_, v) => (Object.is(v, -0) ? negativeZero : v)).replaceAll(`"${negativeZero}"`, "-0");
 
 export const accepted: Accepted[] = [
   ...core.kinds.map((kind) => ({ name: `catalog example: ${kind.type}`, json: tree(kind.example) })),
-  { name: "catalog: every kind in one Group", json: tree(group(...core.kinds.map((kind) => kind.example)) as Node) },
+  { name: "catalog: every kind in one Group", json: tree(group(...core.kinds.map((kind) => kind.example))) },
   // The e2e page's fixtures (packages/web/e2e/page.ts).
-  { name: "e2e: choice", json: tree({ type: "Choice", id: "next-step", options: [{ id: "explore", label: "Start exploring", emphasis: "primary" }, { id: "park", label: "Park" }], repeat: "once" } as Node) },
+  { name: "e2e: choice", json: tree({ type: "Choice", id: "next-step", options: [{ id: "explore", label: "Start exploring", emphasis: "primary" }, { id: "park", label: "Park" }], repeat: "once" }) },
   {
     name: "e2e: odd field ids",
-    json: tree({ type: "Form", id: "odd", fields: [{ id: "constructor", label: "Ctor", input: "text", required: true }, { id: "__proto__", label: "Proto", input: "text", required: false }], submitLabel: "Go" } as Node),
+    json: tree({ type: "Form", id: "odd", fields: [{ id: "constructor", label: "Ctor", input: "text", required: true }, { id: "__proto__", label: "Proto", input: "text", required: false }], submitLabel: "Go" }),
   },
-  { name: "e2e: hostile markdown is passed through untouched", json: tree({ type: "Text", markdown: '<script>alert(1)</script>\n\n| a | b |\n| --- | --- |\n| `x` | y |\n\n[tab](<java\tscript:x>)' } as Node) },
+  { name: "e2e: hostile markdown is passed through untouched", json: tree({ type: "Text", markdown: '<script>alert(1)</script>\n\n| a | b |\n| --- | --- |\n| `x` | y |\n\n[tab](<java\tscript:x>)' }) },
   {
     name: "e2e: awkward flow, chart and wide table",
     json: tree(
@@ -41,7 +75,7 @@ export const accepted: Accepted[] = [
         { type: "Flow", steps: [{ id: "a", label: "Alpha step with a long label" }, { id: "b", label: "Beta" }, { id: "c", label: "Gamma" }], links: [{ from: "a", to: "a" }, { from: "a", to: "b" }, { from: "b", to: "c" }, { from: "c", to: "a", label: "again" }] },
         { type: "Chart", kind: "line", title: "One point", series: [{ label: "Only", points: [{ x: "Mon", y: 3 }] }] },
         { type: "Table", columns: ["one", "two", "three"].map((key) => ({ key, label: `Column ${key}` })), rows: [{ one: "a", two: "b", three: "c" }] },
-      ) as Node,
+      ),
     ),
   },
   {
@@ -56,7 +90,7 @@ export const accepted: Accepted[] = [
         stat(7, { change: { value: Reading.unknown(), as: "amount" } }),
         { type: "Chart", kind: "line", title: "Tokens by day", unit: "tokens", series: [{ label: "Mine", points: [{ x: "Mon", y: 10 }, { x: "Tue", y: Reading.unknown() }, { x: "Wed", y: Reading.atLeast(30) }, { x: "Thu", y: Reading.estimate(25) }] }] },
         { type: "Chart", kind: "bar", title: "Every point lost", series: [{ label: "Nothing", points: [{ x: "a", y: Reading.unknown() }, { x: "b", y: Reading.unknown() }] }] },
-      ) as Node,
+      ),
     ),
   },
   { name: "an older tree: bare numbers only", json: wire({ type: "Stat", label: "Visitors", value: 1204, change: { value: 18, as: "percent" }, tone: "positive" }) },
@@ -80,6 +114,7 @@ export const accepted: Accepted[] = [
   { name: "flow: duplicate step ids use the last label", json: wire({ type: "Flow", steps: [{ id: "a", label: "First" }, { id: "a", label: "Second" }], links: [{ from: "a", to: "a", label: "loop" }] }) },
   { name: "flow: cycles, self links, duplicate links", json: wire({ type: "Flow", steps: [{ id: "a", label: "A" }, { id: "b", label: "B" }, { id: "c", label: "C" }], links: [{ from: "a", to: "b" }, { from: "b", to: "c" }, { from: "c", to: "a", label: "again" }, { from: "a", to: "b", label: "dup" }, { from: "b", to: "b" }] }) },
   { name: "form: every input kind, required, options", json: wire({ type: "Form", id: "f", fields: [{ id: "a", label: "A", input: "text", required: true }, { id: "b", label: "B", input: "number" }, { id: "c", label: "C", input: "select", options: ["x", "y"] }, { id: "d", label: "D", input: "checkbox", required: true }] }) },
+  { name: "form: options on fields that are not selects, one of them empty", json: wire({ type: "Form", id: "f", fields: [{ id: "a", label: "A", input: "text", options: [] }, { id: "b", label: "B", input: "checkbox", options: ["x"] }] }) },
   { name: "choice: prompt and options", json: wire({ type: "Choice", id: "c", prompt: "Go?", options: [{ id: "y", label: "Yes", emphasis: "primary" }, { id: "n", label: "No" }], repeat: "many" }) },
   { name: "label at the length limit, in letters and in emoji", json: wire(group({ type: "Label", text: "x".repeat(40) }, { type: "Label", text: "😀".repeat(40) })) },
   { name: "text: unicode and a lone newline", json: wire({ type: "Text", markdown: "héllo — 世界\n" }) },
@@ -96,11 +131,80 @@ export const accepted: Accepted[] = [
     }),
   })),
   { name: "number -0 in a table cell and as an x", json: written({ v: 1, root: group({ type: "Table", columns: [{ key: "n", label: "N" }], rows: [{ n: -0 }] }, { type: "Chart", kind: "line", series: [{ label: "S", points: [{ x: -0, y: -0 }] }] }) }) },
+  ...LONG_DIGITS.map((n) => ({
+    name: `long decimal ${n} on every surface that prints one`,
+    symptom: SYMPTOMS.longDecimal,
+    json: written({
+      v: 1,
+      root: group(
+        stat(n, { unit: "tokens", change: { value: n, as: "amount" } }),
+        { type: "Table", columns: [{ key: "n", label: "N" }], rows: [{ n }] },
+        { type: "Chart", kind: "line", series: [{ label: "S", points: [{ x: n, y: n }] }], annotations: [{ at: n, label: "m" }] },
+      ),
+    }),
+  })),
+  { name: "a Group nested 2000 deep", symptom: SYMPTOMS.deepGroup, json: wire(nested(2000)) },
+  { name: "a lone surrogate escape in an id", symptom: SYMPTOMS.loneSurrogate, json: wire({ type: "Choice", id: "\ud800", options: [{ id: "\udfff", label: "A" }] }) },
+  {
+    name: "a table cell left out under a built-in property name",
+    symptom: SYMPTOMS.omittedCellOnBuiltIn,
+    json: wire({ type: "Table", columns: ["constructor", "toString", "__proto__", "hasOwnProperty", "a"].map((key) => ({ key, label: key })), rows: [{ a: 1 }, { constructor: "x" }, { a: 2 }] }),
+  },
 ];
 
 const root = (node: unknown) => ({ v: 1, root: node });
-const refused = (name: string, input: unknown, words: "same" | "paths" = "same"): Refused => ({ name, json: written(input), words });
+const refused = (name: string, input: unknown, words: "same" | "paths" = "same", symptom?: string): Refused => ({ name, json: written(input), words, ...(symptom ? { symptom } : {}) });
 const choice = (id: string) => ({ type: "Choice", id, options: [{ id: "a", label: "A" }] });
+
+const rawRefused = (name: string, json: string, words: "same" | "paths", symptom?: string): Refused => ({ name, json, words, ...(symptom ? { symptom } : {}) });
+
+const aTable = (extra: object) => ({ type: "Table", columns: [{ key: "a", label: "A" }], rows: [], ...extra });
+const aChart = (extra: object) => ({ type: "Chart", kind: "line", series: [{ label: "S", points: [{ x: "a", y: 1 }] }], ...extra });
+
+/** Every optional prop given `null`, which core refuses like any wrong type. */
+function nullCases(): Refused[] {
+  const cases: [string, unknown][] = [
+    ["a Table caption", aTable({ caption: null })],
+    ["a column align", { type: "Table", columns: [{ key: "a", label: "A", align: null }], rows: [] }],
+    ["a Chart title", aChart({ title: null })],
+    ["a Chart unit", aChart({ unit: null })],
+    ["a Stat unit", stat(1, { unit: null })],
+    ["a Stat change", stat(1, { change: null })],
+    ["a Stat tone", stat(1, { tone: null })],
+    ["a step detail", { type: "Flow", steps: [{ id: "a", label: "A", detail: null }, { id: "b", label: "B" }] }],
+    ["a link label", { type: "Flow", steps: [{ id: "a", label: "A" }, { id: "b", label: "B" }], links: [{ from: "a", to: "b", label: null }] }],
+    ["a Choice prompt", { type: "Choice", id: "c", prompt: null, options: [{ id: "a", label: "A" }] }],
+    ["an option emphasis", { type: "Choice", id: "c", options: [{ id: "a", label: "A", emphasis: null }] }],
+    ["a Choice repeat", { type: "Choice", id: "c", repeat: null, options: [{ id: "a", label: "A" }] }],
+    ["a Label tone", { type: "Label", text: "a", tone: null }],
+    ["a series role", aChart({ series: [{ label: "S", role: null, points: [{ x: "a", y: 1 }] }] })],
+    ["a Group direction", { type: "Group", direction: null, children: [{ type: "Text", markdown: "x" }] }],
+    ["a field's required", { type: "Form", id: "f", fields: [{ id: "a", label: "A", input: "text", required: null }] }],
+    ["a field's options", { type: "Form", id: "f", fields: [{ id: "a", label: "A", input: "text", options: null }] }],
+    ["a Form's submitLabel", { type: "Form", id: "f", fields: [{ id: "a", label: "A", input: "text" }], submitLabel: null }],
+    ["a Chart annotations", aChart({ annotations: null })],
+    ["a Flow links", { type: "Flow", steps: [{ id: "a", label: "A" }, { id: "b", label: "B" }], links: null }],
+  ];
+  return cases.map(([name, node]) => refused(`null as ${name}`, root(node), "same", SYMPTOMS.nullOnOptional));
+}
+
+/** Nodes with more than one thing wrong, which core lists in full. */
+function severalProblems(): Refused[] {
+  const cases: [string, unknown, "same" | "paths"][] = [
+    ["a Choice and its option both missing an id", { type: "Choice", id: "", options: [{ id: "", label: "A" }] }, "same"],
+    ["a Form field missing id, label and input", { type: "Form", id: "f", fields: [{}] }, "same"],
+    ["a Choice option with nothing in it", { type: "Choice", id: "c", options: [{}] }, "same"],
+    ["a Label that is empty, unknown-toned and has a stray prop", { type: "Label", text: "", foo: 1, tone: "red" }, "same"],
+    ["a Flow with empty ids and links to nowhere", { type: "Flow", steps: [{ id: "", label: "A" }, { id: "b", label: "" }], links: [{ from: "a", to: "zz" }] }, "same"],
+    ["a Table with an empty key and a row value that is not a column", { type: "Table", columns: [{ key: "", label: "A" }], rows: [{ a: 1 }] }, "same"],
+    ["a Chart with a missing kind, an empty label and a point without y", { type: "Chart", series: [{ label: "", points: [{ x: 1 }] }] }, "paths"],
+    ["a select with a bad id and no options", { type: "Form", id: "f", fields: [{ id: "", label: "A", input: "select" }] }, "same"],
+    ["a Choice whose id and options are the wrong types", { type: "Choice", id: 5, options: "x" }, "same"],
+    ["a Stat with a bad label, a bad reading and a bad unit", { type: "Stat", label: "", value: "5", unit: 3 }, "same"],
+    ["two bad children in a Group, each with two problems", { type: "Group", children: [{ type: "Label", text: "", tone: "red" }, { type: "Choice", id: "", options: [] }] }, "same"],
+  ];
+  return cases.map(([name, node, words]) => refused(name, root(node), words, SYMPTOMS.severalProblems));
+}
 
 export const refusals: Refused[] = [
   refused("not an object", 5),
@@ -168,11 +272,17 @@ export const refusals: Refused[] = [
   refused("the same id on a Choice and a Form", root(group(choice("c"), { type: "Form", id: "c", fields: [{ id: "a", label: "A", input: "text" }] }))),
   refused("the same id twice, deep in a tree", root(group(group(choice("c")), group(group(choice("c")))))),
   refused("an unknown prop on a nested node", root(group({ type: "Text", markdown: "ok" }, { type: "Group", children: [{ type: "Label", text: "a", color: "red" }] }))),
+  ...nullCases(),
+  ...severalProblems(),
+  rawRefused("1e400 as a Stat value", '{"v":1,"root":{"type":"Stat","label":"x","value":1e400}}', "same", SYMPTOMS.tooBigForADouble),
+  rawRefused("-1e400 as a change", '{"v":1,"root":{"type":"Stat","label":"x","value":1,"change":{"value":-1e400,"as":"amount"}}}', "same", SYMPTOMS.tooBigForADouble),
+  rawRefused("1e400 inside a reading object", '{"v":1,"root":{"type":"Stat","label":"x","value":{"kind":"atLeast","value":1e400}}}', "same", SYMPTOMS.tooBigForADouble),
+  rawRefused("1e400 as a chart y", '{"v":1,"root":{"type":"Chart","kind":"line","series":[{"label":"a","points":[{"x":1,"y":1e400}]}]}}', "same", SYMPTOMS.tooBigForADouble),
 ];
 
 /** Trees core refuses only because it has no kind of that name, which Rust must keep drawing around. */
-export const newerTrees: { name: string; json: string; kind: string; path: string; neighbour: string }[] = [
+export const newerTrees: { name: string; json: string; kind: string; path: string; neighbour: string | null }[] = [
   { name: "an unknown kind beside known ones", json: wire(group({ type: "Text", markdown: "kept text" }, { type: "Gauge", value: 3 }, { type: "Label", text: "kept label" })), kind: "Gauge", path: "root.children[1] (Gauge)", neighbour: "kept label" },
-  { name: "an unknown kind as the whole tree", json: wire({ type: "Heatmap", cells: [] }), kind: "Heatmap", path: "root (Heatmap)", neighbour: "" },
+  { name: "an unknown kind as the whole tree", json: wire({ type: "Heatmap", cells: [] }), kind: "Heatmap", path: "root (Heatmap)", neighbour: null },
   { name: "an unknown kind deep in a Group, with props this build never saw", json: wire(group(group({ type: "Text", markdown: "kept text" }, { type: "Sparkline", points: [1, 2, 3], anything: { at: "all" } }))), kind: "Sparkline", path: "root.children[0].children[1] (Sparkline)", neighbour: "kept text" },
 ];

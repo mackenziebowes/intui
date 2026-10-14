@@ -4,13 +4,13 @@
  * reader, and how a Stat's change points. A floor and an estimate carry their marks (`≥`,
  * `~`) and an unknown carries none.
  */
-import { never, shownNumber, type CellValue, type ChangeReading, type ReadingKind, type TableColumn } from '@intui/core'
+import { cellOf, never, shownNumber, type CellValue, type ChangeReading, type ReadingKind, type TableColumn } from '@intui/core'
 import { formatValue, type ChartModel } from './chart-scale'
 
 /** Columns whose present values are all numbers align right unless the column says otherwise. */
 export function alignOf(column: TableColumn, rows: Record<string, CellValue>[]): 'start' | 'end' {
   if (column.align) return column.align
-  const values = rows.map(row => row[column.key]).filter(value => value !== null && value !== undefined)
+  const values = rows.map(row => cellOf(row, column.key)).filter(value => value !== null && value !== undefined)
   return values.length > 0 && values.every(value => typeof value === 'number') ? 'end' : 'start'
 }
 

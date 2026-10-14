@@ -37,3 +37,12 @@ pub fn run(binary: &str, input: &str) -> Output {
     child.stdin.take().expect("stdin is piped").write_all(input.as_bytes()).expect("the binary reads its stdin");
     child.wait_with_output().expect("the binary finishes")
 }
+
+/// The fixtures a check is about: those that guard the fixed bug showing `symptom`, or (with `None`) the
+/// general ones. A symptom no fixture carries fails loudly, so a renamed fixture can't make a check pass by running nothing.
+#[allow(dead_code)] // the layout check has no fixtures to choose between
+pub fn fixtures<'a>(cases: &'a Value, symptom: Option<&str>) -> Vec<&'a Value> {
+    let chosen: Vec<&Value> = cases.as_array().expect("a list of fixtures").iter().filter(|case| case["symptom"].as_str() == symptom).collect();
+    assert!(symptom.is_none() || !chosen.is_empty(), "no fixture in crates/tests/core/trees.ts carries the symptom {symptom:?}; rename it here or there");
+    chosen
+}

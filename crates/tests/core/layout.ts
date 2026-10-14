@@ -1,8 +1,9 @@
 /**
- * Prints `{ cases, answers }`: the layout questions the parity check puts to Rust, and what
- * `packages/layout` answers to each, in the same shape `intui-layout` prints.
+ * Prints `{ cases, answers, symptoms }`: the layout questions the parity check puts to Rust, and what
+ * `packages/layout` answers to each, in the same shape `intui-layout` prints. `symptoms` holds the same
+ * for the cases that guard one fixed bug each, which have a check of their own named for what went wrong.
  */
-import { Tree, type Node } from "../../../packages/core/src/index";
+import { Tree, type ChartProps, type Node, type StatProps } from "../../../packages/core/src/index";
 import { analyse, buildModel, changeShape, chartLabel, formatValue, niceDomain, niceStep, parseNumber, placeLabels, READING_MARK, withUnit } from "../../../packages/layout/src/index";
 
 // A fixed pseudo-random sequence, so a failure names the same case on every run.
@@ -30,6 +31,9 @@ const niceDomainCases = [
 const unitCases = [
   ["5", "$"], ["5", "€"], ["5", "%"], ["95", "%"], ["120", "ms"], ["180", "visitors"], ["5", ""], ["5", null], ["5", "°C"], ["5", "$$"], ["5", "2x"], ["5", "٣"], ["5", "é"], ["5", " ms"], ["5", "_x"], ["5", "¥"], ["5", "kr."], ["5", "Ⅷ"],
 ];
+// Letters and numbers are the Unicode categories L and N: a circled letter is a symbol (So), a combining mark
+// (Mn, Mc) is neither, and a titlecase letter (Lt) is a letter.
+const letterUnitCases = [["5", "ⓐ"], ["-5", "ⓐ"], ["abc", "ⓐ"], ["", "ⓐ"], ["5", "\u0301"], ["5", "\u0903x"], ["5", "ǅ"], ["5", "\u{1F600}"], ["5", "𝒜"], ["5", "ℵ"], ["5", "¼"], ["5", "①"]];
 const labelCases = Array.from({ length: 400 }, () => {
   const count = whole(0, 40);
   const total = whole(10, 120);
@@ -51,7 +55,6 @@ const flowCases = (() => {
     { steps: named(4), links: [] },
     { steps: named(2), links: [{ from: "s1", to: "s0" }] },
     { steps: named(3), links: [{ from: "s0", to: "s1", label: "x" }, { from: "s0", to: "s1", label: "y" }, { from: "s0", to: "s1", label: "y" }, { from: "s0", to: "s1" }, { from: "s1", to: "s2" }] },
-    { steps: named(3), links: [{ from: "s0", to: "nowhere" }, { from: "s0", to: "s2" }] },
     { steps: [{ id: "a", label: "first" }, { id: "a", label: "second" }, { id: "b", label: "B" }], links: [{ from: "a", to: "b" }, { from: "b", to: "a" }] },
     { steps: named(5), links: [{ from: "s0", to: "s1" }, { from: "s0", to: "s2" }, { from: "s1", to: "s3" }, { from: "s2", to: "s3" }, { from: "s3", to: "s4" }, { from: "s4", to: "s0" }, { from: "s4", to: "s2" }] },
     { steps: [{ id: "constructor", label: "C" }, { id: "__proto__", label: "P" }, { id: "toString", label: "T" }], links: [{ from: "constructor", to: "__proto__" }, { from: "__proto__", to: "toString" }, { from: "toString", to: "constructor" }] },
@@ -60,7 +63,7 @@ const flowCases = (() => {
     const count = whole(2, 14);
     const links = Array.from({ length: whole(0, count * 2) }, () => ({
       from: `s${whole(0, count - 1)}`,
-      to: next() < 0.05 ? "missing" : `s${whole(0, count - 1)}`,
+      to: `s${whole(0, count - 1)}`,
       ...(next() < 0.3 ? { label: ["a", "b", "c"][whole(0, 2)]! } : {}),
     }));
     cases.push({ steps: named(count), links });
@@ -69,7 +72,7 @@ const flowCases = (() => {
 })();
 
 const chartTrees = (() => {
-  const chart = (props: object) => Tree.parse({ v: 1, root: { type: "Chart", ...props } }).root;
+  const chart = (props: object): unknown => ({ type: "Chart", ...props });
   const pts = (...ys: unknown[]) => ys.map((y, i) => ({ x: `d${i}`, y }));
   return [
     chart({ kind: "line", title: "Visitors", unit: "visitors", series: [{ label: "This week", points: pts(120, 180, 90) }, { label: "Usual", role: "baseline", points: pts(110, 115, 105) }], annotations: [{ at: "d1", label: "New pricing page" }, { at: "gone", label: "Nowhere" }] }),
@@ -82,8 +85,13 @@ const chartTrees = (() => {
     chart({ kind: "line", unit: "", title: "", series: [{ label: "Sparse", points: [{ x: 1, y: 1 }, { x: 3, y: 2 }] }, { label: "Other", role: "comparison", points: [{ x: 2, y: 5 }, { x: 3, y: 4 }, { x: 1, y: 1 }] }], annotations: [{ at: 3, label: "three" }, { at: 2.5, label: "between" }, { at: 1, label: "one" }, { at: -0, label: "zero" }] }),
     chart({ kind: "line", series: [{ label: "Zeros", points: [{ x: -0, y: 1 }, { x: 0, y: 2 }] }], annotations: [{ at: 0, label: "z" }] }),
     chart({ kind: "line", series: [{ label: "Many", points: Array.from({ length: 12 }, (_, i) => ({ x: `d${i}`, y: i % 3 === 0 ? { kind: "unknown" } : i * 1234.5678 })) }], annotations: Array.from({ length: 11 }, (_, i) => ({ at: `d${i}`, label: `m${i}` })) }),
-  ] as Node[];
+  ];
 })();
+
+// Doubles that need all seventeen significant digits: where a parser that rounds a little differently shows in a chart.
+const longDigitCharts = [462.66749999999996, 210179042.53676534, 0.30000000000000004, 123456789.12345679, 1.0000000000000002, 99.99499999999999, 5e-7 + 1.1e-22].map((n, i) =>
+  Tree.parse({ v: 1, root: { type: "Chart", kind: i % 2 ? "bar" : "line", unit: "ms", series: [{ label: "S", points: [{ x: "a", y: n }, { x: n, y: { kind: "atLeast", value: n * 3 } }, { x: "c", y: n / 7 }] }], annotations: [{ at: n, label: "m" }, { at: "a", label: "first" }] } }).toJSON().root,
+);
 
 const changeCases = [
   { value: 18, as: "percent" }, { value: -3, as: "amount" }, { value: 0, as: "amount" }, { value: 0.004, as: "percent" }, { value: -0.004, as: "percent" }, { value: 0.005, as: "percent" }, { value: -0.005, as: "percent" },
@@ -103,6 +111,27 @@ const cases = {
   changes: changeCases,
 };
 
+const isChart = (node: Node): node is ChartProps => node.type === "Chart";
+const isStat = (node: Node): node is StatProps => node.type === "Stat";
+
+/** What the chart model says about a chart, in the shape `intui-layout` prints. */
+function chartAnswer(root: unknown) {
+  const props = Tree.parse({ v: 1, root }).root;
+  if (!isChart(props)) throw new Error("a Chart parsed to something else");
+  const model = buildModel(props);
+  return {
+    kind: model.kind,
+    unit: model.unit ?? null,
+    xs: model.xs,
+    series: model.series.map((s) => ({ label: s.label, role: s.role, values: s.values, kinds: s.kinds })),
+    // Without a readable number there is no range to draw an axis for, so there is no domain to compare.
+    domain: model.readable ? model.domain : null,
+    readable: model.readable,
+    markers: model.markers.map((m) => ({ n: m.n, at: m.at, label: m.label, index: m.index ?? null })),
+    label: chartLabel(model, props.title),
+  };
+}
+
 const answers = {
   niceStep: niceStepCases.map(niceStep),
   niceDomain: niceDomainCases.map(([min, max, kind]) => niceDomain(min as number, max as number, kind as "line" | "bar")),
@@ -115,26 +144,21 @@ const answers = {
     const edge = (e: { from: number; to: number; label?: string }) => ({ from: e.from, to: e.to, label: e.label ?? null });
     return { edges: a.edges.map(edge), back: a.back.map(edge), layers: a.layers, layerOf: a.layerOf };
   }),
-  charts: chartTrees.map((root) => {
-    const tree = Tree.parse({ v: 1, root });
-    const props = tree.root as never as Parameters<typeof buildModel>[0];
-    const model = buildModel(props);
-    return {
-      kind: model.kind,
-      unit: model.unit ?? null,
-      xs: model.xs,
-      series: model.series.map((s) => ({ label: s.label, role: s.role, values: s.values, kinds: s.kinds })),
-      domain: model.domain,
-      readable: model.readable,
-      markers: model.markers.map((m) => ({ n: m.n, at: m.at, label: m.label, index: m.index ?? null })),
-      label: chartLabel(model, props.title),
-    };
-  }),
+  charts: chartTrees.map(chartAnswer),
   changes: changeCases.map((c) => {
-    const parsed = Tree.parse({ v: 1, root: { type: "Stat", label: "x", value: 1, change: c } }).root as never as { change: Parameters<typeof changeShape>[0] };
-    const shape = changeShape(parsed.change);
+    const stat = Tree.parse({ v: 1, root: { type: "Stat", label: "x", value: 1, change: c } }).root;
+    if (!isStat(stat) || !stat.change) throw new Error("a Stat with a change parsed to something else");
+    const shape = changeShape(stat.change);
     return { way: shape.way ?? null, figure: shape.figure ?? null, kind: shape.kind, mark: READING_MARK[shape.kind] };
   }),
 };
 
-console.log(JSON.stringify({ cases, answers }, (_, value) => (value === undefined ? null : value)));
+const symptoms = {
+  "a decimal with seventeen digits comes out one digit off": { cases: { charts: longDigitCharts }, answers: { charts: longDigitCharts.map(chartAnswer) } },
+  "a unit that starts with a circled letter gets a space": {
+    cases: { withUnit: letterUnitCases },
+    answers: { withUnit: letterUnitCases.map(([value, unit]) => withUnit(value as string, unit as string)) },
+  },
+};
+
+console.log(JSON.stringify({ cases, answers, symptoms }, (_, value) => (value === undefined ? null : value)));

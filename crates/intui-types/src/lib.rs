@@ -1,12 +1,12 @@
-//! The IntUI tree as Rust sees it: types generated from core's committed JSON
-//! Schemas, and the one edge that turns JSON from a wire into a `Tree` or a
-//! `Refusal`.
+//! The IntUI tree as Rust sees it: parsed forms of every component, built from core's
+//! committed JSON Schemas, and the one edge that turns JSON from a wire into a `Tree` or
+//! a `Refusal`.
 //!
-//! Past `parse` nothing re-checks a shape. A node whose `type` this build doesn't
-//! know becomes `Drawn::Unknown` and the rest of the tree still parses (the schema
-//! only ever grows, so a newer program will send kinds this build lacks); a known
-//! kind that is malformed is refused, naming the path, the rule and what to do, in
-//! the words core uses.
+//! Past `parse` nothing re-checks a shape, and a `Tree` cannot be built any other way. A
+//! node whose `type` this build doesn't know becomes `Drawn::Unknown` and the rest of the
+//! tree still parses (the schema only ever grows, so a newer program will send kinds this
+//! build lacks); a known kind that is malformed is refused, naming the path, the rule and
+//! what to do, in the words core uses.
 
 pub mod generated {
     //! Written by typify at build time from `packages/core/schema/*.schema.json`.
@@ -20,11 +20,17 @@ pub mod generated {
 }
 
 mod edge;
-pub use edge::{parse, parse_value};
+mod json;
 mod node;
+mod read;
 mod reading;
 mod refusal;
+mod schema;
 
-pub use node::{Drawn, Group, Kind, Node, Tree};
-pub use reading::{Reading, ReadingKind};
-pub use refusal::{Problem, ProblemKind, Refusal};
+pub mod forms;
+
+pub use edge::{parse, parse_json};
+pub use json::{Json, JsonFault, JsonObject, JsonType, MAX_DEPTH};
+pub use node::{Drawn, Kind, Node, Tree, UnknownKind};
+pub use reading::{Finite, Reading, ReadingKind};
+pub use refusal::{Expected, LongRule, MinimumRule, Problem, ProblemKind, ReadingProblem, Refusal, Seen, ShortRule};

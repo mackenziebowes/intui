@@ -14,10 +14,11 @@ path = "src/main.rs"
 [dependencies]
 intui-types = { path = "../intui-types" }
 intui-text = { path = "../intui-text" }
-serde_json = { version = "1", features = ["preserve_order"] }
+serde_json = { version = "1", features = ["preserve_order", "float_roundtrip"] }
+unicode-general-category = "1"
 
 [dev-dependencies]
-serde_json = { version = "1", features = ["preserve_order"] }
+serde_json = { version = "1", features = ["preserve_order", "float_roundtrip"] }
 
 [[test]]
 name = "layout_parity"

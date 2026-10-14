@@ -3,7 +3,7 @@
  * whole, and, when even the minimum widths don't fit, switches to one stacked block per
  * row. Pure strings and numbers, so no content is dropped without an ellipsis.
  */
-import { cellText, type CellValue, type TableColumn } from '@intui/core'
+import { cellOf, cellText, type CellValue, type TableColumn } from '@intui/core'
 import { alignOf } from '@intui/layout'
 
 /** Cells between columns. */
@@ -61,7 +61,7 @@ export type TableLayout = GridLayout | StackedLayout
 
 /** Decides grid or stacked and produces the lines to draw. */
 export function layoutTable(columnDefs: TableColumn[], rows: Record<string, CellValue>[], columns: number): TableLayout {
-  const cells = rows.map(row => columnDefs.map(column => cellText(row[column.key])))
+  const cells = rows.map(row => columnDefs.map(column => cellText(cellOf(row, column.key))))
   const natural = columnDefs.map((column, i) => Math.max(column.label.length, ...cells.map(r => r[i]!.length)))
   const min = columnDefs.map(column => Math.max(MIN_WIDTH, Math.min(column.label.length, HEADER_KEEP)))
   const widths = allocateWidths(natural, min, columns)

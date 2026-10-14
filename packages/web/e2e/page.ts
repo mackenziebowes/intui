@@ -156,6 +156,13 @@ const skipping: Node = {
   ],
 } as Node
 
+// Columns named like built-in object properties, with rows that leave those cells out.
+const builtInColumns: Node = {
+  type: 'Table',
+  columns: ['constructor', 'toString', 'a'].map(key => ({ key, label: key })),
+  rows: [{ a: 1 }, { constructor: 'x' }],
+} as Node
+
 type Fixture = { id: string; root: Node; options?: Partial<RenderOptions>; width?: number }
 
 const fixtures: Fixture[] = [
@@ -175,6 +182,7 @@ const fixtures: Fixture[] = [
     width: 1200,
   },
   { id: 'readings', root: readings },
+  { id: 'built-in-columns', root: builtInColumns },
 ]
 
 for (const fixture of fixtures) {

@@ -2,30 +2,29 @@
 
 use crate::numbers::{format_number, js_to_string, shown_number};
 use crate::words;
-use intui_types::generated::tree as gen;
+use intui_types::forms::{self, Cell, Position};
 use intui_types::{Drawn, Node, Reading, Tree};
-use std::collections::HashMap;
 
 /// Markdown for the whole tree.
 pub fn to_text(tree: &Tree) -> String {
-    drawn_text(&tree.root)
+    drawn_text(tree.root())
 }
 
 fn drawn_text(drawn: &Drawn) -> String {
     match drawn {
-        Drawn::Unknown { kind, path } => words::unknown_component(kind, path),
+        Drawn::Unknown { kind, path } => words::unknown_component(kind.name(), path),
         Drawn::Known(node) => node_text(node),
     }
 }
 
 fn node_text(node: &Node) -> String {
     match node {
-        Node::Text(text) => text.markdown.to_string(),
-        Node::Label(label) => format!("[{}]", label.text.as_str()),
+        Node::Text(text) => text.markdown.clone(),
+        Node::Label(label) => format!("[{}]", label.text),
         Node::Group(group) => {
             let parts: Vec<String> = group.children.iter().map(drawn_text).collect();
             let all_short = parts.iter().all(|part| !part.contains('\n'));
-            if matches!(group.direction, gen::GroupDirection::Row) && all_short {
+            if matches!(group.direction, forms::GroupDirection::Row) && all_short {
                 parts.join(" · ")
             } else {
                 parts.join("\n\n")
@@ -36,7 +35,7 @@ fn node_text(node: &Node) -> String {
         Node::Stat(stat) => stat_text(stat),
         Node::Flow(flow) => flow_text(flow),
         Node::Choice(choice) => {
-            let buttons = choice.options.iter().map(|option| format!("[{}]", option.label.as_str())).collect::<Vec<_>>().join(" ");
+            let buttons = choice.options.iter().map(|option| format!("[{}]", option.label)).collect::<Vec<_>>().join(" ");
             match non_empty(&choice.prompt) {
                 Some(prompt) => format!("{prompt}\n\n{buttons}"),
                 None => buttons,
@@ -68,8 +67,8 @@ fn markdown_table(headers: &[String], rows: &[Vec<String>]) -> String {
     lines.join("\n")
 }
 
-fn table_text(table: &gen::Table) -> String {
-    let headers: Vec<String> = table.columns.iter().map(|column| escape_cell(column.label.as_str())).collect();
+fn table_text(table: &forms::Table) -> String {
+    let headers: Vec<String> = table.columns.iter().map(|column| escape_cell(&column.label)).collect();
     let rows: Vec<Vec<String>> = table
         .rows
         .iter()
@@ -77,11 +76,11 @@ fn table_text(table: &gen::Table) -> String {
             table
                 .columns
                 .iter()
-                .map(|column| match row.get(column.key.as_str()) {
-                    None | Some(gen::TableRowsItemValue::Null) => String::new(),
-                    Some(gen::TableRowsItemValue::Boolean(flag)) => flag.to_string(),
-                    Some(gen::TableRowsItemValue::Number(number)) => escape_cell(&number_cell(*number)),
-                    Some(gen::TableRowsItemValue::String(text)) => escape_cell(text),
+                .map(|column| match row.cell(&column.key) {
+                    Cell::Empty => String::new(),
+                    Cell::Flag(flag) => flag.to_string(),
+                    Cell::Number(number) => escape_cell(&number_cell(number.get())),
+                    Cell::Text(text) => escape_cell(text),
                 })
                 .collect()
         })
@@ -93,46 +92,38 @@ fn table_text(table: &gen::Table) -> String {
     }
 }
 
-fn x_cell(x: &gen::ChartPointX) -> String {
+fn x_cell(x: &Position) -> String {
     match x {
         // A JavaScript Set keeps +0 for a -0 key, so the category reads "0".
-        gen::ChartPointX::Number(number) => escape_cell(&number_cell(if *number == 0.0 { 0.0 } else { *number })),
-        gen::ChartPointX::String(text) => escape_cell(text),
+        Position::Number(number) => escape_cell(&number_cell(if number.get() == 0.0 { 0.0 } else { number.get() })),
+        Position::Text(text) => escape_cell(text),
     }
 }
 
-fn same_x(a: &gen::ChartPointX, b: &gen::ChartPointX) -> bool {
-    match (a, b) {
-        (gen::ChartPointX::Number(a), gen::ChartPointX::Number(b)) => a == b,
-        (gen::ChartPointX::String(a), gen::ChartPointX::String(b)) => a == b,
-        _ => false,
-    }
-}
-
-fn chart_text(chart: &gen::Chart) -> String {
-    let mut xs: Vec<&gen::ChartPointX> = Vec::new();
-    for point in chart.series.iter().flat_map(|series| &series.points) {
-        if !xs.iter().any(|seen| same_x(seen, &point.x)) {
+fn chart_text(chart: &forms::Chart) -> String {
+    let mut xs: Vec<&Position> = Vec::new();
+    for point in chart.series.iter().flat_map(|series| series.points.iter()) {
+        if !xs.contains(&&point.x) {
             xs.push(&point.x);
         }
     }
     let mut headers = vec![String::new()];
     headers.extend(chart.series.iter().map(|series| match series.role {
-        gen::ChartSeriesRole::Primary => escape_cell(series.label.as_str()),
-        role => escape_cell(&format!("{} ({role})", series.label.as_str())),
+        forms::ChartSeriesRole::Primary => escape_cell(&series.label),
+        role => escape_cell(&format!("{} ({role})", series.label)),
     }));
     let rows: Vec<Vec<String>> = xs
         .iter()
         .map(|x| {
             let mut row = vec![x_cell(x)];
-            row.extend(chart.series.iter().map(|series| match series.points.iter().find(|point| same_x(&point.x, x)) {
-                Some(point) => escape_cell(&reading_text(Reading::from(&point.y), None, false)),
+            row.extend(chart.series.iter().map(|series| match series.points.iter().find(|point| point.x == **x) {
+                Some(point) => escape_cell(&reading_text(point.y, None, false)),
                 None => String::new(),
             }));
             row
         })
         .collect();
-    let about = [Some(format!("{} chart", chart.kind)), non_empty(&chart.unit).map(str::to_string)].into_iter().flatten().collect::<Vec<_>>().join(", ");
+    let about = [Some(words::chart_kind(chart.kind)), non_empty(&chart.unit).map(str::to_string)].into_iter().flatten().collect::<Vec<_>>().join(", ");
     let heading = match non_empty(&chart.title) {
         Some(title) => format!("**{title}** ({about})"),
         None => format!("({about})"),
@@ -144,48 +135,46 @@ fn chart_text(chart: &gen::Chart) -> String {
             .iter()
             .map(|annotation| {
                 let at = match &annotation.at {
-                    gen::ChartAnnotationAt::Number(number) => js_to_string(*number),
-                    gen::ChartAnnotationAt::String(text) => text.clone(),
+                    Position::Number(number) => js_to_string(number.get()),
+                    Position::Text(text) => text.clone(),
                 };
-                format!("{at}: {}", annotation.label.as_str())
+                format!("{at}: {}", annotation.label)
             })
             .collect::<Vec<_>>()
             .join("; ");
-        parts.push(format!("Markers: {markers}"));
+        parts.push(words::markers(&markers));
     }
     parts.join("\n\n")
 }
 
-fn stat_text(stat: &gen::Stat) -> String {
-    let value = reading_text(Reading::from(&stat.value), non_empty(&stat.unit), false);
+fn stat_text(stat: &forms::Stat) -> String {
+    let value = reading_text(stat.value, non_empty(&stat.unit), false);
     match &stat.change {
         Some(change) => {
-            let unit = matches!(change.as_, gen::StatChangeAs::Percent).then_some("%");
-            let figure = reading_text(Reading::from(&change.value), unit, true);
-            format!("**{}:** {value} ({figure})", stat.label.as_str())
+            let unit = matches!(change.as_, forms::StatChangeAs::Percent).then_some("%");
+            let figure = reading_text(change.value, unit, true);
+            format!("**{}:** {value} ({figure})", stat.label)
         }
-        None => format!("**{}:** {value}", stat.label.as_str()),
+        None => format!("**{}:** {value}", stat.label),
     }
 }
 
-fn flow_text(flow: &gen::Flow) -> String {
-    let labels: HashMap<&str, &str> = flow.steps.iter().map(|step| (step.id.as_str(), step.label.as_str())).collect();
-    let shape = if flow.links.is_empty() {
-        flow.steps.iter().map(|step| step.label.as_str()).collect::<Vec<_>>().join(" → ")
+fn flow_text(flow: &forms::Flow) -> String {
+    let shape = if flow.links().is_empty() {
+        flow.steps().iter().map(|step| step.label.as_str()).collect::<Vec<_>>().join(" → ")
     } else {
-        flow.links
-            .iter()
-            .map(|link| {
+        flow.joined()
+            .map(|(from, to, link)| {
                 let label = non_empty(&link.label).map(|label| format!(" ({label})")).unwrap_or_default();
-                format!("{} → {}{label}", labels[link.from.as_str()], labels[link.to.as_str()])
+                format!("{} → {}{label}", from.label, to.label)
             })
             .collect::<Vec<_>>()
             .join("\n")
     };
     let details: Vec<String> = flow
-        .steps
+        .steps()
         .iter()
-        .filter_map(|step| non_empty(&step.detail).map(|detail| format!("- **{}:** {detail}", step.label.as_str())))
+        .filter_map(|step| non_empty(&step.detail).map(|detail| format!("- **{}:** {detail}", step.label)))
         .collect();
     if details.is_empty() {
         shape
@@ -194,21 +183,20 @@ fn flow_text(flow: &gen::Flow) -> String {
     }
 }
 
-fn form_text(form: &gen::Form) -> String {
+fn form_text(form: &forms::Form) -> String {
     let fields: Vec<String> = form
         .fields
         .iter()
         .map(|field| {
-            let choices = if field.options.is_empty() {
-                String::new()
-            } else {
-                format!(": {}", field.options.iter().map(|option| option.as_str()).collect::<Vec<_>>().join(", "))
+            let choices = match field.input.options() {
+                None => String::new(),
+                Some(options) => format!(": {}", options.join(", ")),
             };
-            let required = if field.required { ", required" } else { "" };
-            format!("- {} ({}{required}{choices})", field.label.as_str(), field.input)
+            let required = if field.required { format!(", {}", words::REQUIRED) } else { String::new() };
+            format!("- {} ({}{required}{choices})", field.label, field.input.name())
         })
         .collect();
-    format!("Form:\n{}\n\n[{}]", fields.join("\n"), form.submit_label.as_str())
+    format!("{}\n{}\n\n[{}]", words::FORM_HEADING, fields.join("\n"), form.submit_label)
 }
 
 /// core's `readingText`: "216 tokens", "at least 216 tokens", "about 216 tokens", "unknown".
@@ -219,10 +207,8 @@ pub fn reading_text(reading: Reading, unit: Option<&str>, signed: bool) -> Strin
         let plus = if signed && shown > 0.0 { "+" } else { "" };
         format!("{plus}{}", format_number(shown, unit))
     };
-    match reading {
-        Reading::Exact(value) => number(value),
-        Reading::AtLeast(value) => format!("at least {}", number(value)),
-        Reading::Estimate(value) => format!("about {}", number(value)),
-        Reading::Unknown => "unknown".to_string(),
+    match reading.value() {
+        Some(value) => words::certainty(reading.kind(), &number(value)),
+        None => words::certainty(reading.kind(), ""),
     }
 }

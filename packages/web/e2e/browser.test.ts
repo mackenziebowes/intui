@@ -214,6 +214,13 @@ describe('awkward trees', () => {
   })
 })
 
+describe('Table', () => {
+  test('a cell left out under a built-in property name draws empty, not native code', () => {
+    const cells = page<string[][]>(`[...document.querySelectorAll('#built-in-columns tbody tr')].map(row => [...row.querySelectorAll('td')].map(td => td.textContent.trim()))`)
+    expect(cells).toEqual([['', '', '1'], ['x', '', '']])
+  })
+})
+
 describe('page shell', () => {
   test('with page.css, a standalone page in dark mode has a dark background under light text', () => {
     const colours = page<{ bg: number[]; fg: number[]; transparent: boolean }>(`(() => {
