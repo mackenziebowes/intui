@@ -54,15 +54,16 @@ export const Chart = defineKind<ChartProps>({
             label: z.string().min(1),
             role: z.enum(SERIES_ROLES).default("primary"),
             points: z
-              .array(z.strictObject({ x: z.union([z.string(), z.number()]), y: readingSchema() }))
+              .array(z.strictObject({ x: z.union([z.string(), z.number()]), y: readingSchema() }).meta({ id: "ChartPoint" }))
               .min(1, "a series needs at least one point"),
-          }),
+          }).meta({ id: "ChartSeries" }),
         )
         .min(1, "a Chart needs at least one series"),
       annotations: z
-        .array(z.strictObject({ at: z.union([z.string(), z.number()]), label: z.string().min(1) }))
+        .array(z.strictObject({ at: z.union([z.string(), z.number()]), label: z.string().min(1) }).meta({ id: "ChartAnnotation" }))
         .default([]),
-    }),
+    })
+    .meta({ id: "Chart" }),
   toText: (props) => {
     const xs = [...new Set(props.series.flatMap((series) => series.points.map((point) => point.x)))];
     const headers = ["", ...props.series.map(headerOf)];

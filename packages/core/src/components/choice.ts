@@ -28,10 +28,11 @@ export const Choice = defineKind<ChoiceProps>({
       id: z.string().min(1),
       prompt: z.string().optional(),
       options: z
-        .array(z.strictObject({ id: z.string().min(1), label: z.string().min(1).max(40), emphasis: z.literal("primary").optional() }))
+        .array(z.strictObject({ id: z.string().min(1), label: z.string().min(1).max(40), emphasis: z.literal("primary").optional() }).meta({ id: "ChoiceOption" }))
         .min(1, "a Choice needs at least one option"),
       repeat: z.enum(["once", "many"]).default("once"),
-    }),
+    })
+    .meta({ id: "Choice" }),
   toText: (props) => {
     const buttons = props.options.map((option) => `[${option.label}]`).join(" ");
     return props.prompt ? `${props.prompt}\n\n${buttons}` : buttons;

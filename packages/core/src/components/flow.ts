@@ -29,9 +29,9 @@ export const Flow = defineKind<FlowProps>({
       .strictObject({
         type: z.literal("Flow"),
         steps: z
-          .array(z.strictObject({ id: z.string().min(1), label: z.string().min(1), detail: z.string().optional() }))
+          .array(z.strictObject({ id: z.string().min(1), label: z.string().min(1), detail: z.string().optional() }).meta({ id: "FlowStep" }))
           .min(2, "a Flow needs at least two steps; use a Text for one"),
-        links: z.array(z.strictObject({ from: z.string(), to: z.string(), label: z.string().optional() })).default([]),
+        links: z.array(z.strictObject({ from: z.string(), to: z.string(), label: z.string().optional() }).meta({ id: "FlowLink" })).default([]),
       })
       .superRefine((flow, ctx) => {
         const ids = new Set(flow.steps.map((step) => step.id));
@@ -46,7 +46,8 @@ export const Flow = defineKind<FlowProps>({
             }
           }
         });
-      }),
+      })
+      .meta({ id: "Flow" }),
   toText: (props) => {
     const label = new Map(props.steps.map((step) => [step.id, step.label]));
     const shape =

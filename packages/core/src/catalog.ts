@@ -20,12 +20,14 @@ export class Catalog {
 
   constructor(readonly kinds: readonly ComponentKind[]) {
     this.byType = new Map(kinds.map((kind) => [kind.type, kind]));
-    const node: z.ZodType<Node> = z.lazy(() =>
-      z.discriminatedUnion(
-        "type",
-        kinds.map((kind) => kind.schema(node)) as unknown as [z.core.$ZodTypeDiscriminable, ...z.core.$ZodTypeDiscriminable[]],
-      ),
-    ) as unknown as z.ZodType<Node>;
+    const node: z.ZodType<Node> = z
+      .lazy(() =>
+        z.discriminatedUnion(
+          "type",
+          kinds.map((kind) => kind.schema(node)) as unknown as [z.core.$ZodTypeDiscriminable, ...z.core.$ZodTypeDiscriminable[]],
+        ),
+      )
+      .meta({ id: "Node" }) as unknown as z.ZodType<Node>;
     this.node = node;
   }
 
@@ -47,7 +49,7 @@ export class Catalog {
 
   /** JSON Schema for a whole tree, e.g. a tool's input schema. */
   jsonSchema(): Record<string, unknown> {
-    return z.toJSONSchema(z.strictObject({ v: z.literal(1), root: this.node }), { io: "input" }) as Record<string, unknown>;
+    return z.toJSONSchema(z.strictObject({ v: z.literal(1), root: this.node }).meta({ title: "IntuiTree" }), { io: "input" }) as Record<string, unknown>;
   }
 
   /** One line per kind, for a tool description or docs. */

@@ -33,7 +33,7 @@ export const Table = defineKind<TableProps>({
               key: z.string().min(1),
               label: z.string().min(1),
               align: z.enum(["start", "end"]).optional(),
-            }),
+            }).meta({ id: "TableColumn" }),
           )
           .min(1, "a Table needs at least one column"),
         rows: z.array(z.record(z.string(), z.union([z.string(), z.number(), z.boolean(), z.null()]))),
@@ -52,7 +52,8 @@ export const Table = defineKind<TableProps>({
             }
           }
         });
-      }),
+      })
+      .meta({ id: "Table" }),
   toText: (props) => {
     const table = markdownTable(
       props.columns.map((column) => cell(column.label)),

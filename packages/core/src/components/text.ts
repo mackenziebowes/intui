@@ -15,7 +15,8 @@ export const Text = defineKind<TextProps>({
     z.strictObject({
       type: z.literal("Text"),
       markdown: z.string().min(1, "Text needs some markdown; leave the Text out if there's nothing to say"),
-    }),
+    })
+    .meta({ id: "Text" }),
   toText: (props) => props.markdown,
   example: { type: "Text", markdown: "Traffic was **normal** this week." },
 });

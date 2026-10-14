@@ -39,11 +39,13 @@ export const Form = defineKind<FormProps>({
             .refine((field) => field.input !== "select" || (field.options?.length ?? 0) > 0, {
               message: "a select field needs options; add an options list or use input: \"text\"",
               path: ["options"],
-            }),
+            })
+            .meta({ id: "FormField" }),
         )
         .min(1, "a Form needs at least one field"),
       submitLabel: z.string().min(1).max(40).default("Submit"),
-    }),
+    })
+    .meta({ id: "Form" }),
   toText: (props) => {
     const fields = props.fields.map((field) => {
       const choices = field.options ? `: ${field.options.join(", ")}` : "";

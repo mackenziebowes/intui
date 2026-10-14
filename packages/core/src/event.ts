@@ -9,16 +9,24 @@ export type EventData =
   | { v: 1; source: string; target: string; action: "press"; value: string }
   | { v: 1; source: string; target: string; action: "submit"; value: Record<string, FieldValue> };
 
-const schema = z.discriminatedUnion("action", [
-  z.strictObject({ v: z.literal(1), source: z.string().min(1), target: z.string().min(1), action: z.literal("press"), value: z.string().min(1) }),
-  z.strictObject({
-    v: z.literal(1),
-    source: z.string().min(1),
-    target: z.string().min(1),
-    action: z.literal("submit"),
-    value: z.record(z.string(), z.union([z.string(), z.number(), z.boolean()])),
-  }),
-]);
+const fieldValue = z.union([z.string(), z.number(), z.boolean()]).meta({ id: "FieldValue" });
+
+const schema = z
+  .discriminatedUnion("action", [
+    z
+      .strictObject({ v: z.literal(1), source: z.string().min(1), target: z.string().min(1), action: z.literal("press"), value: z.string().min(1) })
+      .meta({ id: "PressEvent" }),
+    z
+      .strictObject({
+        v: z.literal(1),
+        source: z.string().min(1),
+        target: z.string().min(1),
+        action: z.literal("submit"),
+        value: z.record(z.string(), fieldValue),
+      })
+      .meta({ id: "SubmitEvent" }),
+  ])
+  .meta({ id: "IntuiEvent" });
 
 /**
  * What a person did with a component: pressed a `Choice` option, or submitted
@@ -36,6 +44,11 @@ export class IntuiEvent {
 
   static submit(source: string, form: string, values: Record<string, FieldValue>): IntuiEvent {
     return new IntuiEvent({ v: 1, source, target: form, action: "submit", value: values });
+  }
+
+  /** JSON Schema for the wire form of an event, from the schema `parse` checks against. */
+  static jsonSchema(): Record<string, unknown> {
+    return z.toJSONSchema(schema, { io: "input" }) as Record<string, unknown>;
   }
 
   static parse(input: unknown): IntuiEvent {

@@ -29,9 +29,10 @@ export const Stat = defineKind<StatProps>({
       label: z.string().min(1),
       value: readingSchema(),
       unit: z.string().optional(),
-      change: z.strictObject({ value: readingSchema(), as: z.enum(["amount", "percent"]) }).optional(),
+      change: z.strictObject({ value: readingSchema(), as: z.enum(["amount", "percent"]) }).meta({ id: "StatChange" }).optional(),
       tone: tone.default("neutral"),
-    }),
+    })
+    .meta({ id: "Stat" }),
   toText: (props) => {
     const value = readingText(props.value, { unit: props.unit });
     return props.change ? `**${props.label}:** ${value} (${changeText(props.change)})` : `**${props.label}:** ${value}`;

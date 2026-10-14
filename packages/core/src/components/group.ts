@@ -22,7 +22,8 @@ export const Group = defineKind<GroupProps>({
       type: z.literal("Group"),
       direction: z.enum(["row", "column"]).default("column"),
       children: z.array(node).min(1, "a Group needs at least one child"),
-    }),
+    })
+    .meta({ id: "Group" }),
   toText: (props, childText) => {
     const parts = props.children.map(childText);
     const allShort = parts.every((part) => !part.includes("\n"));

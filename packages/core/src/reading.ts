@@ -155,26 +155,33 @@ function describe(value: unknown): string {
   return typeof value === "object" ? "an object" : typeof value;
 }
 
+const readingObject = z
+  .discriminatedUnion("kind", [
+    z.strictObject({ kind: z.literal("exact"), value: z.number() }),
+    z.strictObject({ kind: z.literal("atLeast"), value: z.number() }),
+    z.strictObject({ kind: z.literal("estimate"), value: z.number() }),
+    z.strictObject({ kind: z.literal("unknown") }),
+  ])
+  .meta({ id: "ReadingObject" });
+
 /**
  * The wire schema for a reading: a bare finite number, or one strict object per kind.
- * Parses to a `Reading`. The JSON Schema it emits lists the same shapes.
+ * Parses to a `Reading`; a refusal says what `parseReading` says. One shared instance, so
+ * the JSON Schema names it `Reading` once and every use points at it.
  */
-export const readingSchema = (): z.ZodType<Reading, unknown> =>
-  z
-    .unknown()
-    .meta({
-      description: "A number, or an object saying how sure it is.",
-      anyOf: [
-        { type: "number" },
-        { type: "object", properties: { kind: { const: "exact" }, value: { type: "number" } }, required: ["kind", "value"], additionalProperties: false },
-        { type: "object", properties: { kind: { const: "atLeast" }, value: { type: "number" } }, required: ["kind", "value"], additionalProperties: false },
-        { type: "object", properties: { kind: { const: "estimate" }, value: { type: "number" } }, required: ["kind", "value"], additionalProperties: false },
-        { type: "object", properties: { kind: { const: "unknown" } }, required: ["kind"], additionalProperties: false },
-      ],
-    })
-    .transform((input, ctx): Reading => {
-      const parsed = parseReading(input);
-      if (parsed.ok) return parsed.reading;
-      ctx.issues.push({ code: "custom", message: parsed.message, input });
-      return z.NEVER;
-    });
+const wireReading = z.unknown().meta({ id: "Reading", description: "A number, or an object saying how sure it is." });
+
+// Parsing is `parseReading`'s, so refusals read the way models need. The JSON Schema is the number or
+// `ReadingObject`: typified, that is a `ReadingObject` enum of four distinct variants.
+wireReading._zod.processJSONSchema = (ctx, json, params) => {
+  json.anyOf = [{ type: "number" }, z.core.process(readingObject, ctx, { ...params, path: [...params.path, "anyOf", 1] })];
+};
+
+const reading: z.ZodType<Reading, unknown> = wireReading.transform((input, ctx): Reading => {
+  const parsed = parseReading(input);
+  if (parsed.ok) return parsed.reading;
+  ctx.issues.push({ code: "custom", message: parsed.message, input });
+  return z.NEVER;
+});
+
+export const readingSchema = (): z.ZodType<Reading, unknown> => reading;

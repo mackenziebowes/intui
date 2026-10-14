@@ -4,7 +4,7 @@ import { defineKind, type Node } from "../component";
 /** What a value means. Each renderer decides how each tone looks. */
 export const TONES = ["neutral", "positive", "warning", "critical", "muted"] as const;
 export type Tone = (typeof TONES)[number];
-export const tone = z.enum(TONES);
+export const tone = z.enum(TONES).meta({ id: "Tone" });
 
 export interface LabelProps extends Node {
   type: "Label";
@@ -21,7 +21,8 @@ export const Label = defineKind<LabelProps>({
       type: z.literal("Label"),
       text: z.string().min(1).max(40, "a Label is a short tag; put longer text in a Text"),
       tone: tone.default("neutral"),
-    }),
+    })
+    .meta({ id: "Label" }),
   toText: (props) => `[${props.text}]`,
   example: { type: "Label", text: "parked", tone: "muted" },
 });
