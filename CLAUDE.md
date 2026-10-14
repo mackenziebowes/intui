@@ -51,3 +51,4 @@ Agents will add to this package while working on a specific product. These rules
 2. Register it in `core` in `catalog.ts` and export it from `index.ts`.
 3. Conformance draws it on every surface from the catalog with no change. Add an end-to-end check only for a contract it adds (a refusal the model must read, an event it sends).
 4. Every renderer must draw it, or fall back to its text form, before the next release.
+@modules.md
