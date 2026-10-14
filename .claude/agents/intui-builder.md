@@ -22,6 +22,7 @@ You build one lane of IntUI (`~/dev/projects/intui`): a component protocol so ag
 - A number that is a floor or an estimate says so; "couldn't read" never shows as zero or as nothing.
 - End-to-end checks only, in the two places `CLAUDE.md` names: `packages/claude-code/conformance/` (Claude Code's own engine, `bun run --cwd packages/claude-code conformance`) and `packages/web/e2e/` (headless Chromium, `bun test packages/web/e2e`). No unit, smoke or integration tests. Test contracts and tricky behaviour, never coverage; no presentation details.
 - A fix comes with one check per bug, named after the symptom, and a proof: break the code again, watch that check fail, restore it.
+- Rust lanes: write every egui (or other crate) call against the source of the exact pinned version in `~/.cargo/registry/src/`, never from memory; egui changes its API between releases. Draw kinds yourself on egui's painter and basic widgets; the only helper crate is `pulldown-cmark` (proposal 004).
 - JS tools through `bun`/`bunx`, never npm or npx. Never `git stash`; don't commit. Run only your own suites.
 
 ## Before you hand back
