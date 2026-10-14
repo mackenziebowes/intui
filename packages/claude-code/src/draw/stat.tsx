@@ -1,3 +1,7 @@
+/**
+ * The Stat drawer for Claude Code: a label, a big value and an optional change, coloured
+ * by tone, as laid out by stat-shape.
+ */
 import type { StatProps } from '@intui/core'
 import { defineDrawer } from './drawer'
 import { statLines } from './stat-shape'

@@ -1,3 +1,9 @@
+/**
+ * The browser renderer's building blocks: `Dom` builds HTML and SVG elements in one
+ * document, and `DrawContext` is what each drawer gets besides its props (child drawing,
+ * the host's event handler, pressed and submitted state, width and text measuring). A
+ * drawer is a function from props and context to an element.
+ */
 import type { FieldValue, IntuiEvent, Node, Tree } from '@intui/core'
 import type { Measure } from './chart-layout'
 

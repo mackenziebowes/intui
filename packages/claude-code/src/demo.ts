@@ -1,3 +1,9 @@
+/**
+ * The `demo_chart` tool: a Chart and a Stat built by code from labelled sample data, so
+ * the Claude Code plugin has something with numbers to draw without a real query. Every
+ * number is marked as sample data, and the floor, estimate and unknown readings are
+ * included on purpose so the drawing of uncertainty can be seen.
+ */
 import { Reading, Tree, type Node } from '@intui/core'
 
 export const DEMO_TOOL_NAME = 'demo_chart'

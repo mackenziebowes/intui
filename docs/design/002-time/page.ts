@@ -1,6 +1,7 @@
 /**
  * Proposal 002's review page, drawn with IntUI itself.
- *   bun docs/design/002-time/build.ts   → docs/design/002-time.html (one self-contained file)
+ *
+ * Build it with `bun docs/design/002-time/build.ts`, which writes docs/design/002-time.html (one self-contained file).
  */
 import { Tree, Reading, type Node } from '../../../packages/core/src/index'
 import { render } from '../../../packages/web/src/index'

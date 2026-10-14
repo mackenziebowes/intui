@@ -1,3 +1,8 @@
+/**
+ * The lines of a Stat as strings: the label, the value with its unit, and the change with
+ * a direction marker, each cut to the room. A floor reads `≥`, an estimate `~`, and a
+ * number we don't have reads `unknown`, never 0.
+ */
 import { formatNumber, type ChangeReading, type Reading } from '@intui/core'
 import { changeShape, READING_MARK } from '@intui/layout'
 import { fit } from './label-shape'

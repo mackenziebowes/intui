@@ -1,3 +1,7 @@
+/**
+ * The Group component: other components in a row or a column, nested to any depth. Its
+ * text form joins its children's text forms.
+ */
 import { z } from "zod";
 import { defineKind, type Node } from "../component";
 import type { LabelProps } from "./label";

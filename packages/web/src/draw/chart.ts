@@ -1,3 +1,9 @@
+/**
+ * The browser Chart drawer: an SVG plot redrawn at the element's width, with a legend,
+ * numbered markers, a label for screen readers and the chart's text form under a
+ * disclosure. Readings that are floors, estimates or unknown are drawn as such, and a gap
+ * in the data breaks a line.
+ */
 import { formatNumber, type ChartProps, type ReadingKind } from '@intui/core'
 import { chartLayout, pathData } from '../chart-layout'
 import { buildModel, chartLabel, type ChartModel } from '@intui/layout'

@@ -1,3 +1,9 @@
+/**
+ * The Chart component: bars or lines over named x positions, one or more series, and
+ * markers. Only code may write it, since it shows numbers; each point is a Reading, so a
+ * floor, an estimate or a missing value is told apart from an exact one in the text form
+ * as well as the drawing.
+ */
 import { z } from "zod";
 import { defineKind, type Node } from "../component";
 import { Reading, readingSchema, readingText } from "../reading";

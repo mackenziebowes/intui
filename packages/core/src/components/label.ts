@@ -1,3 +1,8 @@
+/**
+ * The Label component: a short tag whose tone says what it means (neutral, positive,
+ * warning, critical, muted). Each renderer decides how a tone looks; the text form is the
+ * text in brackets. Also holds the list of tones, which Stat reuses.
+ */
 import { z } from "zod";
 import { defineKind, type Node } from "../component";
 

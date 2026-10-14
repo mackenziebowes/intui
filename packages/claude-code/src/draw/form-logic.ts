@@ -1,3 +1,8 @@
+/**
+ * The words and rules around a Form's state in Claude Code: which required fields still
+ * have no value, the lines that say what a submitted form sent, and the sentence under the
+ * submit button when it can't go yet. No elements, only strings.
+ */
 import type { FieldValue, FormField } from '@intui/core'
 
 const isEmpty = (value: FieldValue | undefined) => value === undefined || (typeof value === 'string' && value.trim() === '')

@@ -1,6 +1,7 @@
 /**
  * Proposal 003's review page, drawn with IntUI itself.
- *   bun docs/design/003-refusals/build.ts   → docs/design/003-refusals.html (one self-contained file)
+ *
+ * Build it with `bun docs/design/003-refusals/build.ts`, which writes docs/design/003-refusals.html (one self-contained file).
  */
 import { Tree, type Node } from '../../../packages/core/src/index'
 import { render } from '../../../packages/web/src/index'

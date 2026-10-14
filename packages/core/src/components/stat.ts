@@ -1,3 +1,8 @@
+/**
+ * The Stat component: one figure with a label, a unit and an optional change. Only code
+ * may write it. The value and the change are Readings, so a floor, an estimate or an
+ * unknown shows as one and never as a bare number.
+ */
 import { z } from "zod";
 import { defineKind, type Node } from "../component";
 import { Reading, readingSchema, readingText } from "../reading";

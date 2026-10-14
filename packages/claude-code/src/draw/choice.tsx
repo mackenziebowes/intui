@@ -1,3 +1,8 @@
+/**
+ * The Choice drawer for Claude Code: a row of buttons that sends a press back to the
+ * agent, and, once used, only the chosen option. A press the tree rejects or a handler
+ * that fails leaves a one-line note and keeps the buttons.
+ */
 import type { ChoiceProps } from '@intui/core'
 import { defineDrawer } from './drawer'
 import { choiceView, describeError, variantOf } from './choice-view'

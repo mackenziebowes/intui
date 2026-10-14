@@ -1,3 +1,9 @@
+/**
+ * The geometry of a Chart that doesn't depend on how it is drawn: categories in order,
+ * round axis domains and steps, which x labels fit, and the numbered markers. Both the
+ * terminal and the web chart are drawn from this one model, so they agree on what each
+ * point is.
+ */
 import type { ChartProps, ReadingKind, SeriesRole } from '@intui/core'
 
 export type Domain = { lo: number; hi: number }

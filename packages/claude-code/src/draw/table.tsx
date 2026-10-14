@@ -1,3 +1,7 @@
+/**
+ * The Table drawer for Claude Code: a grid with a header row, or a block per row when the
+ * columns don't fit, as decided by table-layout.
+ */
 import type { TableProps } from '@intui/core'
 import { defineDrawer } from './drawer'
 import { layoutTable } from './table-layout'

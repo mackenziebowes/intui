@@ -1,3 +1,9 @@
+/**
+ * The shape of a Claude Code drawer and the context it is given: the surface's elements,
+ * the width in cells, the tree's interaction state (what was pressed, typed or submitted)
+ * and the calls that send a press or a submit back to the agent. `defineDrawer` makes a
+ * drawer for one component kind.
+ */
 import type { ElementTable, RenderElement, RenderSurface } from 'claude-code'
 import type { FieldValue, Node, Tree } from '@intui/core'
 

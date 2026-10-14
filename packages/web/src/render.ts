@@ -1,3 +1,9 @@
+/**
+ * `render` draws a parsed Tree as one detached `<div class="intui">` for the host to
+ * place, in light or dark, with every Choice and Form reporting to the host's `onEvent`. A
+ * drawer that throws shows that node's text form instead, and a kind with no drawer is
+ * drawn as its text form, so a valid tree never comes out blank.
+ */
 import { type FieldValue, type IntuiEvent, type Node, type Tree } from '@intui/core'
 import { estimateWidth, type Measure } from './chart-layout'
 import { Dom, type DrawContext, type Drawer } from './dom'

@@ -1,3 +1,7 @@
+/**
+ * The Group drawer for Claude Code: its children in a row or a column, with a row stacking
+ * into a column when the width is too narrow for it.
+ */
 import type { GroupProps } from '@intui/core'
 import { defineDrawer } from './drawer'
 

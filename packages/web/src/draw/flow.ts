@@ -1,3 +1,8 @@
+/**
+ * The browser Flow drawer: steps as boxes laid out by CSS, with the arrows drawn as SVG
+ * from the boxes' measured positions and redrawn when the width changes. The full list of
+ * links is kept in the DOM order for screen readers.
+ */
 import type { FlowProps } from '@intui/core'
 import type { Drawer } from '../dom'
 import { connector, flowPlan, type Box } from '../flow-layout'

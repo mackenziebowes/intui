@@ -1,3 +1,7 @@
+/**
+ * The Label drawer for Claude Code: a short tag in brackets, coloured by its tone and
+ * dimmed when muted, cut to the room it has.
+ */
 import type { LabelProps } from '@intui/core'
 import { defineDrawer } from './drawer'
 import { tagText } from './label-shape'

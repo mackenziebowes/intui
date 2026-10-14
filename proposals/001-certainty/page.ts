@@ -1,6 +1,7 @@
 /**
  * Proposal 001's review page, drawn with IntUI itself.
- *   bun proposals/001-certainty/build.ts   → proposals/001-certainty/dist/index.html
+ *
+ * Build it with `bun proposals/001-certainty/build.ts`, which writes proposals/001-certainty/dist/index.html.
  */
 import { Tree, type Node } from '../../packages/core/src/index'
 import { render } from '../../packages/web/src/index'

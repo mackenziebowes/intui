@@ -1,3 +1,8 @@
+/**
+ * The browser drawers for the display components: Text, Group, Label, Stat and Table. A
+ * table with many columns becomes one card per row when narrow, and a Stat's reading wears
+ * its floor or estimate mark with words a screen reader says.
+ */
 import { cellText, formatNumber, never, type Reading, type GroupProps, type LabelProps, type StatProps, type TableProps, type TextProps } from '@intui/core'
 import type { Dom, Drawer } from '../dom'
 import { alignOf, changeShape, READING_MARK } from '@intui/layout'

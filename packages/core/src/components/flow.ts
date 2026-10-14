@@ -1,3 +1,8 @@
+/**
+ * The Flow component: steps joined by links, for a process or a dependency order. With no
+ * links each step leads to the next. A link naming a step that isn't there is refused with
+ * the path and the ids that exist.
+ */
 import { z } from "zod";
 import { defineKind, type Node } from "../component";
 

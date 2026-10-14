@@ -1,3 +1,10 @@
+/**
+ * The plugin's wiring into Claude Code: registers the `show` and demo tools and the
+ * `/intui` command, refuses a bad `show` tree with every problem listed, draws a tree on
+ * the transcript row of the call or result that carries it, and turns a press or submit
+ * into a message to the agent. It keeps the used-up choices, typed form values, notes and
+ * pending counts across redraws in the plugin's store.
+ */
 import { atom, read, update } from 'claude-code'
 import type { EngineInterface, Register, RenderInput } from 'claude-code'
 import { IntuiError, IntuiEvent, Tree } from '@intui/core'

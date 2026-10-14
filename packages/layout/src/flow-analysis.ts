@@ -1,3 +1,8 @@
+/**
+ * Works out a Flow's structure before it is drawn: links resolved to step indexes, cycles
+ * broken into forward and back edges by a depth-first walk, and steps put in layers. It
+ * always finishes, whatever the links.
+ */
 import type { FlowLink, FlowStep } from '@intui/core'
 
 export type Edge = { from: number; to: number; label?: string }

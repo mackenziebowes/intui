@@ -1,3 +1,9 @@
+/**
+ * The usage log behind `/intui`: one shape-only entry per `show` call, refusal or
+ * tool-returned tree, a count of times the person typed over a waiting Choice or Form, and
+ * the Markdown report that turns them into trends. It keeps counts and component names,
+ * never content, and old entries missing newer fields still summarize.
+ */
 import type { Tree } from '@intui/core'
 
 /**

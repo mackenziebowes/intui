@@ -1,3 +1,7 @@
+/**
+ * The Text drawer for Claude Code: the component's Markdown, drawn by the engine's own
+ * Markdown element.
+ */
 import type { TextProps } from '@intui/core'
 import { defineDrawer } from './drawer'
 

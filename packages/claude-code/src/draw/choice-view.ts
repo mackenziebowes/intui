@@ -1,3 +1,8 @@
+/**
+ * What a Choice shows in Claude Code: its option buttons, or, once a `once` choice is used
+ * up, only the option that was chosen. Also turns an error a handler threw into one short
+ * line for the note under the buttons.
+ */
 import type { ChoiceProps } from '@intui/core'
 
 export type ChoiceView =

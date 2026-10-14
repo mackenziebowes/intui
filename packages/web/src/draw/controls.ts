@@ -1,3 +1,9 @@
+/**
+ * The browser drawers for the controls, Choice and Form. A press or submit sends an event
+ * the host receives after it is checked against the tree; a used-up control can't fire
+ * again and shows what was chosen or sent, and a host handler that throws leaves a note
+ * while the control stays usable.
+ */
 import { IntuiEvent, type ChoiceProps, type FieldValue, type FormField, type FormProps } from '@intui/core'
 import type { DrawContext, Drawer } from '../dom'
 import { readForm, type RawValue } from '../form-values'

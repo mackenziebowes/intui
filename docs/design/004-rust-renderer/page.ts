@@ -1,6 +1,7 @@
 /**
  * Proposal 004's review page, drawn with IntUI itself.
- *   bun docs/design/004-rust-renderer/build.ts   → docs/design/004-rust-renderer.html (one self-contained file)
+ *
+ * Build it with `bun docs/design/004-rust-renderer/build.ts`, which writes docs/design/004-rust-renderer.html (one self-contained file).
  */
 import { Tree, type Node } from '../../../packages/core/src/index'
 import { render } from '../../../packages/web/src/index'

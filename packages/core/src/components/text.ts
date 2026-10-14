@@ -1,3 +1,7 @@
+/**
+ * The Text component: Markdown prose. Its text form is the Markdown itself, and it may not
+ * be empty.
+ */
 import { z } from "zod";
 import { defineKind, type Node } from "../component";
 

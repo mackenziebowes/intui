@@ -1,3 +1,9 @@
+/**
+ * The Chart drawer for Claude Code: an SVG plot on surfaces that take one, braille and
+ * block characters in the terminal, and the chart's text form when there is no room or no
+ * number to put on an axis. Whatever it draws, the points that are floors, estimates or
+ * unknown are still told apart.
+ */
 import type { ChartProps } from '@intui/core'
 import type { ElementTable } from 'claude-code'
 import { defineDrawer } from './drawer'

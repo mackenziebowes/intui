@@ -1,3 +1,9 @@
+/**
+ * Draws a whole tree for one transcript row in Claude Code: walks it, gives each node its
+ * width and interaction state, and hands it to the drawer for its kind. A node with no
+ * native drawer is drawn as its Markdown text form, so nothing in a valid tree goes
+ * missing.
+ */
 import type { ElementTable, RenderElement, RenderSurface } from 'claude-code'
 import { core, type Node, type Tree } from '@intui/core'
 import type { DrawContext, Drawer } from './drawer'

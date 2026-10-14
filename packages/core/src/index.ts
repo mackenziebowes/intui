@@ -1,3 +1,8 @@
+/**
+ * The public face of `@intui/core`: the tree, the catalog and every component, readings,
+ * events and refusals, and the text helpers. Everything a renderer or a host imports comes
+ * from here.
+ */
 export { core, Catalog, type Author } from "./catalog";
 export { defineKind, type ComponentKind, type Node, type Writer } from "./component";
 export { IntuiEvent, type EventData, type FieldValue } from "./event";

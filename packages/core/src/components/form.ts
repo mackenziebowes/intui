@@ -1,3 +1,8 @@
+/**
+ * The Form component: fields (text, number, select, checkbox) the person fills in and
+ * submits, with an id the submit event carries back. A select without options is refused,
+ * and its text form lists each field and whether it is required.
+ */
 import { z } from "zod";
 import { defineKind, type Node } from "../component";
 

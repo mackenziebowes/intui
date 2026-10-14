@@ -1,3 +1,9 @@
+/**
+ * Draws a ChartModel in character cells for the terminal: braille lines, block-character
+ * bars, an x axis, a legend, and the readings that are floors, estimates or unknown.
+ * Returns styled runs of text, never elements, and breaks a line at a missing value rather
+ * than drawing across it.
+ */
 import { formatValue, markerGlyph, placeLabels, project, withUnit, type ChartModel } from '@intui/layout'
 
 /** How a run of text is drawn; the drawer maps each to element props through theme.ts. */

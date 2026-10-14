@@ -1,6 +1,8 @@
 /**
  * Markdown to HTML for Text components. Trees can come from a model, so the
- * output must be safe to put in `innerHTML`:
+ * output is always safe to put in `innerHTML`.
+ *
+ * What that guarantees:
  *
  * - raw HTML is dropped, and the contents of `<script>`, `<style>` and similar
  *   elements go with it, so they neither run nor show up as text;

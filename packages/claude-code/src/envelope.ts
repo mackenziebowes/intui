@@ -1,3 +1,9 @@
+/**
+ * How a tree travels in a tool result: finds the `{ intui: { v, root } }` envelope in
+ * whatever shape the result arrived in, and builds the MCP result that carries one. The
+ * tree is parsed as code's, because it comes from a tool; a model-written `show` call
+ * never passes through here. A result with no envelope or an invalid one yields no tree.
+ */
 import { Tree, type Node } from '@intui/core'
 
 /** Trees kept in plugin state for plugin tools, newest last. */

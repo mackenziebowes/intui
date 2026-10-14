@@ -1,3 +1,9 @@
+/**
+ * What a person did with a component: pressed a Choice option or submitted a Form, as an
+ * `IntuiEvent` the host sends back to the agent. An event names the tree's source and the
+ * component's id, and is parsed at the edge like a tree, so one that doesn't fit is
+ * refused with every problem listed.
+ */
 import { z } from "zod";
 import type { ChoiceProps } from "./components/choice";
 import type { FormField, FormProps } from "./components/form";

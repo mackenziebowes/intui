@@ -1,3 +1,8 @@
+/**
+ * Turns a schema failure into problems a model can act on: each names a path inside the
+ * tree (`root.children[1] (Chart).series[0]`), the rule that failed and what to do.
+ * `IntuiError` carries all of them in one message, so one retry can fix everything.
+ */
 import type { z } from "zod";
 
 /** One thing wrong with a tree or an event, at a path inside it. */

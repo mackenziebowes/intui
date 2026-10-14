@@ -1,3 +1,9 @@
+/**
+ * A Catalog is a set of component kinds and the schemas for trees built from them; `core`
+ * holds every component IntUI defines. It knows who may write each kind (`model` or
+ * `code`), so a tree is checked against the author, and it makes the JSON Schema and the
+ * one-line descriptions a tool shows a model.
+ */
 import { z } from "zod";
 import type { ComponentKind, Node } from "./component";
 import { Chart } from "./components/chart";

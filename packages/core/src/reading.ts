@@ -1,3 +1,9 @@
+/**
+ * A Reading is a number and how sure it is: exact, at least, an estimate, or unknown. An
+ * unknown holds no number, so it can never pass for 0, and a bare number on the wire means
+ * exact so older trees keep their meaning. This module parses readings, says them in
+ * words, and turns them back into wire form.
+ */
 import { z } from "zod";
 import { formatNumber } from "./text";
 

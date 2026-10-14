@@ -1,3 +1,8 @@
+/**
+ * The Choice component: a prompt and two or more options the person can press, each with
+ * an id that comes back in the event. A choice is `once` (used up after a press) or
+ * `many`; the option ids are what the agent receives, the labels what the person sees.
+ */
 import { z } from "zod";
 import { defineKind, type Node } from "../component";
 

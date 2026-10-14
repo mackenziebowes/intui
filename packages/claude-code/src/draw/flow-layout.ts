@@ -1,6 +1,6 @@
 /**
  * Pure layout for the Flow drawer: no elements, only numbers and strings, so the
- * hard parts (layering, cycles, routing, fitting) are unit-tested without an engine.
+ * hard parts (layering, cycles, routing, fitting) are worked out without an engine.
  */
 import type { FlowStep } from '@intui/core'
 import type { Analysis, Edge } from '@intui/layout'

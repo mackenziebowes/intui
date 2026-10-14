@@ -1,3 +1,8 @@
+/**
+ * The `show` tool the model calls: its name, a description listing the components the
+ * model may write, and the input schema (a tree plus an optional `wanted` note).
+ * Components that show numbers are left out, because only code may write those.
+ */
 import { core } from '@intui/core'
 
 export const TOOL_NAME = 'show'

@@ -1,3 +1,8 @@
+/**
+ * What a component kind is: its schema, who may write it, its text form, the children and
+ * ids it holds, and a valid example. Every kind has a text form, which is what the model
+ * reads back and what any surface that can't draw it falls back to.
+ */
 import type { z } from "zod";
 
 /** Any component in a tree. Each component kind narrows it with its own props. */

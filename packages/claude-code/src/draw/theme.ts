@@ -1,3 +1,8 @@
+/**
+ * The one place Claude Code colours are chosen: a colour per tone, which tones are dimmed,
+ * the accent for primary actions, and the hex palette for Svg surfaces. Drawers read these
+ * and never pick colours of their own, so a palette change is one edit.
+ */
 import type { Tone } from '@intui/core'
 
 /**

@@ -1,3 +1,8 @@
+/**
+ * Draws a ChartModel as an SVG document string for the surfaces that can show one (bars or
+ * lines, axes, markers). It leaves a gap where a value is missing or unknown instead of
+ * joining or zeroing it, and takes every colour from the caller.
+ */
 import { formatValue, markerGlyph, placeLabels, project, withUnit, type ChartModel } from '@intui/layout'
 
 export type SvgColors = {

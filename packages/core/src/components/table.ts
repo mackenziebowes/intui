@@ -1,3 +1,8 @@
+/**
+ * The Table component: named columns and rows of cells keyed by column. A row key that
+ * names no column is refused with the path and the keys that exist; a missing cell is
+ * empty, never 0. Its text form is a Markdown table.
+ */
 import { z } from "zod";
 import { defineKind, type Node } from "../component";
 import { cell, markdownTable } from "../text";

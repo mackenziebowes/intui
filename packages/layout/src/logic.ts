@@ -1,3 +1,9 @@
+/**
+ * Small rules every renderer must agree on: which way a column aligns, how a typed number
+ * is read (a typo is a note, never silently empty), how a chart is described to a screen
+ * reader, and how a Stat's change points. A floor and an estimate carry their marks (`≥`,
+ * `~`) and an unknown carries none.
+ */
 import { never, shownNumber, type CellValue, type ChangeReading, type ReadingKind, type TableColumn } from '@intui/core'
 import { formatValue, type ChartModel } from './chart-scale'
 

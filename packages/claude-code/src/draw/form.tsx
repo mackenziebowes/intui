@@ -1,3 +1,9 @@
+/**
+ * The Form drawer for Claude Code: a field per input kind, a submit button that stays
+ * blocked, with a sentence saying why, until required fields are filled and numbers parse,
+ * and, once submitted, the values it was sent with. Nothing a handler throws reaches the
+ * engine; it becomes a note.
+ */
 import type { FieldValue, FormField, FormProps } from '@intui/core'
 import type { ElementTable } from 'claude-code'
 import { parseNumber } from '@intui/layout'

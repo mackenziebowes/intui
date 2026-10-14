@@ -1,9 +1,11 @@
 /**
- * Builds the browser files into packages/web/dist:
- *   intui-web.js   ES module: render, textOf, markdownToHtml (core and marked bundled in)
- *   intui-web.css  the stylesheet
- *   intui-page.css the opt-in page shell (background, width, gutter) for pages made only of trees
- *   demo.html      every core component's example at three widths; open it from disk
+ * Builds the browser files into packages/web/dist: the library, its stylesheets and the
+ * demo page.
+ *
+ * - intui-web.js: ES module with render, textOf, markdownToHtml (core and marked bundled in)
+ * - intui-web.css: the stylesheet
+ * - intui-page.css: the opt-in page shell (background, width, gutter) for pages made only of trees
+ * - demo.html: every core component's example at three widths; open it from disk
  */
 import { copyFile, mkdir, rm } from 'node:fs/promises'
 import { join } from 'node:path'

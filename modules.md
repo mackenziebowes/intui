@@ -81,19 +81,19 @@ Text-form parity: `intui-text` prints, byte for byte, what core's `Tree.toText()
 Builds proposal 002's review page as one self-contained file: docs/design/002-time.html.
 
 ## docs/design/002-time/page.ts
-Proposal 002's review page, drawn with IntUI itself. bun docs/design/002-time/build.ts → docs/design/002-time.html (one self-contained file)
+Proposal 002's review page, drawn with IntUI itself.
 
 ## docs/design/003-refusals/build.ts
 Builds proposal 003's review page as one self-contained file: docs/design/003-refusals.html.
 
 ## docs/design/003-refusals/page.ts
-Proposal 003's review page, drawn with IntUI itself. bun docs/design/003-refusals/build.ts → docs/design/003-refusals.html (one self-contained file)
+Proposal 003's review page, drawn with IntUI itself.
 
 ## docs/design/004-rust-renderer/build.ts
 Builds proposal 004's review page as one self-contained file: docs/design/004-rust-renderer.html.
 
 ## docs/design/004-rust-renderer/page.ts
-Proposal 004's review page, drawn with IntUI itself. bun docs/design/004-rust-renderer/build.ts → docs/design/004-rust-renderer.html (one self-contained file)
+Proposal 004's review page, drawn with IntUI itself.
 
 ## evals/run.ts
 Runs the eval cases: asks headless Claude Code each question with the plugin loaded and records what happened: every show call (drawn or refused, and why), the components in it, and the reply's text. Nothing is graded. A case's `expect` is a hope to read the record against, by eye, as a trend over runs (the eval-design skill). Each run writes evals/results/<date>-<model>.jsonl.
@@ -108,148 +108,148 @@ Conformance: one real check per component through Claude Code's own engine.
 Contracts, through Claude Code's own engine: what the model gets back from `show`, and what a person's press or submit sends to the agent.
 
 ## packages/claude-code/src/demo.ts
-(no header: code comes before any comment)
+The `demo_chart` tool: a Chart and a Stat built by code from labelled sample data, so the Claude Code plugin has something with numbers to draw without a real query. Every number is marked as sample data, and the floor, estimate and unknown readings are included on purpose so the drawing of uncertainty can be seen.
 
 ## packages/claude-code/src/draw/chart-svg.ts
-(no header: code comes before any comment)
+Draws a ChartModel as an SVG document string for the surfaces that can show one (bars or lines, axes, markers). It leaves a gap where a value is missing or unknown instead of joining or zeroing it, and takes every colour from the caller.
 
 ## packages/claude-code/src/draw/chart-text.ts
-(no header: code comes before any comment)
+Draws a ChartModel in character cells for the terminal: braille lines, block-character bars, an x axis, a legend, and the readings that are floors, estimates or unknown. Returns styled runs of text, never elements, and breaks a line at a missing value rather than drawing across it.
 
 ## packages/claude-code/src/draw/chart.tsx
-(no header: code comes before any comment)
+The Chart drawer for Claude Code: an SVG plot on surfaces that take one, braille and block characters in the terminal, and the chart's text form when there is no room or no number to put on an axis. Whatever it draws, the points that are floors, estimates or unknown are still told apart.
 
 ## packages/claude-code/src/draw/choice-view.ts
-(no header: code comes before any comment)
+What a Choice shows in Claude Code: its option buttons, or, once a `once` choice is used up, only the option that was chosen. Also turns an error a handler threw into one short line for the note under the buttons.
 
 ## packages/claude-code/src/draw/choice.tsx
-(no header: code comes before any comment)
+The Choice drawer for Claude Code: a row of buttons that sends a press back to the agent, and, once used, only the chosen option. A press the tree rejects or a handler that fails leaves a one-line note and keeps the buttons.
 
 ## packages/claude-code/src/draw/drawer.ts
-(no header: code comes before any comment)
+The shape of a Claude Code drawer and the context it is given: the surface's elements, the width in cells, the tree's interaction state (what was pressed, typed or submitted) and the calls that send a press or a submit back to the agent. `defineDrawer` makes a drawer for one component kind.
 
 ## packages/claude-code/src/draw/flow-layout.ts
-Pure layout for the Flow drawer: no elements, only numbers and strings, so the hard parts (layering, cycles, routing, fitting) are unit-tested without an engine.
+Pure layout for the Flow drawer: no elements, only numbers and strings, so the hard parts (layering, cycles, routing, fitting) are worked out without an engine.
 
 ## packages/claude-code/src/draw/flow.tsx
-(no header: code comes before any comment)
+The Flow drawer for Claude Code: steps as boxes joined by arrows, in one row when they fit and stacked with downward arrows when they don't, falling back to each step with its outgoing links when even that doesn't fit. Links that close a cycle are written as a line inside the box, never drawn as an arrow.
 
 ## packages/claude-code/src/draw/form-logic.ts
-(no header: code comes before any comment)
+The words and rules around a Form's state in Claude Code: which required fields still have no value, the lines that say what a submitted form sent, and the sentence under the submit button when it can't go yet. No elements, only strings.
 
 ## packages/claude-code/src/draw/form.tsx
-(no header: code comes before any comment)
+The Form drawer for Claude Code: a field per input kind, a submit button that stays blocked, with a sentence saying why, until required fields are filled and numbers parse, and, once submitted, the values it was sent with. Nothing a handler throws reaches the engine; it becomes a note.
 
 ## packages/claude-code/src/draw/group.tsx
-(no header: code comes before any comment)
+The Group drawer for Claude Code: its children in a row or a column, with a row stacking into a column when the width is too narrow for it.
 
 ## packages/claude-code/src/draw/index.tsx
-(no header: code comes before any comment)
+Draws a whole tree for one transcript row in Claude Code: walks it, gives each node its width and interaction state, and hands it to the drawer for its kind. A node with no native drawer is drawn as its Markdown text form, so nothing in a valid tree goes missing.
 
 ## packages/claude-code/src/draw/label-shape.ts
 Cuts text to fit a width in character cells, ending in an ellipsis when it had to cut.
 
 ## packages/claude-code/src/draw/label.tsx
-(no header: code comes before any comment)
+The Label drawer for Claude Code: a short tag in brackets, coloured by its tone and dimmed when muted, cut to the room it has.
 
 ## packages/claude-code/src/draw/stat-shape.ts
-(no header: code comes before any comment)
+The lines of a Stat as strings: the label, the value with its unit, and the change with a direction marker, each cut to the room. A floor reads `≥`, an estimate `~`, and a number we don't have reads `unknown`, never 0.
 
 ## packages/claude-code/src/draw/stat.tsx
-(no header: code comes before any comment)
+The Stat drawer for Claude Code: a label, a big value and an optional change, coloured by tone, as laid out by stat-shape.
 
 ## packages/claude-code/src/draw/table-layout.ts
-(no header: code comes before any comment)
+Lays out a Table in character cells: shares the width among columns so short ones stay whole, and, when even the minimum widths don't fit, switches to one stacked block per row. Pure strings and numbers, so no content is dropped without an ellipsis.
 
 ## packages/claude-code/src/draw/table.tsx
-(no header: code comes before any comment)
+The Table drawer for Claude Code: a grid with a header row, or a block per row when the columns don't fit, as decided by table-layout.
 
 ## packages/claude-code/src/draw/text.tsx
-(no header: code comes before any comment)
+The Text drawer for Claude Code: the component's Markdown, drawn by the engine's own Markdown element.
 
 ## packages/claude-code/src/draw/theme.ts
-(no header: code comes before any comment)
+The one place Claude Code colours are chosen: a colour per tone, which tones are dimmed, the accent for primary actions, and the hex palette for Svg surfaces. Drawers read these and never pick colours of their own, so a palette change is one edit.
 
 ## packages/claude-code/src/envelope.ts
-(no header: code comes before any comment)
+How a tree travels in a tool result: finds the `{ intui: { v, root } }` envelope in whatever shape the result arrived in, and builds the MCP result that carries one. The tree is parsed as code's, because it comes from a tool; a model-written `show` call never passes through here. A result with no envelope or an invalid one yields no tree.
 
 ## packages/claude-code/src/register.tsx
-(no header: code comes before any comment)
+The plugin's wiring into Claude Code: registers the `show` and demo tools and the `/intui` command, refuses a bad `show` tree with every problem listed, draws a tree on the transcript row of the call or result that carries it, and turns a press or submit into a message to the agent. It keeps the used-up choices, typed form values, notes and pending counts across redraws in the plugin's store.
 
 ## packages/claude-code/src/tool.ts
-(no header: code comes before any comment)
+The `show` tool the model calls: its name, a description listing the components the model may write, and the input schema (a tree plus an optional `wanted` note). Components that show numbers are left out, because only code may write those.
 
 ## packages/claude-code/src/usage.ts
-(no header: code comes before any comment)
+The usage log behind `/intui`: one shape-only entry per `show` call, refusal or tool-returned tree, a count of times the person typed over a waiting Choice or Form, and the Markdown report that turns them into trends. It keeps counts and component names, never content, and old entries missing newer fields still summarize.
 
 ## packages/core/schema.ts
 Writes core's JSON Schemas to `packages/core/schema/`, the files other languages generate their types from, so the TypeScript here stays the one definition. `--check` writes nothing and exits 1, naming the file and the command to run, when a committed copy no longer matches core. The committed schema gives the shape; `Tree.parse` gives the verdict, including the cross-field rules a schema can't express.
 
 ## packages/core/src/catalog.ts
-(no header: code comes before any comment)
+A Catalog is a set of component kinds and the schemas for trees built from them; `core` holds every component IntUI defines. It knows who may write each kind (`model` or `code`), so a tree is checked against the author, and it makes the JSON Schema and the one-line descriptions a tool shows a model.
 
 ## packages/core/src/component.ts
-(no header: code comes before any comment)
+What a component kind is: its schema, who may write it, its text form, the children and ids it holds, and a valid example. Every kind has a text form, which is what the model reads back and what any surface that can't draw it falls back to.
 
 ## packages/core/src/components/chart.ts
-(no header: code comes before any comment)
+The Chart component: bars or lines over named x positions, one or more series, and markers. Only code may write it, since it shows numbers; each point is a Reading, so a floor, an estimate or a missing value is told apart from an exact one in the text form as well as the drawing.
 
 ## packages/core/src/components/choice.ts
-(no header: code comes before any comment)
+The Choice component: a prompt and two or more options the person can press, each with an id that comes back in the event. A choice is `once` (used up after a press) or `many`; the option ids are what the agent receives, the labels what the person sees.
 
 ## packages/core/src/components/flow.ts
-(no header: code comes before any comment)
+The Flow component: steps joined by links, for a process or a dependency order. With no links each step leads to the next. A link naming a step that isn't there is refused with the path and the ids that exist.
 
 ## packages/core/src/components/form.ts
-(no header: code comes before any comment)
+The Form component: fields (text, number, select, checkbox) the person fills in and submits, with an id the submit event carries back. A select without options is refused, and its text form lists each field and whether it is required.
 
 ## packages/core/src/components/group.ts
-(no header: code comes before any comment)
+The Group component: other components in a row or a column, nested to any depth. Its text form joins its children's text forms.
 
 ## packages/core/src/components/label.ts
-(no header: code comes before any comment)
+The Label component: a short tag whose tone says what it means (neutral, positive, warning, critical, muted). Each renderer decides how a tone looks; the text form is the text in brackets. Also holds the list of tones, which Stat reuses.
 
 ## packages/core/src/components/stat.ts
-(no header: code comes before any comment)
+The Stat component: one figure with a label, a unit and an optional change. Only code may write it. The value and the change are Readings, so a floor, an estimate or an unknown shows as one and never as a bare number.
 
 ## packages/core/src/components/table.ts
-(no header: code comes before any comment)
+The Table component: named columns and rows of cells keyed by column. A row key that names no column is refused with the path and the keys that exist; a missing cell is empty, never 0. Its text form is a Markdown table.
 
 ## packages/core/src/components/text.ts
-(no header: code comes before any comment)
+The Text component: Markdown prose. Its text form is the Markdown itself, and it may not be empty.
 
 ## packages/core/src/event.ts
-(no header: code comes before any comment)
+What a person did with a component: pressed a Choice option or submitted a Form, as an `IntuiEvent` the host sends back to the agent. An event names the tree's source and the component's id, and is parsed at the edge like a tree, so one that doesn't fit is refused with every problem listed.
 
 ## packages/core/src/index.ts
-(no header: code comes before any comment)
+The public face of `@intui/core`: the tree, the catalog and every component, readings, events and refusals, and the text helpers. Everything a renderer or a host imports comes from here.
 
 ## packages/core/src/problems.ts
-(no header: code comes before any comment)
+Turns a schema failure into problems a model can act on: each names a path inside the tree (`root.children[1] (Chart).series[0]`), the rule that failed and what to do. `IntuiError` carries all of them in one message, so one retry can fix everything.
 
 ## packages/core/src/reading.ts
-(no header: code comes before any comment)
+A Reading is a number and how sure it is: exact, at least, an estimate, or unknown. An unknown holds no number, so it can never pass for 0, and a bare number on the wire means exact so older trees keep their meaning. This module parses readings, says them in words, and turns them back into wire form.
 
 ## packages/core/src/text.ts
 Small helpers for the Markdown text forms.
 
 ## packages/core/src/tree.ts
-(no header: code comes before any comment)
+A Tree is a validated component tree, the thing an agent shows on any surface. `Tree.parse` takes whatever crossed a wire and refuses with every problem listed, checking who wrote it; `Tree.of` takes one code built. It also renders the text form, finds the interactive components by id, and checks that an event answers something in this tree.
 
 ## packages/layout/src/chart-scale.ts
-(no header: code comes before any comment)
+The geometry of a Chart that doesn't depend on how it is drawn: categories in order, round axis domains and steps, which x labels fit, and the numbered markers. Both the terminal and the web chart are drawn from this one model, so they agree on what each point is.
 
 ## packages/layout/src/flow-analysis.ts
-(no header: code comes before any comment)
+Works out a Flow's structure before it is drawn: links resolved to step indexes, cycles broken into forward and back edges by a depth-first walk, and steps put in layers. It always finishes, whatever the links.
 
 ## packages/layout/src/index.ts
-(no header: code comes before any comment)
+The public face of `@intui/layout`: the chart model, flow analysis and the small shared rules both renderers use.
 
 ## packages/layout/src/logic.ts
-(no header: code comes before any comment)
+Small rules every renderer must agree on: which way a column aligns, how a typed number is read (a typo is a note, never silently empty), how a chart is described to a screen reader, and how a Stat's change points. A floor and an estimate carry their marks (`≥`, `~`) and an unknown carries none.
 
 ## packages/web/build.ts
-Builds the browser files into packages/web/dist: intui-web.js ES module: render, textOf, markdownToHtml (core and marked bundled in) intui-web.css the stylesheet intui-page.css the opt-in page shell (background, width, gutter) for pages made only of trees demo.html every core component's example at three widths; open it from disk
+Builds the browser files into packages/web/dist: the library, its stylesheets and the demo page.
 
 ## packages/web/demo/demo.ts
 The demo page: every core component's example at three widths, plus a few harder trees, so a person can check the look in light and dark. `?theme=dark` or `?theme=light` forces a theme; otherwise it follows the system.
@@ -264,43 +264,43 @@ The page the browser checks drive: a few trees drawn by the real renderer, each 
 Pure geometry for the SVG Chart: where every tick, bar, line point, label and marker goes at a given pixel width. The drawer turns it into elements; the look (colours, dashes) is the stylesheet's job, keyed on each series' role.
 
 ## packages/web/src/dom.ts
-(no header: code comes before any comment)
+The browser renderer's building blocks: `Dom` builds HTML and SVG elements in one document, and `DrawContext` is what each drawer gets besides its props (child drawing, the host's event handler, pressed and submitted state, width and text measuring). A drawer is a function from props and context to an element.
 
 ## packages/web/src/draw/basic.ts
-(no header: code comes before any comment)
+The browser drawers for the display components: Text, Group, Label, Stat and Table. A table with many columns becomes one card per row when narrow, and a Stat's reading wears its floor or estimate mark with words a screen reader says.
 
 ## packages/web/src/draw/chart.ts
-(no header: code comes before any comment)
+The browser Chart drawer: an SVG plot redrawn at the element's width, with a legend, numbered markers, a label for screen readers and the chart's text form under a disclosure. Readings that are floors, estimates or unknown are drawn as such, and a gap in the data breaks a line.
 
 ## packages/web/src/draw/controls.ts
-(no header: code comes before any comment)
+The browser drawers for the controls, Choice and Form. A press or submit sends an event the host receives after it is checked against the tree; a used-up control can't fire again and shows what was chosen or sent, and a host handler that throws leaves a note while the control stays usable.
 
 ## packages/web/src/draw/flow.ts
-(no header: code comes before any comment)
+The browser Flow drawer: steps as boxes laid out by CSS, with the arrows drawn as SVG from the boxes' measured positions and redrawn when the width changes. The full list of links is kept in the DOM order for screen readers.
 
 ## packages/web/src/flow-layout.ts
 Pure layout for the web Flow: which way the layers run at a given width, and the connector between two measured boxes. The boxes themselves are laid out by CSS; the drawer measures them and asks `connector` for each arrow.
 
 ## packages/web/src/form-values.ts
-(no header: code comes before any comment)
+Turns what is in a Form's controls into the values an event carries, or says what to fix first: empty optional fields are left out, numbers that don't parse are named, checkboxes are always sent. Field ids are kept without a prototype, so a field called `constructor` is an ordinary field.
 
 ## packages/web/src/index.ts
-(no header: code comes before any comment)
+The public face of `@intui/web`: `render` draws a parsed tree as DOM, `textOf` gives a node's text form, and `markdownToHtml` is the safe Markdown renderer.
 
 ## packages/web/src/markdown.ts
-Markdown to HTML for Text components. Trees can come from a model, so the output must be safe to put in `innerHTML`:
+Markdown to HTML for Text components. Trees can come from a model, so the output is always safe to put in `innerHTML`.
 
 ## packages/web/src/paths.ts
 Where the built files are on disk, for a server that serves them (the hub). Not for the browser: import `@intui/web` there, and link the stylesheet.
 
 ## packages/web/src/render.ts
-(no header: code comes before any comment)
+`render` draws a parsed Tree as one detached `<div class="intui">` for the host to place, in light or dark, with every Choice and Form reporting to the host's `onEvent`. A drawer that throws shows that node's text form instead, and a kind with no drawer is drawn as its text form, so a valid tree never comes out blank.
 
 ## proposals/001-certainty/build.ts
 Builds proposal 001's review page into proposals/001-certainty/dist/index.html.
 
 ## proposals/001-certainty/page.ts
-Proposal 001's review page, drawn with IntUI itself. bun proposals/001-certainty/build.ts → proposals/001-certainty/dist/index.html
+Proposal 001's review page, drawn with IntUI itself.
 
 ## site/build.ts
 Builds the docs site into site/dist. The component reference comes from the core catalog, so it always matches the code.

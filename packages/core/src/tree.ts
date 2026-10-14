@@ -1,3 +1,10 @@
+/**
+ * A Tree is a validated component tree, the thing an agent shows on any surface.
+ * `Tree.parse` takes whatever crossed a wire and refuses with every problem listed,
+ * checking who wrote it; `Tree.of` takes one code built. It also renders the text form,
+ * finds the interactive components by id, and checks that an event answers something in
+ * this tree.
+ */
 import type { Node } from "./component";
 import { core, type Author, type Catalog } from "./catalog";
 import type { ChoiceProps } from "./components/choice";

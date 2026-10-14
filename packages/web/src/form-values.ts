@@ -1,3 +1,9 @@
+/**
+ * Turns what is in a Form's controls into the values an event carries, or says what to fix
+ * first: empty optional fields are left out, numbers that don't parse are named,
+ * checkboxes are always sent. Field ids are kept without a prototype, so a field called
+ * `constructor` is an ordinary field.
+ */
 import type { FieldValue, FormField } from '@intui/core'
 import { parseNumber } from '@intui/layout'
 

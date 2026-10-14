@@ -1,3 +1,8 @@
+/**
+ * Lays out a Table in character cells: shares the width among columns so short ones stay
+ * whole, and, when even the minimum widths don't fit, switches to one stacked block per
+ * row. Pure strings and numbers, so no content is dropped without an ellipsis.
+ */
 import { cellText, type CellValue, type TableColumn } from '@intui/core'
 import { alignOf } from '@intui/layout'
 

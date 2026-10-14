@@ -1,3 +1,9 @@
+/**
+ * The Flow drawer for Claude Code: steps as boxes joined by arrows, in one row when they
+ * fit and stacked with downward arrows when they don't, falling back to each step with its
+ * outgoing links when even that doesn't fit. Links that close a cycle are written as a
+ * line inside the box, never drawn as an arrow.
+ */
 import type { FlowProps, FlowStep } from '@intui/core'
 import type { RenderElement } from 'claude-code'
 import { analyse } from '@intui/layout'
