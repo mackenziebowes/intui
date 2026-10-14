@@ -1,0 +1,94 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$ref": "#/$defs/IntuiEvent",
+  "$defs": {
+    "IntuiEvent": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/PressEvent"
+        },
+        {
+          "$ref": "#/$defs/SubmitEvent"
+        }
+      ]
+    },
+    "PressEvent": {
+      "type": "object",
+      "properties": {
+        "v": {
+          "type": "number",
+          "const": 1
+        },
+        "source": {
+          "type": "string",
+          "minLength": 1
+        },
+        "target": {
+          "type": "string",
+          "minLength": 1
+        },
+        "action": {
+          "type": "string",
+          "const": "press"
+        },
+        "value": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "required": [
+        "v",
+        "source",
+        "target",
+        "action",
+        "value"
+      ],
+      "additionalProperties": false
+    },
+    "SubmitEvent": {
+      "type": "object",
+      "properties": {
+        "v": {
+          "type": "number",
+          "const": 1
+        },
+        "source": {
+          "type": "string",
+          "minLength": 1
+        },
+        "target": {
+          "type": "string",
+          "minLength": 1
+        },
+        "action": {
+          "type": "string",
+          "const": "submit"
+        },
+        "value": {
+          "type": "object",
+          "propertyNames": {
+            "type": "string"
+          },
+          "additionalProperties": {
+            "$ref": "#/$defs/FieldValue"
+          }
+        }
+      },
+      "required": [
+        "v",
+        "source",
+        "target",
+        "action",
+        "value"
+      ],
+      "additionalProperties": false
+    },
+    "FieldValue": {
+      "type": [
+        "string",
+        "number",
+        "boolean"
+      ]
+    }
+  }
+}

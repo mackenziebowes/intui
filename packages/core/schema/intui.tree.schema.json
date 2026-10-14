@@ -1,0 +1,640 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "v": {
+      "type": "number",
+      "const": 1
+    },
+    "root": {
+      "$ref": "#/$defs/Node"
+    }
+  },
+  "required": [
+    "v",
+    "root"
+  ],
+  "additionalProperties": false,
+  "title": "IntuiTree",
+  "$defs": {
+    "Node": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/Text"
+        },
+        {
+          "$ref": "#/$defs/Group"
+        },
+        {
+          "$ref": "#/$defs/Label"
+        },
+        {
+          "$ref": "#/$defs/Table"
+        },
+        {
+          "$ref": "#/$defs/Chart"
+        },
+        {
+          "$ref": "#/$defs/Stat"
+        },
+        {
+          "$ref": "#/$defs/Flow"
+        },
+        {
+          "$ref": "#/$defs/Choice"
+        },
+        {
+          "$ref": "#/$defs/Form"
+        }
+      ]
+    },
+    "Text": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string",
+          "const": "Text"
+        },
+        "markdown": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "required": [
+        "type",
+        "markdown"
+      ],
+      "additionalProperties": false
+    },
+    "Group": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string",
+          "const": "Group"
+        },
+        "direction": {
+          "default": "column",
+          "type": "string",
+          "enum": [
+            "row",
+            "column"
+          ]
+        },
+        "children": {
+          "minItems": 1,
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Node"
+          }
+        }
+      },
+      "required": [
+        "type",
+        "children"
+      ],
+      "additionalProperties": false
+    },
+    "Label": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string",
+          "const": "Label"
+        },
+        "text": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 40
+        },
+        "tone": {
+          "default": "neutral",
+          "$ref": "#/$defs/Tone"
+        }
+      },
+      "required": [
+        "type",
+        "text"
+      ],
+      "additionalProperties": false
+    },
+    "Tone": {
+      "type": "string",
+      "enum": [
+        "neutral",
+        "positive",
+        "warning",
+        "critical",
+        "muted"
+      ]
+    },
+    "Table": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string",
+          "const": "Table"
+        },
+        "columns": {
+          "minItems": 1,
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/TableColumn"
+          }
+        },
+        "rows": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "propertyNames": {
+              "type": "string"
+            },
+            "additionalProperties": {
+              "type": [
+                "string",
+                "number",
+                "boolean",
+                "null"
+              ]
+            }
+          }
+        },
+        "caption": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "type",
+        "columns",
+        "rows"
+      ],
+      "additionalProperties": false
+    },
+    "TableColumn": {
+      "type": "object",
+      "properties": {
+        "key": {
+          "type": "string",
+          "minLength": 1
+        },
+        "label": {
+          "type": "string",
+          "minLength": 1
+        },
+        "align": {
+          "type": "string",
+          "enum": [
+            "start",
+            "end"
+          ]
+        }
+      },
+      "required": [
+        "key",
+        "label"
+      ],
+      "additionalProperties": false
+    },
+    "Chart": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string",
+          "const": "Chart"
+        },
+        "kind": {
+          "type": "string",
+          "enum": [
+            "line",
+            "bar"
+          ]
+        },
+        "title": {
+          "type": "string"
+        },
+        "unit": {
+          "type": "string"
+        },
+        "series": {
+          "minItems": 1,
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/ChartSeries"
+          }
+        },
+        "annotations": {
+          "default": [],
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/ChartAnnotation"
+          }
+        }
+      },
+      "required": [
+        "type",
+        "kind",
+        "series"
+      ],
+      "additionalProperties": false
+    },
+    "ChartSeries": {
+      "type": "object",
+      "properties": {
+        "label": {
+          "type": "string",
+          "minLength": 1
+        },
+        "role": {
+          "default": "primary",
+          "type": "string",
+          "enum": [
+            "primary",
+            "baseline",
+            "comparison"
+          ]
+        },
+        "points": {
+          "minItems": 1,
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/ChartPoint"
+          }
+        }
+      },
+      "required": [
+        "label",
+        "points"
+      ],
+      "additionalProperties": false
+    },
+    "ChartPoint": {
+      "type": "object",
+      "properties": {
+        "x": {
+          "type": [
+            "string",
+            "number"
+          ]
+        },
+        "y": {
+          "$ref": "#/$defs/Reading"
+        }
+      },
+      "required": [
+        "x",
+        "y"
+      ],
+      "additionalProperties": false
+    },
+    "Reading": {
+      "anyOf": [
+        {
+          "type": "number"
+        },
+        {
+          "$ref": "#/$defs/ReadingObject"
+        }
+      ],
+      "description": "A number, or an object saying how sure it is."
+    },
+    "ReadingObject": {
+      "oneOf": [
+        {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "type": "string",
+              "const": "exact"
+            },
+            "value": {
+              "type": "number"
+            }
+          },
+          "required": [
+            "kind",
+            "value"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "type": "string",
+              "const": "atLeast"
+            },
+            "value": {
+              "type": "number"
+            }
+          },
+          "required": [
+            "kind",
+            "value"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "type": "string",
+              "const": "estimate"
+            },
+            "value": {
+              "type": "number"
+            }
+          },
+          "required": [
+            "kind",
+            "value"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "type": "string",
+              "const": "unknown"
+            }
+          },
+          "required": [
+            "kind"
+          ],
+          "additionalProperties": false
+        }
+      ]
+    },
+    "ChartAnnotation": {
+      "type": "object",
+      "properties": {
+        "at": {
+          "type": [
+            "string",
+            "number"
+          ]
+        },
+        "label": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "required": [
+        "at",
+        "label"
+      ],
+      "additionalProperties": false
+    },
+    "Stat": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string",
+          "const": "Stat"
+        },
+        "label": {
+          "type": "string",
+          "minLength": 1
+        },
+        "value": {
+          "$ref": "#/$defs/Reading"
+        },
+        "unit": {
+          "type": "string"
+        },
+        "change": {
+          "$ref": "#/$defs/StatChange"
+        },
+        "tone": {
+          "default": "neutral",
+          "$ref": "#/$defs/Tone"
+        }
+      },
+      "required": [
+        "type",
+        "label",
+        "value"
+      ],
+      "additionalProperties": false
+    },
+    "StatChange": {
+      "type": "object",
+      "properties": {
+        "value": {
+          "$ref": "#/$defs/Reading"
+        },
+        "as": {
+          "type": "string",
+          "enum": [
+            "amount",
+            "percent"
+          ]
+        }
+      },
+      "required": [
+        "value",
+        "as"
+      ],
+      "additionalProperties": false
+    },
+    "Flow": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string",
+          "const": "Flow"
+        },
+        "steps": {
+          "minItems": 2,
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/FlowStep"
+          }
+        },
+        "links": {
+          "default": [],
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/FlowLink"
+          }
+        }
+      },
+      "required": [
+        "type",
+        "steps"
+      ],
+      "additionalProperties": false
+    },
+    "FlowStep": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "label": {
+          "type": "string",
+          "minLength": 1
+        },
+        "detail": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "label"
+      ],
+      "additionalProperties": false
+    },
+    "FlowLink": {
+      "type": "object",
+      "properties": {
+        "from": {
+          "type": "string"
+        },
+        "to": {
+          "type": "string"
+        },
+        "label": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "from",
+        "to"
+      ],
+      "additionalProperties": false
+    },
+    "Choice": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string",
+          "const": "Choice"
+        },
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "prompt": {
+          "type": "string"
+        },
+        "options": {
+          "minItems": 1,
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/ChoiceOption"
+          }
+        },
+        "repeat": {
+          "default": "once",
+          "type": "string",
+          "enum": [
+            "once",
+            "many"
+          ]
+        }
+      },
+      "required": [
+        "type",
+        "id",
+        "options"
+      ],
+      "additionalProperties": false
+    },
+    "ChoiceOption": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "label": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 40
+        },
+        "emphasis": {
+          "type": "string",
+          "const": "primary"
+        }
+      },
+      "required": [
+        "id",
+        "label"
+      ],
+      "additionalProperties": false
+    },
+    "Form": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string",
+          "const": "Form"
+        },
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "fields": {
+          "minItems": 1,
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/FormField"
+          }
+        },
+        "submitLabel": {
+          "default": "Submit",
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 40
+        }
+      },
+      "required": [
+        "type",
+        "id",
+        "fields"
+      ],
+      "additionalProperties": false
+    },
+    "FormField": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "label": {
+          "type": "string",
+          "minLength": 1
+        },
+        "input": {
+          "type": "string",
+          "enum": [
+            "text",
+            "number",
+            "select",
+            "checkbox"
+          ]
+        },
+        "options": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "required": {
+          "default": false,
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "id",
+        "label",
+        "input"
+      ],
+      "additionalProperties": false
+    }
+  }
+}
