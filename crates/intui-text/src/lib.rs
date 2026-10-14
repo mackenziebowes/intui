@@ -9,4 +9,4 @@ pub mod numbers;
 mod text;
 mod words;
 
-pub use text::{reading_text, to_text};
+pub use text::{drawn_text, reading_text, to_text};

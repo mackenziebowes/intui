@@ -1,0 +1,13 @@
+[package]
+name = "intui-egui"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+intui-types = { path = "../intui-types" }
+intui-layout = { path = "../intui-layout" }
+intui-text = { path = "../intui-text" }
+egui = { version = "=0.36.2" }
+pulldown-cmark = { version = "=0.13.4", default-features = false }
+serde = { version = "1", features = ["derive"] }
+serde_json = { version = "1", features = ["preserve_order", "float_roundtrip"] }

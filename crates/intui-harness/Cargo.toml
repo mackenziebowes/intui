@@ -1,0 +1,33 @@
+[package]
+name = "intui-harness"
+version = "0.1.0"
+edition = "2021"
+
+[[bin]]
+name = "intui-harness"
+path = "src/main.rs"
+
+[features]
+default = ["wgpu"]
+wgpu = ["eframe/wgpu"]
+glow = ["eframe/glow"]
+inspection = ["eframe/inspection"]
+
+[dependencies]
+intui-egui = { path = "../intui-egui" }
+intui-types = { path = "../intui-types" }
+eframe = { version = "=0.36.2", default-features = false, features = ["accesskit", "default_fonts", "wayland", "x11"] }
+egui = { version = "=0.36.2" }
+serde_json = { version = "1", features = ["preserve_order", "float_roundtrip"] }
+
+[dev-dependencies]
+egui_inspection = { version = "=0.36.2" }
+egui = { version = "=0.36.2" }
+serde_json = { version = "1", features = ["preserve_order", "float_roundtrip"] }
+intui-text = { path = "../intui-text" }
+png = "0.18"
+
+[[test]]
+name = "native_window"
+path = "../tests/native_window.rs"
+required-features = ["inspection", "glow"]

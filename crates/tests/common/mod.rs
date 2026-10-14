@@ -47,3 +47,16 @@ pub fn fixtures<'a>(cases: &'a Value, symptom: Option<&str>) -> Vec<&'a Value> {
     assert!(symptom.is_none() || !chosen.is_empty(), "no fixture in crates/tests/core/trees.ts carries the symptom {symptom:?}; rename it here or there");
     chosen
 }
+
+/// Runs one of core's scripts in `crates/tests/core` with `input` on stdin.
+#[allow(dead_code)]
+pub fn run_bun(script: &str, input: &str) -> Output {
+    let path = repo_root().join("crates/tests/core").join(script);
+    run_in(Command::new("bun").arg(&path).current_dir(repo_root()), input)
+}
+
+fn run_in(command: &mut Command, input: &str) -> Output {
+    let mut child = command.stdin(Stdio::piped()).stdout(Stdio::piped()).stderr(Stdio::piped()).spawn().unwrap_or_else(|error| panic!("couldn't start {command:?} ({error})"));
+    child.stdin.take().expect("stdin is piped").write_all(input.as_bytes()).expect("the program reads its stdin");
+    child.wait_with_output().expect("the program finishes")
+}

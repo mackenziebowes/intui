@@ -10,7 +10,8 @@ pub fn to_text(tree: &Tree) -> String {
     drawn_text(tree.root())
 }
 
-fn drawn_text(drawn: &Drawn) -> String {
+/// The text form of one node and everything inside it.
+pub fn drawn_text(drawn: &Drawn) -> String {
     match drawn {
         Drawn::Unknown { kind, path } => words::unknown_component(kind.name(), path),
         Drawn::Known(node) => node_text(node),
