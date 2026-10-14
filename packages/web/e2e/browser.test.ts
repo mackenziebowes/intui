@@ -398,4 +398,24 @@ describe('readings: how sure a number is', () => {
     expect(roundTrip).toBe(roundTripFrom)
     expect(typeof JSON.parse(roundTrip).root.value).toBe('number')
   })
+
+  test('a reading core accepts is one the schema allows', () => {
+    const allowed = [3, { kind: 'exact', value: 3 }, { kind: 'atLeast', value: 3 }, { kind: 'estimate', value: 3 }, { kind: 'unknown' }]
+    const refused = [
+      { kind: 'exact', value: 3, note: 'x' },
+      { kind: 'unknown', note: 'x' },
+      { kind: 'unknown', value: 3 },
+      { kind: 'exact' },
+      { kind: 'exact', value: '3' },
+      { kind: 'exact', value: null },
+      { kind: 'sure', value: 3 },
+      { kind: 'constructor', value: 3 },
+      { value: 3 },
+      [3],
+      null,
+      'lots',
+    ]
+    for (const wire of allowed) expect([JSON.stringify(wire), page<boolean>(`window.intuiChecks.accepts(${JSON.stringify(wire)})`)]).toEqual([JSON.stringify(wire), true])
+    for (const wire of refused) expect([JSON.stringify(wire), page<boolean>(`window.intuiChecks.accepts(${JSON.stringify(wire)})`)]).toEqual([JSON.stringify(wire), false])
+  })
 })

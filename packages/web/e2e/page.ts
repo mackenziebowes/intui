@@ -9,7 +9,7 @@ import { render, type RenderOptions } from '../src/index'
 declare global {
   interface Window {
     intuiEvents: { fixture: string; event: unknown; fits: boolean }[]
-    intuiChecks: { refusal: string; roundTrip: string; roundTripFrom: string; readingText: string }
+    intuiChecks: { refusal: string; roundTrip: string; roundTripFrom: string; readingText: string; accepts: (value: unknown) => boolean }
   }
 }
 window.intuiEvents = []
@@ -209,5 +209,6 @@ window.intuiChecks = {
   roundTrip: JSON.stringify(Tree.of(oldTree as Node).toJSON()),
   roundTripFrom: JSON.stringify({ v: 1, root: oldTree }),
   readingText: Tree.of(readings).toText(),
+  accepts: (value) => refused({ type: 'Stat', label: 'Tokens', value }) === 'parsed',
 }
 document.body.dataset.ready = 'true'

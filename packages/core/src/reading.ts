@@ -103,48 +103,63 @@ const KIND_LIST = READING_KINDS.map((kind) => `"${kind}"`).join(", ");
 
 type Parsed = { ok: true; reading: Reading } | { ok: false; message: string };
 
-/** Reads a wire value: a number, or one object per kind. Says what to fix when it can't. */
+const readingObject = z
+  .discriminatedUnion("kind", [
+    z.strictObject({ kind: z.literal("exact"), value: z.number() }),
+    z.strictObject({ kind: z.literal("atLeast"), value: z.number() }),
+    z.strictObject({ kind: z.literal("estimate"), value: z.number() }),
+    z.strictObject({ kind: z.literal("unknown") }),
+  ])
+  .meta({ id: "ReadingObject" });
+
+/** Reads a wire value: a number, or one object per kind. The schema decides; this adds the words that say what to fix. */
 export function parseReading(input: unknown): Parsed {
-  const fail = (message: string): Parsed => ({ ok: false, message });
   if (typeof input === "number") {
-    return Number.isFinite(input)
+    return z.number().safeParse(input).success
       ? { ok: true, reading: Reading.exact(input) }
-      : fail(`${String(input)} isn't a finite number; give a finite number, or {"kind":"unknown"} if the source couldn't be read`);
+      : { ok: false, message: `${String(input)} isn't a finite number; give a finite number, or {"kind":"unknown"} if the source couldn't be read` };
   }
+  const verdict = readingObject.safeParse(input);
+  if (verdict.success) {
+    const object = verdict.data;
+    switch (object.kind) {
+      case "exact": return { ok: true, reading: Reading.exact(object.value) };
+      case "atLeast": return { ok: true, reading: Reading.atLeast(object.value) };
+      case "estimate": return { ok: true, reading: Reading.estimate(object.value) };
+      case "unknown": return { ok: true, reading: Reading.unknown() };
+      default: return never(object);
+    }
+  }
+  return { ok: false, message: refusal(input) };
+}
+
+/** Words for a value the schema refused. */
+function refusal(input: unknown): string {
   if (typeof input !== "object" || input === null || Array.isArray(input)) {
-    return fail(`expected a number or a reading object like {"kind":"atLeast","value":216}; got ${describe(input)}`);
+    return `expected a number or a reading object like {"kind":"atLeast","value":216}; got ${describe(input)}`;
   }
   const object = input as Record<string, unknown>;
   const kind = object.kind;
-  if (kind === undefined) return fail(`a reading object needs a "kind"; add "kind" (one of ${KIND_LIST}) or write a bare number for an exact one`);
+  if (kind === undefined) return `a reading object needs a "kind"; add "kind" (one of ${KIND_LIST}) or write a bare number for an exact one`;
   if (typeof kind !== "string" || !(READING_KINDS as readonly string[]).includes(kind)) {
-    return fail(`kind ${typeof kind === "string" ? `"${kind}"` : describe(kind)} isn't a reading; use one of ${KIND_LIST}`);
+    return `kind ${typeof kind === "string" ? `"${kind}"` : describe(kind)} isn't a reading; use one of ${KIND_LIST}`;
   }
   if (kind === "unknown") {
-    if ("value" in object) {
-      return fail(`kind "unknown" has no value; remove value, or use kind "atLeast" or "estimate" if you have a number`);
-    }
-    return extras(object, ["kind"]) ?? { ok: true, reading: Reading.unknown() };
+    if ("value" in object) return `kind "unknown" has no value; remove value, or use kind "atLeast" or "estimate" if you have a number`;
+    return extras(object, ["kind"]);
   }
-  if (!("value" in object)) {
-    return fail(`kind "${kind}" needs a value; add "value" (a number), or use kind "unknown" if the source couldn't be read`);
-  }
+  if (!("value" in object)) return `kind "${kind}" needs a value; add "value" (a number), or use kind "unknown" if the source couldn't be read`;
   const value = object.value;
   if (typeof value !== "number" || !Number.isFinite(value)) {
-    return fail(`kind "${kind}" needs "value" to be a finite number, got ${describe(value)}; fix it, or use kind "unknown" if the source couldn't be read`);
+    return `kind "${kind}" needs "value" to be a finite number, got ${describe(value)}; fix it, or use kind "unknown" if the source couldn't be read`;
   }
-  const bad = extras(object, ["kind", "value"]);
-  if (bad) return bad;
-  return { ok: true, reading: Reading[kind as "exact" | "atLeast" | "estimate"](value) };
+  return extras(object, ["kind", "value"]);
 }
 
-function extras(object: Record<string, unknown>, allowed: string[]): Parsed | undefined {
+function extras(object: Record<string, unknown>, allowed: string[]): string {
   const keys = Object.keys(object).filter((key) => !allowed.includes(key));
-  if (keys.length === 0) return undefined;
-  return {
-    ok: false,
-    message: `${keys.map((key) => `"${key}"`).join(", ")} ${keys.length === 1 ? "isn't a known prop" : "aren't known props"} of kind "${String(object.kind)}"; remove ${keys.length === 1 ? "it" : "them"}`,
-  };
+  if (keys.length === 0) return `this isn't a reading the schema allows; use {"kind":"exact"|"atLeast"|"estimate","value":number} or {"kind":"unknown"}`;
+  return `${keys.map((key) => `"${key}"`).join(", ")} ${keys.length === 1 ? "isn't a known prop" : "aren't known props"} of kind "${String(object.kind)}"; remove ${keys.length === 1 ? "it" : "them"}`;
 }
 
 function describe(value: unknown): string {
@@ -155,15 +170,6 @@ function describe(value: unknown): string {
   return typeof value === "object" ? "an object" : typeof value;
 }
 
-const readingObject = z
-  .discriminatedUnion("kind", [
-    z.strictObject({ kind: z.literal("exact"), value: z.number() }),
-    z.strictObject({ kind: z.literal("atLeast"), value: z.number() }),
-    z.strictObject({ kind: z.literal("estimate"), value: z.number() }),
-    z.strictObject({ kind: z.literal("unknown") }),
-  ])
-  .meta({ id: "ReadingObject" });
-
 /**
  * The wire schema for a reading: a bare finite number, or one strict object per kind.
  * Parses to a `Reading`; a refusal says what `parseReading` says. One shared instance, so
@@ -171,8 +177,8 @@ const readingObject = z
  */
 const wireReading = z.unknown().meta({ id: "Reading", description: "A number, or an object saying how sure it is." });
 
-// Parsing is `parseReading`'s, so refusals read the way models need. The JSON Schema is the number or
-// `ReadingObject`: typified, that is a `ReadingObject` enum of four distinct variants.
+// zod has no public way to give the JSON Schema a different shape from the parser, and `_zod.processJSONSchema`
+// is internal, so zod is pinned exactly: an upgrade is a deliberate step that re-runs `bun run schema:check`.
 wireReading._zod.processJSONSchema = (ctx, json, params) => {
   json.anyOf = [{ type: "number" }, z.core.process(readingObject, ctx, { ...params, path: [...params.path, "anyOf", 1] })];
 };

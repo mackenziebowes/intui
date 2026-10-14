@@ -2,7 +2,8 @@
  * Writes core's JSON Schemas to `packages/core/schema/`, the files other languages generate
  * their types from, so the TypeScript here stays the one definition. `--check` writes
  * nothing and exits 1, naming the file and the command to run, when a committed copy no
- * longer matches core.
+ * longer matches core. The committed schema gives the shape; `Tree.parse` gives the verdict,
+ * including the cross-field rules a schema can't express.
  */
 import { join } from "node:path";
 import { core, IntuiEvent } from "./src";
