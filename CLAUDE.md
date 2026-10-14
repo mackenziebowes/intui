@@ -6,7 +6,7 @@ IntUI: a component protocol so agents can answer with interactive UI on any surf
 
 ```bash
 bun install
-bun run test         # every check: the web renderer in a browser, then the plugin through Claude Code's engine
+bun run test         # every check: the web renderer in a browser, the plugin through Claude Code's engine, then the Rust crates against core
 bun run typecheck    # tsc --noEmit
 bun run site         # build the docs site into site/dist
 ```
@@ -18,6 +18,7 @@ bun run site         # build the docs site into site/dist
 - `packages/core/src/tree.ts`: `Tree`, a validated tree. `Tree.parse` for anything from a wire, `Tree.of` for trees code builds.
 - `packages/core/src/event.ts`: `IntuiEvent`, what a person did with a `Choice` or `Form`.
 - `packages/core/src/problems.ts`: `IntuiError`. Its messages are read by models retrying a tool call, so every problem names its path, the rule that failed and what to do.
+- `crates/`: a Cargo workspace, the Rust renderer's foundation. `intui-types` is generated from `packages/core/schema/*.schema.json` by typify in `build.rs`, with the hand-written edge that parses a tree (unknown kinds become `Drawn::Unknown`). `intui-layout` ports `packages/layout`. `intui-text` is the text form and the `intui-text` binary the checks drive. Change core's schema, run `bun run schema`, and the Rust types follow.
 - `site/`: the docs site, generated from the catalog so it can't drift from the code.
 
 ## Tests and evals
@@ -26,7 +27,8 @@ End to end only: every check drives the real program from the outside. No unit, 
 
 - `packages/claude-code/conformance/`: run by `claude plugin test` inside Claude Code's own engine. `conformance.test.ts` draws every component on every surface; `contracts.test.ts` calls the real `show` tool (refusals the model reads, numbers only from code) and presses and types into drawn Choices and Forms. A check that needs the plugin goes here.
 - `packages/web/e2e/`: `page.ts` draws trees with the real renderer; `browser.test.ts` opens it in headless Chromium through `agent-browser` and clicks and types. A check that needs the web renderer goes here.
-- `core` and `layout` have no checks of their own: they're exercised through both renderers.
+- `crates/tests/`: the third place, for the Rust renderer, run by `cargo test` in `crates/`. Each check runs a real Rust binary (`intui-text`, `intui-layout`) and core's own code (a bun script in `crates/tests/core/`) on the same trees and compares byte for byte: text forms, which trees are accepted or refused (and the words of the refusal), layout answers. A check that needs the Rust side goes here.
+- `core` and `layout` have no checks of their own: they're exercised through all three.
 
 Evals (`evals/`) are trends we read, never gates (the `eval-design` skill). They run headless Claude, so ask Mackenzie before running them.
 

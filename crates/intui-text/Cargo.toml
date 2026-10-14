@@ -1,0 +1,26 @@
+[package]
+name = "intui-text"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+name = "intui_text"
+path = "src/lib.rs"
+
+[[bin]]
+name = "intui-text"
+path = "src/main.rs"
+
+[dependencies]
+intui-types = { path = "../intui-types" }
+
+[dev-dependencies]
+serde_json = "1"
+
+[[test]]
+name = "text_parity"
+path = "../tests/text_parity.rs"
+
+[[test]]
+name = "acceptance_parity"
+path = "../tests/acceptance_parity.rs"

@@ -1,0 +1,24 @@
+[package]
+name = "intui-layout"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+name = "intui_layout"
+path = "src/lib.rs"
+
+[[bin]]
+name = "intui-layout"
+path = "src/main.rs"
+
+[dependencies]
+intui-types = { path = "../intui-types" }
+intui-text = { path = "../intui-text" }
+serde_json = { version = "1", features = ["preserve_order"] }
+
+[dev-dependencies]
+serde_json = { version = "1", features = ["preserve_order"] }
+
+[[test]]
+name = "layout_parity"
+path = "../tests/layout_parity.rs"
