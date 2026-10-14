@@ -21,6 +21,8 @@ pub enum Refusal {
     WrongVersion { found: String },
     Schema(Vec<Problem>),
     DuplicateIds(Vec<Problem>),
+    /// The author was the model, and the tree holds kinds only code may write.
+    ModelCannotWrite(Vec<Problem>),
 }
 
 #[derive(Clone, Debug, PartialEq)]
@@ -57,6 +59,8 @@ pub enum ProblemKind {
     RowKeyNotColumn { key: String },
     SelectNeedsOptions,
     DuplicateId { id: String, first: String },
+    /// A component whose figures must come from code, written by someone who isn't code.
+    ShowsNumbers,
     /// The value passed every check but this build could not read it into its type.
     Unreadable { what: String, field: String },
 }
@@ -83,6 +87,7 @@ impl ProblemKind {
             | ProblemKind::LinkPointsNowhere { .. }
             | ProblemKind::RowKeyNotColumn { .. }
             | ProblemKind::SelectNeedsOptions
+            | ProblemKind::ShowsNumbers
             | ProblemKind::DuplicateId { .. } => false,
         }
     }
@@ -245,6 +250,9 @@ impl fmt::Display for ProblemKind {
             ProblemKind::DuplicateId { id, first } => {
                 write!(f, "id \"{id}\" is already used at {first}; give each Choice and Form its own id")
             }
+            ProblemKind::ShowsNumbers => f.write_str(
+                "this component shows numbers, which must come from code: call a tool that returns it, or show the figures in a Text or Table you can vouch for",
+            ),
             ProblemKind::Unreadable { what, field } => write!(
                 f,
                 "this {what}'s \"{field}\" passed the checks but this copy of intui-types couldn't read it; its schema is out of step with core's, so rebuild intui-types from packages/core/schema and report this tree"
@@ -336,6 +344,7 @@ impl fmt::Display for Refusal {
             ),
             Refusal::Schema(problems) => list(f, "This tree doesn't match the IntUI schemas:", problems),
             Refusal::DuplicateIds(problems) => list(f, "This tree has duplicate ids:", problems),
+            Refusal::ModelCannotWrite(problems) => list(f, "The model can't write this tree directly:", problems),
         }
     }
 }

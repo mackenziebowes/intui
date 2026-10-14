@@ -19,6 +19,7 @@ pub mod generated {
     }
 }
 
+mod author;
 mod edge;
 mod event;
 mod event_edge;
@@ -33,6 +34,7 @@ mod schema;
 
 pub mod forms;
 
+pub use author::Author;
 pub use edge::{parse, parse_json};
 pub use event::{ComponentId, Event, FieldValue, Source, ValueType, Values};
 pub use event_edge::{parse_event, parse_event_json};

@@ -129,7 +129,7 @@ fn edge(edge: &Edge) -> Value {
 
 /// The node `root` parses to as a whole tree, or `None` when it is a kind this build doesn't know.
 fn node_of(root: &Value) -> Result<Option<TreeNode>, intui_types::Refusal> {
-    let tree = intui_types::parse(&json!({ "v": 1, "root": root }).to_string())?;
+    let tree = intui_types::parse(&json!({ "v": 1, "root": root }).to_string(), intui_types::Author::Unchecked)?;
     Ok(match tree.root() {
         Drawn::Known(node) => Some(node.clone()),
         Drawn::Unknown { .. } => None,

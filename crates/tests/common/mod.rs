@@ -27,6 +27,7 @@ pub fn core_answers(script: &str) -> Value {
 }
 
 /// Runs a built binary with `input` on stdin.
+#[allow(dead_code)] // the author check starts the binary itself, with arguments
 pub fn run(binary: &str, input: &str) -> Output {
     let mut child = Command::new(binary)
         .stdin(Stdio::piped())

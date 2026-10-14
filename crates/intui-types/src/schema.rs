@@ -70,6 +70,11 @@ impl Schema {
         }
     }
 
+    /// What the definition's `x-intui-writer` says, or `None` when it says nothing this build knows.
+    pub(crate) fn writer_of(&self, def: &str) -> Option<&str> {
+        get(self.definition(def)?, "x-intui-writer").and_then(Json::as_str)
+    }
+
     /// The value the schema gives a prop that is left out, if it says one.
     pub(crate) fn default_of(&self, def: &str, prop: &str) -> Option<&Json> {
         get(get(self.definition(def)?, "properties")?, prop).and_then(|prop| get(prop, "default"))

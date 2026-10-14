@@ -3,7 +3,8 @@
  * their types from, so the TypeScript here stays the one definition. `--check` writes
  * nothing and exits 1, naming the file and the command to run, when a committed copy no
  * longer matches core. The committed schema gives the shape; `Tree.parse` gives the verdict,
- * including the cross-field rules a schema can't express.
+ * including the cross-field rules a schema can't express. Each kind's `$defs` entry carries
+ * `x-intui-writer` (`anyone` or `code`), the rule that decides which trees a model may author.
  */
 import { join } from "node:path";
 import { core, IntuiEvent } from "./src";
@@ -11,8 +12,23 @@ import { core, IntuiEvent } from "./src";
 const dir = join(import.meta.dir, "schema");
 const command = "bun run schema";
 
+/**
+ * The tree schema, with each kind's `$defs` entry marked with who may write it, so other
+ * languages read the rule from here instead of keeping a list. The model's `show` tool builds
+ * its schema separately and carries no mark.
+ */
+function treeSchema(): Record<string, unknown> {
+  const schema = core.jsonSchema() as { $defs: Record<string, Record<string, unknown>> };
+  for (const kind of core.kinds) {
+    const definition = schema.$defs[kind.type];
+    if (!definition) throw new Error(`core's schema has no definition for ${kind.type}, so its writer can't be marked; give the kind's schema .meta({ id: "${kind.type}" })`);
+    definition["x-intui-writer"] = kind.writer;
+  }
+  return schema;
+}
+
 const files = [
-  { name: "intui.tree.schema.json", schema: core.jsonSchema() },
+  { name: "intui.tree.schema.json", schema: treeSchema() },
   { name: "intui.event.schema.json", schema: IntuiEvent.jsonSchema() },
 ].map(({ name, schema }) => ({ path: join(dir, name), name, text: `${JSON.stringify(schema, null, 2)}\n` }));
 

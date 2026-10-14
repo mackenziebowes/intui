@@ -7,23 +7,24 @@
 //! node of a kind this build doesn't know is kept as `Drawn::Unknown` instead of failing
 //! the tree.
 
+use crate::author::Author;
 use crate::json::{self, Json, JsonObject, JsonType, Unreadable};
 use crate::node::{Drawn, Kind, Tree};
 use crate::read::read_node;
 use crate::refusal::{Expected, Problem, ProblemKind, Refusal};
 use crate::schema::{schema, Finding, Seg};
 
-/// Parses a tree from JSON text.
-pub fn parse(text: &str) -> Result<Tree, Refusal> {
+/// Parses a tree from JSON text written by `author`; a tree the model wrote can't hold kinds that show numbers.
+pub fn parse(text: &str, author: Author) -> Result<Tree, Refusal> {
     let input = json::parse(text).map_err(|why| match why {
         Unreadable::NotJson(fault) => Refusal::NotJson(fault),
         Unreadable::TooDeep { limit } => Refusal::TooDeep { limit },
     })?;
-    parse_json(&input)
+    parse_json(&input, author)
 }
 
 /// Parses a tree from JSON that was already read.
-pub fn parse_json(input: &Json) -> Result<Tree, Refusal> {
+pub fn parse_json(input: &Json, author: Author) -> Result<Tree, Refusal> {
     let Some(envelope) = input.as_object() else { return Err(Refusal::NoRoot) };
     let Some(root) = envelope.get("root") else { return Err(Refusal::NoRoot) };
     match envelope.get("v") {
@@ -37,7 +38,10 @@ pub fn parse_json(input: &Json) -> Result<Tree, Refusal> {
         return Err(Refusal::Schema(edge.problems));
     }
     match drawn.map(Tree::new) {
-        Some(Ok(tree)) => Ok(tree),
+        Some(Ok(tree)) => match author.problems_in(&tree) {
+            problems if problems.is_empty() => Ok(tree),
+            problems => Err(Refusal::ModelCannotWrite(problems)),
+        },
         Some(Err(duplicates)) => Err(Refusal::DuplicateIds(duplicates)),
         None => Err(Refusal::Schema(vec![Problem { path: "root".to_string(), kind: ProblemKind::Unreadable { what: "tree".to_string(), field: "root".to_string() } }])),
     }

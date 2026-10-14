@@ -50,6 +50,9 @@ The words the text form says on its own account, written once.
 ## crates/intui-types/build.rs
 Generates Rust types from core's committed JSON Schemas with typify, so the protocol is defined once, in TypeScript. Formatted with prettyplease, so a clean `cargo build` needs no rustfmt on the machine.
 
+## crates/intui-types/src/author.rs
+Who wrote a tree, and the rule that follows from it.
+
 ## crates/intui-types/src/edge.rs
 The edge: the one place JSON from a wire becomes a `Tree`.
 
@@ -92,11 +95,17 @@ Core's committed JSON Schema, run against a node.
 ## crates/tests/acceptance_parity.rs
 Acceptance parity: Rust refuses the trees core refuses, with the same places and (where core's advice is formulaic) the same words, and accepts the trees core accepts. A kind this build has never heard of is the one deliberate difference: Rust draws around it.
 
+## crates/tests/author_parity.rs
+Author parity: the same trees through core with author model, code and none, and through Rust with `--author model`, `--author code` and no flag. Each answer, accepted or refused, must match core's byte for byte, including what a model reads when a Stat or Chart is refused.
+
 ## crates/tests/common/mod.rs
 What every parity check shares: running core's side (a bun script) and Rust's side (a built binary).
 
 ## crates/tests/core/acceptance.ts
 Prints core's verdict on every tree: `{ accepted: [{ name, json, symptom?, verdict }], refused: [{ name, json, words, symptom?, verdict }] }`.
+
+## crates/tests/core/authors.ts
+Prints core's verdict on each tree for each author: `[{ name, json, verdicts: { model, code, none } }]`, each `{ ok: true } | { ok: false, message }`.
 
 ## crates/tests/core/events.ts
 Prints core's answer to every event: `[{ name, tree, event, answer }]`, where `answer` is "ok" or the message core refuses with.
@@ -228,7 +237,7 @@ The `show` tool the model calls: its name, a description listing the components 
 The usage log behind `/intui`: one shape-only entry per `show` call, refusal or tool-returned tree, a count of times the person typed over a waiting Choice or Form, and the Markdown report that turns them into trends. It keeps counts and component names, never content, and old entries missing newer fields still summarize.
 
 ## packages/core/schema.ts
-Writes core's JSON Schemas to `packages/core/schema/`, the files other languages generate their types from, so the TypeScript here stays the one definition. `--check` writes nothing and exits 1, naming the file and the command to run, when a committed copy no longer matches core. The committed schema gives the shape; `Tree.parse` gives the verdict, including the cross-field rules a schema can't express.
+Writes core's JSON Schemas to `packages/core/schema/`, the files other languages generate their types from, so the TypeScript here stays the one definition. `--check` writes nothing and exits 1, naming the file and the command to run, when a committed copy no longer matches core. The committed schema gives the shape; `Tree.parse` gives the verdict, including the cross-field rules a schema can't express. Each kind's `$defs` entry carries `x-intui-writer` (`anyone` or `code`), the rule that decides which trees a model may author.
 
 ## packages/core/src/catalog.ts
 A Catalog is a set of component kinds and the schemas for trees built from them; `core` holds every component IntUI defines. It knows who may write each kind (`model` or `code`), so a tree is checked against the author, and it makes the JSON Schema and the one-line descriptions a tool shows a model.

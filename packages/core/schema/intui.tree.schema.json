@@ -64,7 +64,8 @@
         "type",
         "markdown"
       ],
-      "additionalProperties": false
+      "additionalProperties": false,
+      "x-intui-writer": "anyone"
     },
     "Group": {
       "type": "object",
@@ -93,7 +94,8 @@
         "type",
         "children"
       ],
-      "additionalProperties": false
+      "additionalProperties": false,
+      "x-intui-writer": "anyone"
     },
     "Label": {
       "type": "object",
@@ -116,7 +118,8 @@
         "type",
         "text"
       ],
-      "additionalProperties": false
+      "additionalProperties": false,
+      "x-intui-writer": "anyone"
     },
     "Tone": {
       "type": "string",
@@ -168,7 +171,8 @@
         "columns",
         "rows"
       ],
-      "additionalProperties": false
+      "additionalProperties": false,
+      "x-intui-writer": "anyone"
     },
     "TableColumn": {
       "type": "object",
@@ -235,7 +239,8 @@
         "kind",
         "series"
       ],
-      "additionalProperties": false
+      "additionalProperties": false,
+      "x-intui-writer": "code"
     },
     "ChartSeries": {
       "type": "object",
@@ -415,7 +420,8 @@
         "label",
         "value"
       ],
-      "additionalProperties": false
+      "additionalProperties": false,
+      "x-intui-writer": "code"
     },
     "StatChange": {
       "type": "object",
@@ -463,7 +469,8 @@
         "type",
         "steps"
       ],
-      "additionalProperties": false
+      "additionalProperties": false,
+      "x-intui-writer": "anyone"
     },
     "FlowStep": {
       "type": "object",
@@ -540,7 +547,8 @@
         "id",
         "options"
       ],
-      "additionalProperties": false
+      "additionalProperties": false,
+      "x-intui-writer": "anyone"
     },
     "ChoiceOption": {
       "type": "object",
@@ -595,7 +603,8 @@
         "id",
         "fields"
       ],
-      "additionalProperties": false
+      "additionalProperties": false,
+      "x-intui-writer": "anyone"
     },
     "FormField": {
       "type": "object",

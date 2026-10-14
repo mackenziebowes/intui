@@ -24,3 +24,7 @@ path = "../tests/text_parity.rs"
 [[test]]
 name = "acceptance_parity"
 path = "../tests/acceptance_parity.rs"
+
+[[test]]
+name = "author_parity"
+path = "../tests/author_parity.rs"
