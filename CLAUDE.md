@@ -6,7 +6,6 @@ IntUI: a component protocol so agents can answer with interactive UI on any surf
 
 ```bash
 bun install
-bun run test         # every check: the web renderer in a browser, the plugin through Claude Code's engine, then the Rust crates against core
 bun run typecheck    # tsc --noEmit
 bun run site         # build the docs site into site/dist
 ```
@@ -23,12 +22,8 @@ bun run site         # build the docs site into site/dist
 
 ## Tests and evals
 
-End to end only: every check drives the real program from the outside. No unit, smoke or integration tests; if you find one, delete it, and add an end-to-end check only for a promise that has none (`~/.claude/rules/definitions.md`: a check of something no user relies on is a unit test even when it drives the binary). Test contracts and tricky behaviour, never for coverage.
+No tests here (Mackenzie, 2026-10-15: every test was deleted). Show a change working by running the program, in the hand-back.
 
-- `packages/claude-code/conformance/`: run by `claude plugin test` inside Claude Code's own engine. `conformance.test.ts` draws every component on every surface; `contracts.test.ts` calls the real `show` tool (refusals the model reads, numbers only from code) and presses and types into drawn Choices and Forms. A check that needs the plugin goes here.
-- `packages/web/e2e/`: `page.ts` draws trees with the real renderer; `browser.test.ts` opens it in headless Chromium through `agent-browser` and clicks and types. A check that needs the web renderer goes here.
-- `crates/tests/`: the third place, for the Rust renderer, run by `cargo test` in `crates/`. Each check runs a real Rust binary (`intui-text`, `intui-layout`) and core's own code (a bun script in `crates/tests/core/`) on the same trees and compares byte for byte: text forms, which trees are accepted or refused (and the words of the refusal), layout answers. A check that needs the Rust side goes here.
-- `core` and `layout` have no checks of their own: they're exercised through all three.
 
 Evals (`evals/`) are trends we read, never gates (the `eval-design` skill). They run headless Claude, so ask Mackenzie before running them.
 
@@ -49,6 +44,6 @@ Agents will add to this package while working on a specific product. These rules
 
 1. Add `packages/core/src/components/<name>.ts` with `defineKind`, following the existing ones.
 2. Register it in `core` in `catalog.ts` and export it from `index.ts`.
-3. Conformance draws it on every surface from the catalog with no change. Add an end-to-end check only for a contract it adds (a refusal the model must read, an event it sends).
+3. Draw it on every surface (the demo page, the plugin, the Rust harness) and look.
 4. Every renderer must draw it, or fall back to its text form, before the next release.
 @modules.md
