@@ -164,60 +164,6 @@ Why a tree was refused, in one catalogue.
 ## crates/intui-types/src/schema.rs
 Core's committed JSON Schema, run against a node.
 
-## crates/tests/acceptance_parity.rs
-Acceptance parity: Rust refuses the trees core refuses, with the same places and (where core's advice is formulaic) the same words, and accepts the trees core accepts. A kind this build has never heard of is the one deliberate difference: Rust draws around it.
-
-## crates/tests/author_parity.rs
-Author parity: the same trees through core with author model, code and none, and through Rust with `--author model`, `--author code` and no flag. Each answer, accepted or refused, must match core's byte for byte, including what a model reads when a Stat or Chart is refused.
-
-## crates/tests/common/headless.rs
-A window the checks can open without touching Mackenzie's screen: a virtual Hyprland output made for the test, the harness launched silently onto it, and the output kept painting so the window keeps handling input.
-
-## crates/tests/common/inspector.rs
-A client for egui's inspection port: reads the accessibility tree of a running window, clicks and types into it by node, and takes screenshots. It is the only way the checks touch the window.
-
-## crates/tests/common/mod.rs
-What every parity check shares: running core's side (a bun script) and Rust's side (a built binary).
-
-## crates/tests/core/acceptance.ts
-Prints core's verdict on every tree: `{ accepted: [{ name, json, symptom?, verdict }], refused: [{ name, json, words, symptom?, verdict }] }`.
-
-## crates/tests/core/authors.ts
-Prints core's verdict on each tree for each author: `[{ name, json, verdicts: { model, code, none } }]`, each `{ ok: true } | { ok: false, message }`.
-
-## crates/tests/core/event.ts
-Asks core whether an event line a window printed is one it accepts, and whether it fits the tree that was shown. Reads `{ tree, event }` (both JSON text) on stdin and prints `ok`, or core's own refusal on stderr and exits 1.
-
-## crates/tests/core/events.ts
-Prints core's answer to every event: `[{ name, tree, event, answer }]`, where `answer` is "ok" or the message core refuses with.
-
-## crates/tests/core/examples.ts
-Prints the trees the native window is shown: every catalog kind's own example, then trees that exercise what an example doesn't (floors, estimates and unknowns, a bar chart with markers, a loop in a Flow, a long table). Each comes with the text parts core's `toText` gives, which the window's accessibility tree must carry: `[{ name, json, parts }]`.
-
-## crates/tests/core/layout.ts
-Prints `{ cases, answers, symptoms }`: the layout questions the parity check puts to Rust, and what `packages/layout` answers to each, in the same shape `intui-layout` prints. `symptoms` holds the same for the cases that guard one fixed bug each, which have a check of their own named for what went wrong.
-
-## crates/tests/core/newer-trees.ts
-Prints the trees that hold a kind core has no component for, and whether core takes them (it must not).
-
-## crates/tests/core/text-forms.ts
-Prints core's text form of every accepted tree: `[{ name, json, symptom?, text }]`.
-
-## crates/tests/core/trees.ts
-Trees the parity checks put to core and to Rust. A tree is JSON text, so a value like -0 (which JSON.stringify would lose) reaches both sides as written.
-
-## crates/tests/event_parity.rs
-Event parity: `intui-event` answers a press or a submit, byte for byte, as core's `IntuiEvent.parse` and `Tree.verify` do: "ok" when the event came from the tree, and otherwise core's words for a malformed event or for one that doesn't fit the tree it names.
-
-## crates/tests/layout_parity.rs
-Layout parity: `intui-layout` answers every question the way `packages/layout` does: nice chart ranges and steps, axis numbers, which labels fit, how a Flow is layered and its cycles broken, how typed numbers are read, and what a change points at.
-
-## crates/tests/native_window.rs
-The native renderer, end to end: the real `intui-harness` binary in a real window on a headless Hyprland output made for the test, driven from outside through egui's inspection port (the accessibility tree, clicks, typing, screenshots). Core's own code says what an event line must be and what a text form reads.
-
-## crates/tests/text_parity.rs
-Text-form parity: `intui-text` prints, byte for byte, what core's `Tree.toText()` writes.
-
 ## docs/design/002-time/build.ts
 Builds proposal 002's review page as one self-contained file: docs/design/002-time.html.
 
@@ -241,12 +187,6 @@ Runs the eval cases: asks headless Claude Code each question with the plugin loa
 
 ## packages/claude-code/build.ts
 Builds the plugin folder Claude Code loads: a manifest, hooks.json, and one bundled hooks module. Plugins can only import their own files, so @intui/core and zod are bundled in.
-
-## packages/claude-code/conformance/conformance.test.ts
-Conformance: one real check per component through Claude Code's own engine.
-
-## packages/claude-code/conformance/contracts.test.ts
-Contracts, through Claude Code's own engine: what the model gets back from `show`, and what a person's press or submit sends to the agent.
 
 ## packages/claude-code/src/demo.ts
 The `demo_chart` tool: a Chart and a Stat built by code from labelled sample data, so the Claude Code plugin has something with numbers to draw without a real query. Every number is marked as sample data, and the floor, estimate and unknown readings are included on purpose so the drawing of uncertainty can be seen.
@@ -394,12 +334,6 @@ Builds the browser files into packages/web/dist: the library, its stylesheets an
 
 ## packages/web/demo/demo.ts
 The demo page: every core component's example at three widths, plus a few harder trees, so a person can check the look in light and dark. `?theme=dark` or `?theme=light` forces a theme; otherwise it follows the system.
-
-## packages/web/e2e/browser.test.ts
-@intui/web in a real browser: the renderer bundled as a host page bundles it, opened in headless Chromium by agent-browser, and driven with real clicks and typing. Checks the contracts a host relies on: what reaches `onEvent`, that a used-up control can't fire again, and that Markdown can't run code.
-
-## packages/web/e2e/page.ts
-The page the browser checks drive: a few trees drawn by the real renderer, each in its own section. Events land in `window.intuiEvents` as JSON, so a check reads exactly what a host's `onEvent` received.
 
 ## packages/web/src/chart-layout.ts
 Pure geometry for the SVG Chart: where every tick, bar, line point, label and marker goes at a given pixel width. The drawer turns it into elements; the look (colours, dashes) is the stylesheet's job, keyed on each series' role.

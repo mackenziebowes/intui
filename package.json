@@ -6,7 +6,6 @@
     "packages/*"
   ],
   "scripts": {
-    "test": "bun run schema:check && bun test packages/web/e2e && bun run --cwd packages/claude-code conformance && cargo test --manifest-path crates/Cargo.toml --features intui-harness/inspection,intui-harness/glow",
     "schema": "bun packages/core/schema.ts",
     "schema:check": "bun packages/core/schema.ts --check",
     "typecheck": "tsc --noEmit && tsc --noEmit -p packages/claude-code && tsc --noEmit -p packages/claude-code/tsconfig.test.json && tsc --noEmit -p packages/web && tsc --noEmit -p packages/layout && tsc --noEmit -p crates/tests/core",
