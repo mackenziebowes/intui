@@ -23,7 +23,7 @@ bun run site         # build the docs site into site/dist
 
 ## Tests and evals
 
-End to end only: every check drives the real program from the outside. No unit, smoke or integration tests; if you find one, delete it and add an end-to-end check where one is worth having. Test contracts and tricky behaviour, never for coverage.
+End to end only: every check drives the real program from the outside. No unit, smoke or integration tests; if you find one, delete it, and add an end-to-end check only for a promise that has none (`~/.claude/rules/definitions.md`: a check of something no user relies on is a unit test even when it drives the binary). Test contracts and tricky behaviour, never for coverage.
 
 - `packages/claude-code/conformance/`: run by `claude plugin test` inside Claude Code's own engine. `conformance.test.ts` draws every component on every surface; `contracts.test.ts` calls the real `show` tool (refusals the model reads, numbers only from code) and presses and types into drawn Choices and Forms. A check that needs the plugin goes here.
 - `packages/web/e2e/`: `page.ts` draws trees with the real renderer; `browser.test.ts` opens it in headless Chromium through `agent-browser` and clicks and types. A check that needs the web renderer goes here.
