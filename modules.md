@@ -278,6 +278,9 @@ The `show` tool the model calls: its name, a description listing the components 
 ## packages/claude-code/src/usage.ts
 The usage log behind `/intui`: one shape-only entry per `show` call, refusal or tool-returned tree, a count of times the person typed over a waiting Choice or Form, and the Markdown report that turns them into trends. It keeps counts and component names, never content, and old entries missing newer fields still summarize.
 
+## packages/core/checks/marks-parity.ts
+Marks and Ladder, core against the Rust crates (proposal 005): the text form of each example and the refusal for each bad tree must be byte for byte the same in both. Run after `cargo build -p intui-text`: bun packages/core/checks/marks-parity.ts Exits 1 on the first difference. It drives the real `intui-text` binary, so it checks what ships.
+
 ## packages/core/schema.ts
 Writes core's JSON Schemas to `packages/core/schema/`, the files other languages generate their types from, so the TypeScript here stays the one definition. `--check` writes nothing and exits 1, naming the file and the command to run, when a committed copy no longer matches core. The committed schema gives the shape; `Tree.parse` gives the verdict, including the cross-field rules a schema can't express. Each kind's `$defs` entry carries `x-intui-writer` (`anyone` or `code`), the rule that decides which trees a model may author.
 
