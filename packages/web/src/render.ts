@@ -11,6 +11,7 @@ import { group, label, stat, table, text } from './draw/basic'
 import { chart } from './draw/chart'
 import { choice, form } from './draw/controls'
 import { flow } from './draw/flow'
+import { ladder, marks } from './draw/marks'
 import { markdownToHtml } from './markdown'
 
 export type RenderOptions = {
@@ -46,6 +47,8 @@ const DRAWERS: Record<string, Drawer> = {
   Chart: chart as Drawer,
   Stat: stat as Drawer,
   Flow: flow as Drawer,
+  Marks: marks as Drawer,
+  Ladder: ladder as Drawer,
   Choice: choice as Drawer,
   Form: form as Drawer,
 }

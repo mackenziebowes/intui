@@ -12,6 +12,8 @@ import { Flow } from "./components/flow";
 import { Form } from "./components/form";
 import { Group } from "./components/group";
 import { Label } from "./components/label";
+import { Ladder } from "./components/ladder";
+import { Marks } from "./components/marks";
 import { Stat } from "./components/stat";
 import { Table } from "./components/table";
 import { Text } from "./components/text";
@@ -65,4 +67,4 @@ export class Catalog {
 }
 
 /** Every component in IntUI core. */
-export const core = new Catalog([Text, Group, Label, Table, Chart, Stat, Flow, Choice, Form]);
+export const core = new Catalog([Text, Group, Label, Table, Chart, Stat, Flow, Marks, Ladder, Choice, Form]);

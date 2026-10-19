@@ -1,0 +1,4 @@
+# Generated files (hub rule: only a truly generated file may be listed).
+modules.md
+packages/core/schema/intui.tree.schema.json
+packages/core/schema/intui.event.schema.json

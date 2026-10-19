@@ -1,0 +1,154 @@
+/* ---- Marks and Ladder (proposal 005): one glyph per thing counted ---- */
+.intui-marks,
+.intui-ladder {
+  margin: 0;
+  display: grid;
+  gap: 0.9em;
+}
+.intui-mark {
+  display: inline-block;
+  inline-size: 0.8em;
+  block-size: 0.8em;
+  border-radius: 50%;
+  flex: none;
+}
+.intui-mark[data-shape="filled"] {
+  background: var(--_tone, var(--_accent));
+  box-shadow: 0 0 0.7em color-mix(in oklab, var(--_tone, var(--_accent)) 55%, transparent);
+}
+.intui-mark[data-shape="hollow"] {
+  border: 2px solid var(--_tone, var(--_accent));
+  background: transparent;
+}
+.intui-mark[data-shape="ring"] {
+  border: 2px solid var(--_tone, var(--_accent));
+  background: radial-gradient(circle, var(--_tone, var(--_accent)) 0 28%, transparent 32%);
+}
+.intui-marks-glyphs,
+.intui-marks-key,
+.intui-ladder-nodes,
+.intui-marks-details,
+.intui-ladder-steps,
+.intui-ladder-rungs {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.intui-marks-glyphs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5em;
+  padding: 0.5em 0.2em;
+}
+.intui-marks-glyphs .intui-mark {
+  animation: intui-drift 5s ease-in-out infinite alternate;
+  animation-delay: calc(var(--i, 0) * -0.7s);
+}
+@keyframes intui-drift {
+  from { transform: translateY(-2px); }
+  to { transform: translateY(2px); }
+}
+.intui-marks-row {
+  display: grid;
+  gap: 0.3em;
+}
+.intui-marks-halo.has-halo {
+  padding: 0.35em 0.7em;
+  border-radius: 2em;
+  background: radial-gradient(ellipse at center, color-mix(in oklab, var(--_accent) 14%, transparent), transparent 75%);
+  outline: 1px dashed var(--_line-strong);
+}
+.intui-marks-halo-text {
+  margin: 0;
+  color: var(--_muted);
+  font-size: 0.85em;
+}
+.intui-marks-count {
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+}
+.intui-marks-field--count {
+  display: grid;
+  gap: 0.3em;
+}
+.intui-band {
+  display: flex;
+  inline-size: 100%;
+  block-size: 0.5em;
+  border-radius: 1em;
+  overflow: hidden;
+  background: var(--_line);
+}
+.intui-band-part {
+  background: var(--_tone, var(--_accent));
+  min-inline-size: 3px;
+}
+.intui-marks-details {
+  color: var(--_muted);
+  font-size: 0.85em;
+}
+.intui-marks-key {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.2em 1.1em;
+  color: var(--_muted);
+  font-size: 0.85em;
+}
+.intui-key-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35em;
+}
+.intui-unknown {
+  margin: 0;
+  color: var(--_muted);
+  font-style: italic;
+}
+.intui-ladder-rungs {
+  display: grid;
+  gap: 0;
+}
+.intui-ladder-rung {
+  display: grid;
+  gap: 0.5em;
+  padding: 0.8em 0.9em;
+  border: 1px solid var(--_line);
+  border-bottom-width: 0;
+  background: color-mix(in oklab, var(--_surface) 70%, transparent);
+}
+.intui-ladder-rung:first-child { border-radius: var(--_radius) var(--_radius) 0 0; }
+.intui-ladder-rung:last-child { border-bottom-width: 1px; border-radius: 0 0 var(--_radius) var(--_radius); }
+.intui-ladder-label {
+  margin: 0;
+  font-size: 0.8em;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: var(--_muted);
+}
+.intui-ladder-nodes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.7em;
+}
+.intui-ladder-node {
+  display: grid;
+  gap: 0.25em;
+  min-inline-size: 9em;
+  max-inline-size: 100%;
+  padding: 0.5em 0.7em;
+  border: 1px solid var(--_line-strong);
+  border-radius: var(--_radius);
+  background: var(--_surface);
+}
+.intui-ladder-group { font-size: 0.8em; }
+.intui-ladder-steps {
+  display: grid;
+  gap: 0.15em;
+  font-size: 0.85em;
+  color: var(--_muted);
+  border-top: 1px dashed var(--_line-strong);
+  padding-top: 0.5em;
+}
+@media (prefers-reduced-motion: reduce) {
+  .intui-marks-glyphs .intui-mark { animation: none; }
+}

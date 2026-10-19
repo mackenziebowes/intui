@@ -290,6 +290,12 @@ The Group component: other components in a row or a column, nested to any depth.
 ## packages/core/src/components/label.ts
 The Label component: a short tag whose tone says what it means (neutral, positive, warning, critical, muted). Each renderer decides how a tone looks; the text form is the text in brackets. Also holds the list of tones, which Stat reuses.
 
+## packages/core/src/components/ladder.ts
+The Ladder component (proposal 005): stages from the bottom up, each holding nodes with marks in them, and counted steps between nodes. A node can say its count in text (when there are too many marks to show one by one) or say it is unknown with the reason, never zero. Only code may write it.
+
+## packages/core/src/components/marks.ts
+The Marks component (proposal 005): rows of small marks, one per thing counted, for counts small enough to show one by one. A mark has a kind (what it is: a person, a visit; the first kind is drawn filled, the second hollow, the third as a ring) and optionally a state (how far it got). A row can carry a halo, an amount around the row that is not a mark, and can be unknown, said with its reason so it is never drawn as zero. Only code may write it, since it shows numbers. This file also holds the pieces Ladder shares: the mark, the kinds, the states and the counts text.
+
 ## packages/core/src/components/stat.ts
 The Stat component: one figure with a label, a unit and an optional change. Only code may write it. The value and the change are Readings, so a floor, an estimate or an unknown shows as one and never as a bare number.
 
@@ -352,6 +358,9 @@ The browser drawers for the controls, Choice and Form. A press or submit sends a
 
 ## packages/web/src/draw/flow.ts
 The browser Flow drawer: steps as boxes laid out by CSS, with the arrows drawn as SVG from the boxes' measured positions and redrawn when the width changes. The full list of links is kept in the DOM order for screen readers.
+
+## packages/web/src/draw/marks.ts
+The browser drawers for Marks and Ladder (proposal 005): one glyph per thing counted, so a count of seven looks like seven. The first kind is drawn filled, the second hollow, the third as a ring; a state's tone colours the glyph. Above THIN marks a field is a count in text and a band instead of glyphs (points are for small numbers). Nothing needs a hover: details are listed under the row. Glyphs may drift a little, and are still under prefers-reduced-motion (style.css).
 
 ## packages/web/src/flow-layout.ts
 Pure layout for the web Flow: which way the layers run at a given width, and the connector between two measured boxes. The boxes themselves are laid out by CSS; the drawer measures them and asks `connector` for each arrow.

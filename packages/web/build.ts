@@ -28,7 +28,8 @@ for (const build of builds) {
     process.exit(1)
   }
 }
-await copyFile(join(here, 'src/style.css'), join(out, 'intui-web.css'))
+// The stylesheet is style.css then marks.css (Marks and Ladder), one file for a host that links one.
+await Bun.write(join(out, 'intui-web.css'), (await Bun.file(join(here, 'src/style.css')).text()) + '\n' + (await Bun.file(join(here, 'src/marks.css')).text()))
 await copyFile(join(here, 'src/page.css'), join(out, 'intui-page.css'))
 await copyFile(join(here, 'demo/demo.html'), join(out, 'demo.html'))
 console.log(`built ${out}`)
