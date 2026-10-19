@@ -110,6 +110,9 @@ The text form of a tree: the same Markdown core's `Tree.toText()` writes.
 ## crates/intui-text/src/main.rs
 `intui-text`: reads a tree as JSON on stdin and prints its text form.
 
+## crates/intui-text/src/marks_text.rs
+The text forms of Marks and Ladder, ported from `packages/core/src/components/{marks,ladder}.ts`.
+
 ## crates/intui-text/src/numbers.rs
 Numbers written the way JavaScript writes them.
 
@@ -149,17 +152,29 @@ JSON text as the edge reads it.
 ## crates/intui-types/src/lib.rs
 The IntUI tree as Rust sees it: parsed forms of every component, built from core's committed JSON Schemas, and the one edge that turns JSON from a wire into a `Tree` or a `Refusal`.
 
+## crates/intui-types/src/mark_forms.rs
+Marks and Ladder as the program past the edge sees them. A mark names its kind and state by index into the lists declared beside it, and the edge made sure both exist; a row or node is counted or unknown, never both.
+
+## crates/intui-types/src/marks_rules.rs
+The rules of Marks and Ladder that no schema keyword holds (core's `checkKindsAndStates`, `checkMarks`, and the Ladder's own checks), with core's words. Each is found on a node whose shape the schema already accepted.
+
 ## crates/intui-types/src/node.rs
 The parsed tree: what `parse` hands the rest of the program.
 
 ## crates/intui-types/src/read.rs
 Reading a node that passed every check into its parsed form.
 
+## crates/intui-types/src/read/marks.rs
+Reading Marks and Ladder into their parsed forms. The edge already checked every kind and state a mark names exists and every step's ends are nodes, so a miss here is drift between this build and core's schema.
+
 ## crates/intui-types/src/reading.rs
 A number and how sure it is: the Rust side of core's `Reading`.
 
 ## crates/intui-types/src/refusal.rs
 Why a tree was refused, in one catalogue.
+
+## crates/intui-types/src/refusal/words.rs
+The words of every refusal: how each problem, reading problem and fault reads, in core's wording.
 
 ## crates/intui-types/src/schema.rs
 Core's committed JSON Schema, run against a node.

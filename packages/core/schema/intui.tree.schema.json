@@ -528,14 +528,14 @@
         "kinds": {
           "type": "array",
           "items": {
-            "$ref": "#/$defs/MarkKind"
+            "$ref": "#/$defs/MarkDeclaredKind"
           }
         },
         "states": {
           "default": [],
           "type": "array",
           "items": {
-            "$ref": "#/$defs/MarkState"
+            "$ref": "#/$defs/MarkDeclaredState"
           }
         },
         "rows": {
@@ -554,7 +554,7 @@
       "additionalProperties": false,
       "x-intui-writer": "code"
     },
-    "MarkKind": {
+    "MarkDeclaredKind": {
       "type": "object",
       "properties": {
         "id": {
@@ -576,7 +576,7 @@
       ],
       "additionalProperties": false
     },
-    "MarkState": {
+    "MarkDeclaredState": {
       "type": "object",
       "properties": {
         "id": {
@@ -683,14 +683,14 @@
         "kinds": {
           "type": "array",
           "items": {
-            "$ref": "#/$defs/MarkKind"
+            "$ref": "#/$defs/MarkDeclaredKind"
           }
         },
         "states": {
           "default": [],
           "type": "array",
           "items": {
-            "$ref": "#/$defs/MarkState"
+            "$ref": "#/$defs/MarkDeclaredState"
           }
         },
         "rungs": {

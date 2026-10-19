@@ -13,6 +13,8 @@ use crate::schema::schema;
 use std::collections::HashMap;
 use std::str::FromStr;
 
+mod marks;
+
 /// A prop this build could not read from a node the schema accepted.
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub(crate) struct Drift {
@@ -27,33 +29,33 @@ struct Fields<'a> {
 }
 
 impl<'a> Fields<'a> {
-    fn of(def: &'a str, json: &'a Json) -> Result<Fields<'a>, Drift> {
+    pub(super) fn of(def: &'a str, json: &'a Json) -> Result<Fields<'a>, Drift> {
         match json.as_object() {
             Some(object) => Ok(Fields { def, object }),
             None => Err(Drift { what: def.to_string(), field: String::from("(the whole object)") }),
         }
     }
 
-    fn drift(&self, field: &str) -> Drift {
+    pub(super) fn drift(&self, field: &str) -> Drift {
         Drift { what: self.def.to_string(), field: field.to_string() }
     }
 
-    fn value(&self, key: &str) -> Result<&'a Json, Drift> {
+    pub(super) fn value(&self, key: &str) -> Result<&'a Json, Drift> {
         self.object.get(key).or_else(|| schema().default_of(self.def, key)).ok_or_else(|| self.drift(key))
     }
 
-    fn text(&self, key: &str) -> Result<String, Drift> {
+    pub(super) fn text(&self, key: &str) -> Result<String, Drift> {
         self.value(key)?.as_str().map(str::to_string).ok_or_else(|| self.drift(key))
     }
 
-    fn maybe_text(&self, key: &str) -> Result<Option<String>, Drift> {
+    pub(super) fn maybe_text(&self, key: &str) -> Result<Option<String>, Drift> {
         match self.object.get(key) {
             None => Ok(None),
             Some(value) => value.as_str().map(|text| Some(text.to_string())).ok_or_else(|| self.drift(key)),
         }
     }
 
-    fn list(&self, key: &str) -> Result<&'a [Json], Drift> {
+    pub(super) fn list(&self, key: &str) -> Result<&'a [Json], Drift> {
         self.value(key)?.as_array().ok_or_else(|| self.drift(key))
     }
 
@@ -106,6 +108,8 @@ pub(crate) fn read_node(kind: Kind, object: &JsonObject, children: Vec<Drawn>) -
         Kind::Chart => Node::Chart(chart(&fields)?),
         Kind::Stat => Node::Stat(stat(&fields)?),
         Kind::Flow => Node::Flow(flow(&fields)?),
+        Kind::Marks => Node::Marks(marks::marks(&fields)?),
+        Kind::Ladder => Node::Ladder(marks::ladder(&fields)?),
         Kind::Choice => Node::Choice(choice(&fields)?),
         Kind::Form => Node::Form(form(&fields)?),
     })

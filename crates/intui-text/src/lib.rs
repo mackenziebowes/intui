@@ -6,6 +6,7 @@
 //! so the two sides agree byte for byte.
 
 pub mod numbers;
+mod marks_text;
 mod text;
 mod words;
 

@@ -46,6 +46,8 @@ pub enum Node {
     Chart(forms::Chart),
     Stat(forms::Stat),
     Flow(forms::Flow),
+    Marks(forms::Marks),
+    Ladder(forms::Ladder),
     Choice(forms::Choice),
     Form(forms::Form),
 }
@@ -60,12 +62,14 @@ pub enum Kind {
     Chart,
     Stat,
     Flow,
+    Marks,
+    Ladder,
     Choice,
     Form,
 }
 
 impl Kind {
-    pub const ALL: [Kind; 9] = [
+    pub const ALL: [Kind; 11] = [
         Kind::Text,
         Kind::Group,
         Kind::Label,
@@ -73,6 +77,8 @@ impl Kind {
         Kind::Chart,
         Kind::Stat,
         Kind::Flow,
+        Kind::Marks,
+        Kind::Ladder,
         Kind::Choice,
         Kind::Form,
     ];
@@ -86,6 +92,8 @@ impl Kind {
             Kind::Chart => "Chart",
             Kind::Stat => "Stat",
             Kind::Flow => "Flow",
+            Kind::Marks => "Marks",
+            Kind::Ladder => "Ladder",
             Kind::Choice => "Choice",
             Kind::Form => "Form",
         }
@@ -112,6 +120,8 @@ impl Kind {
             gen::Node::Chart(_) => Kind::Chart,
             gen::Node::Stat(_) => Kind::Stat,
             gen::Node::Flow(_) => Kind::Flow,
+            gen::Node::Marks(_) => Kind::Marks,
+            gen::Node::Ladder(_) => Kind::Ladder,
             gen::Node::Choice(_) => Kind::Choice,
             gen::Node::Form(_) => Kind::Form,
         }
@@ -128,6 +138,8 @@ impl Node {
             Node::Chart(_) => Kind::Chart,
             Node::Stat(_) => Kind::Stat,
             Node::Flow(_) => Kind::Flow,
+            Node::Marks(_) => Kind::Marks,
+            Node::Ladder(_) => Kind::Ladder,
             Node::Choice(_) => Kind::Choice,
             Node::Form(_) => Kind::Form,
         }
@@ -137,7 +149,7 @@ impl Node {
     pub fn children(&self) -> Vec<&Drawn> {
         match self {
             Node::Group(group) => group.children.iter().collect(),
-            Node::Text(_) | Node::Label(_) | Node::Table(_) | Node::Chart(_) | Node::Stat(_) | Node::Flow(_) | Node::Choice(_) | Node::Form(_) => Vec::new(),
+            Node::Text(_) | Node::Label(_) | Node::Table(_) | Node::Chart(_) | Node::Stat(_) | Node::Flow(_) | Node::Marks(_) | Node::Ladder(_) | Node::Choice(_) | Node::Form(_) => Vec::new(),
         }
     }
 
@@ -146,7 +158,7 @@ impl Node {
         match self {
             Node::Choice(choice) => vec![choice.id.as_str()],
             Node::Form(form) => vec![form.id.as_str()],
-            Node::Text(_) | Node::Group(_) | Node::Label(_) | Node::Table(_) | Node::Chart(_) | Node::Stat(_) | Node::Flow(_) => Vec::new(),
+            Node::Text(_) | Node::Group(_) | Node::Label(_) | Node::Table(_) | Node::Chart(_) | Node::Stat(_) | Node::Flow(_) | Node::Marks(_) | Node::Ladder(_) => Vec::new(),
         }
     }
 }

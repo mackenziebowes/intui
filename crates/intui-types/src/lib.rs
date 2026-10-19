@@ -8,7 +8,8 @@
 //! build lacks); a known kind that is malformed is refused, naming the path, the rule and
 //! what to do, in the words core uses.
 
-pub mod generated {
+pub mod marks_rules;
+mod generated {
     //! Written by typify at build time from `packages/core/schema/*.schema.json`.
     #![allow(clippy::all, missing_docs, dead_code)]
     pub mod tree {
@@ -26,6 +27,7 @@ mod event_edge;
 mod event_refusal;
 mod fit;
 mod json;
+mod mark_forms;
 mod node;
 mod read;
 mod reading;

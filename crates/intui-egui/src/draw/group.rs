@@ -25,7 +25,7 @@ fn least_width(drawn: &Drawn) -> f32 {
     match drawn {
         Drawn::Unknown { .. } => MIN_BLOCK,
         Drawn::Known(node) => match node {
-            Node::Text(_) | Node::Table(_) | Node::Chart(_) | Node::Flow(_) | Node::Form(_) => MIN_BLOCK,
+            Node::Text(_) | Node::Table(_) | Node::Chart(_) | Node::Flow(_) | Node::Marks(_) | Node::Ladder(_) | Node::Form(_) => MIN_BLOCK,
             Node::Group(group) => match group.direction {
                 GroupDirection::Column => MIN_BLOCK,
                 GroupDirection::Row => MIN_LINE,

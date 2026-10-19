@@ -252,6 +252,8 @@ fn minimum_rule(place: Place<'_>) -> Option<MinimumRule> {
         ("Choice", "options") => Some(MinimumRule::ChoiceOptions),
         ("Form", "fields") => Some(MinimumRule::FormFields),
         ("Table", "columns") => Some(MinimumRule::TableColumns),
+        ("Marks", "rows") => Some(MinimumRule::MarksRows),
+        ("Ladder", "rungs") => Some(MinimumRule::LadderRungs),
         _ => None,
     }
 }

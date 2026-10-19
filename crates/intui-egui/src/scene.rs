@@ -57,6 +57,8 @@ impl Scene<'_> {
                 Node::Table(table) => draw::table::draw(self, ui, drawn, table),
                 Node::Chart(chart) => draw::chart::draw(self, ui, drawn, chart),
                 Node::Flow(flow) => draw::flow::draw(self, ui, drawn, flow),
+                // Marks and Ladder (proposal 005) are drawn as their text form here until this renderer gets glyphs.
+                Node::Marks(_) | Node::Ladder(_) => draw::unknown::draw(self, ui, drawn),
                 Node::Choice(choice) => draw::choice::draw(self, ui, drawn, choice),
                 Node::Form(form) => draw::form::draw(self, ui, drawn, form),
             },

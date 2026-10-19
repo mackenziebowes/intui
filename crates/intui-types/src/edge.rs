@@ -161,6 +161,11 @@ impl<'j> Edge<'j> {
             Kind::Table => self.row_keys_are_columns(object),
             Kind::Flow => self.links_point_at_steps(object),
             Kind::Form => self.selects_have_options(object),
+            Kind::Marks | Kind::Ladder => {
+                for (inside, problem) in crate::marks_rules::check(kind, object) {
+                    self.report_at(&inside, ProblemKind::Marks(problem));
+                }
+            }
             Kind::Text | Kind::Group | Kind::Label | Kind::Chart | Kind::Stat | Kind::Choice => {}
         }
     }

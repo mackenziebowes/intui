@@ -33,8 +33,8 @@ export interface Mark {
   detail?: string;
 }
 
-export const markKindSchema = z.strictObject({ id: z.string().min(1), label: z.string().min(1), one: z.string().min(1).optional() }).meta({ id: "MarkKind" });
-export const markStateSchema = z.strictObject({ id: z.string().min(1), label: z.string().min(1), tone: tone.default("neutral") }).meta({ id: "MarkState" });
+export const markKindSchema = z.strictObject({ id: z.string().min(1), label: z.string().min(1), one: z.string().min(1).optional() }).meta({ id: "MarkDeclaredKind" });
+export const markStateSchema = z.strictObject({ id: z.string().min(1), label: z.string().min(1), tone: tone.default("neutral") }).meta({ id: "MarkDeclaredState" });
 export const markSchema = z.strictObject({ kind: z.string().min(1), state: z.string().min(1).optional(), detail: z.string().min(1).optional() }).meta({ id: "Mark" });
 
 type Issue = (path: (string | number)[], message: string) => void;

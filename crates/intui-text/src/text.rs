@@ -35,6 +35,8 @@ fn node_text(node: &Node) -> String {
         Node::Chart(chart) => chart_text(chart),
         Node::Stat(stat) => stat_text(stat),
         Node::Flow(flow) => flow_text(flow),
+        Node::Marks(marks) => crate::marks_text::marks_text(marks),
+        Node::Ladder(ladder) => crate::marks_text::ladder_text(ladder),
         Node::Choice(choice) => {
             let buttons = choice.options.iter().map(|option| format!("[{}]", option.label)).collect::<Vec<_>>().join(" ");
             match non_empty(&choice.prompt) {
