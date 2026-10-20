@@ -323,6 +323,9 @@ The Table component: named columns and rows of cells keyed by column. A row key 
 ## packages/core/src/components/text.ts
 The Text component: Markdown prose. Its text form is the Markdown itself, and it may not be empty.
 
+## packages/core/src/control.ts
+A Choice or Form being answered, as one state machine every renderer shares (hub #1956): read-only, ready, sending, sent or refused. `stepControl` is the only transition: a surface sends the person's answer and the host's verdict in as events, runs the effects it returns, and paints the state. An answer that doesn't fit the control is refused here with core's words, and an event a state can't take comes back ignored with the reason, so no surface checks or decides anything itself.
+
 ## packages/core/src/event.ts
 What a person did with a component: pressed a Choice option or submitted a Form, as an `IntuiEvent` the host sends back to the agent. An event names the tree's source and the component's id, and is parsed at the edge like a tree, so one that doesn't fit is refused with every problem listed.
 
