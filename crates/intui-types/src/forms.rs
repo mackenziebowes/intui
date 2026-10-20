@@ -13,7 +13,7 @@ pub use crate::mark_forms::{
     Halo, KindIndex, Ladder, LadderNode, LadderRung, LadderStep, Mark, MarkKind, MarkState, Marks, MarksRow, NodeAt, NodeBody, RowBody, StateIndex, UnknownKind,
 };
 pub use crate::generated::tree::{
-    ChartKind, ChartSeriesRole, ChoiceRepeat, GroupDirection, StatChangeAs, TableColumnAlign, Tone,
+    ChartKind, ChartPointPeriod, ChartSeriesRole, ChoiceRepeat, GroupDirection, StatChangeAs, TableColumnAlign, Tone,
 };
 
 /// A list with at least one item. The first is boxed so a Group can hold a list of the nodes it sits in.
@@ -159,6 +159,8 @@ pub enum Position {
 pub struct Point {
     pub x: Position,
     pub y: Reading,
+    /// Whether the point's period is over; absent on the wire means complete (proposal 006).
+    pub period: ChartPointPeriod,
 }
 
 #[derive(Clone, Debug, PartialEq)]
@@ -196,6 +198,8 @@ pub struct Stat {
     pub unit: Option<String>,
     pub change: Option<Change>,
     pub tone: Tone,
+    /// The reason or context in words, for any tone (proposal 006).
+    pub note: Option<String>,
 }
 
 #[derive(Clone, Debug, PartialEq)]

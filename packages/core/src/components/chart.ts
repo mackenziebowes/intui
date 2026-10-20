@@ -16,10 +16,16 @@ import { cell, markdownTable } from "../text";
 export const SERIES_ROLES = ["primary", "baseline", "comparison"] as const;
 export type SeriesRole = (typeof SERIES_ROLES)[number];
 
+/** Whether a point's period is over. A partial one (today, so far) is drawn as such and read as "so far" (proposal 006). */
+export const POINT_PERIODS = ["complete", "partial"] as const;
+export type PointPeriod = (typeof POINT_PERIODS)[number];
+
 export interface Point {
   /** A category, or an ISO date for time series. */
   x: string | number;
   y: Reading;
+  /** Absent means complete, so older trees keep their meaning. */
+  period?: PointPeriod;
 }
 
 export interface Series {
@@ -60,7 +66,7 @@ export const Chart = defineKind<ChartProps>({
             label: z.string().min(1),
             role: z.enum(SERIES_ROLES).default("primary"),
             points: z
-              .array(z.strictObject({ x: z.union([z.string(), z.number()]), y: readingSchema() }).meta({ id: "ChartPoint" }))
+              .array(z.strictObject({ x: z.union([z.string(), z.number()]), y: readingSchema(), period: z.enum(POINT_PERIODS).optional() }).meta({ id: "ChartPoint" }))
               .min(1, "a series needs at least one point"),
           }).meta({ id: "ChartSeries" }),
         )
@@ -77,7 +83,7 @@ export const Chart = defineKind<ChartProps>({
       cell(x),
       ...props.series.map((series) => {
         const point = series.points.find((p) => p.x === x);
-        return point ? cell(readingText(point.y)) : "";
+        return point ? cell(pointText(point)) : "";
       }),
     ]);
     const about = [`${props.kind} chart`, props.unit].filter(Boolean).join(", ");
@@ -99,6 +105,12 @@ export const Chart = defineKind<ChartProps>({
     annotations: [{ at: "Tue", label: "New pricing page" }],
   },
 });
+
+/** A point in words; a partial period that has a number says "so far". */
+export function pointText(point: Point): string {
+  const text = readingText(point.y);
+  return point.period === "partial" && point.y.kind !== "unknown" ? `${text} so far` : text;
+}
 
 function headerOf(series: Series): string {
   return cell(series.role === "primary" ? series.label : `${series.label} (${series.role})`);

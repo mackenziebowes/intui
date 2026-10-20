@@ -64,6 +64,13 @@ impl<'a> Fields<'a> {
         text.parse().map_err(|_| self.drift(key))
     }
 
+    fn maybe_word<T: FromStr>(&self, key: &str) -> Result<Option<T>, Drift> {
+        match self.object.get(key) {
+            None => Ok(None),
+            Some(_) => self.word(key).map(Some),
+        }
+    }
+
     fn flag(&self, key: &str) -> Result<bool, Drift> {
         match self.value(key)? {
             Json::Bool(flag) => Ok(*flag),
@@ -152,7 +159,7 @@ fn chart(fields: &Fields) -> Result<Chart, Drift> {
         |series| {
             let points = series.each(
                 "points",
-                |point| Ok(Point { x: point.position("x")?, y: point.reading("y")? }),
+                |point| Ok(Point { x: point.position("x")?, y: point.reading("y")?, period: point.maybe_word("period")?.unwrap_or(ChartPointPeriod::Complete) }),
                 "ChartPoint",
             )?;
             Ok(Series { label: series.text("label")?, role: series.word("role")?, points: series.non_empty("points", points)? })
@@ -177,7 +184,7 @@ fn stat(fields: &Fields) -> Result<Stat, Drift> {
             Some(Change { value: change.reading("value")?, as_: change.word("as")? })
         }
     };
-    Ok(Stat { label: fields.text("label")?, value: fields.reading("value")?, unit: fields.maybe_text("unit")?, change, tone: fields.word("tone")? })
+    Ok(Stat { label: fields.text("label")?, value: fields.reading("value")?, unit: fields.maybe_text("unit")?, change, tone: fields.word("tone")?, note: fields.maybe_text("note")? })
 }
 
 fn flow(fields: &Fields) -> Result<Flow, Drift> {

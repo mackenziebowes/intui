@@ -67,6 +67,7 @@ export const stat: Drawer<StatProps> = (props, { dom }) => {
     dom.el('p', { class: 'intui-stat-label' }, props.label),
     dom.el('p', { class: 'intui-stat-value' }, value),
     change,
+    props.note ? dom.el('p', { class: 'intui-stat-note' }, props.note) : null,
   )
 }
 

@@ -333,6 +333,10 @@
 
 .intui-stat.intui-tone-neutral .intui-stat-change { color: var(--_muted); }
 
+/* The reason or context in words (proposal 006); a toned tile's note carries a bar of its tone, so the tone has words beside it. */
+.intui-stat-note { font-size: 0.8em; color: var(--_muted); max-width: 22em; }
+.intui-stat:not(.intui-tone-neutral):not(.intui-tone-muted) .intui-stat-note { border-inline-start: 2px solid var(--_tone); padding-inline-start: 0.45em; color: var(--_fg); }
+
 .intui-stat-change svg {
   fill: currentColor;
   flex: none;
@@ -1015,3 +1019,8 @@ path.intui-chart-bar.intui-role-comparison { fill: var(--_series); }
 .intui-chart-dot.is-estimate { fill: var(--_surface); stroke: var(--_series); stroke-width: 1.5; }
 .intui-chart-bar.is-estimate { fill-opacity: 0.45; stroke: var(--_series); stroke-dasharray: 3 2; }
 .intui-chart-unknown { stroke: var(--_muted); stroke-width: 1.5; stroke-linecap: round; fill: none; }
+
+/* A period that isn't over (proposal 006): hollow, so today reads as so far rather than a drop. */
+path.intui-chart-bar.is-partial { fill: var(--_surface); fill-opacity: 1; stroke: var(--_series); stroke-width: 1.5; stroke-dasharray: none; }
+.intui-chart-dot.is-partial { fill: var(--_surface); stroke: var(--_series); stroke-width: 1.5; }
+.intui-chart-line.is-partial { stroke-dasharray: 4 3; }

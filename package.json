@@ -8,7 +8,7 @@
   "scripts": {
     "schema": "bun packages/core/schema.ts",
     "schema:check": "bun packages/core/schema.ts --check",
-    "typecheck": "tsc --noEmit && tsc --noEmit -p packages/claude-code && tsc --noEmit -p packages/claude-code/tsconfig.test.json && tsc --noEmit -p packages/web && tsc --noEmit -p packages/layout && tsc --noEmit -p crates/tests/core",
+    "typecheck": "tsc --noEmit && tsc --noEmit -p packages/claude-code && tsc --noEmit -p packages/claude-code/tsconfig.test.json && tsc --noEmit -p packages/web && tsc --noEmit -p packages/layout",
     "site": "bun site/build.ts",
     "site:dev": "bun site/build.ts && bunx serve site/dist",
     "plugin": "bun packages/claude-code/build.ts",

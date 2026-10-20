@@ -252,7 +252,7 @@ The Label drawer for Claude Code: a short tag in brackets, coloured by its tone 
 The lines of a Stat as strings: the label, the value with its unit, and the change with a direction marker, each cut to the room. A floor reads `≥`, an estimate `~`, and a number we don't have reads `unknown`, never 0.
 
 ## packages/claude-code/src/draw/stat.tsx
-The Stat drawer for Claude Code: a label, a big value and an optional change, coloured by tone, as laid out by stat-shape.
+The Stat drawer for Claude Code: a label, a big value, an optional change and an optional note (the reason in words, wrapped so none of it is lost), coloured by tone, as laid out by stat-shape.
 
 ## packages/claude-code/src/draw/table-layout.ts
 Lays out a Table in character cells: shares the width among columns so short ones stay whole, and, when even the minimum widths don't fit, switches to one stacked block per row. Pure strings and numbers, so no content is dropped without an ellipsis.

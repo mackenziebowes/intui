@@ -5,7 +5,7 @@
  * in the data breaks a line.
  */
 import { formatNumber, type ChartProps, type ReadingKind } from '@intui/core'
-import { barPath, chartLayout, pathData } from '../chart-layout'
+import { barPath, chartLayout, pathData, splitRun } from '../chart-layout'
 import { buildModel, chartLabel, type ChartModel } from '@intui/layout'
 import type { DrawContext, Drawer } from '../dom'
 import { markdownToHtml } from '../markdown'
@@ -37,7 +37,9 @@ export const chart: Drawer<ChartProps> = (props, ctx) => {
 
 function svgFor(model: ChartModel, props: ChartProps, width: number, ctx: DrawContext, label: string, host: Element): SVGSVGElement {
   const { dom } = ctx
-  const g = chartLayout(model, width, ctx.measureIn(host, AXIS_FONT))
+  const partial = props.series.map(s => model.xs.map(x => s.points.find(p => p.x === x)?.period === 'partial'))
+  const g = chartLayout(model, width, ctx.measureIn(host, AXIS_FONT), undefined, partial)
+  const soFar = (p: { partial: boolean }) => (p.partial ? ' so far' : '')
   const svg = dom.svg('svg', { viewBox: `0 0 ${g.width} ${g.height}`, width: g.width, height: g.height, role: 'img', 'aria-label': label })
   const t = (n: number) => Number(n.toFixed(1))
   const WORDS = { exact: '', atLeast: 'at least ', estimate: 'about ', unknown: '' } as const
@@ -69,8 +71,8 @@ function svgFor(model: ChartModel, props: ChartProps, width: number, ctx: DrawCo
     marks.append(
       dom.svg(
         'path',
-        { class: `intui-role-${series.role} intui-chart-bar${bar.kind === 'estimate' ? ' is-estimate' : ''}`, 'data-reading': bar.kind, d: barPath(bar) },
-        dom.svg('title', {}, `${series.label}, ${model.xs[bar.index]}: ${value(bar.value, bar.kind)}`),
+        { class: `intui-role-${series.role} intui-chart-bar${bar.kind === 'estimate' ? ' is-estimate' : ''}${bar.partial ? ' is-partial' : ''}`, 'data-reading': bar.kind, d: barPath(bar) },
+        dom.svg('title', {}, `${series.label}, ${model.xs[bar.index]}: ${value(bar.value, bar.kind)}${soFar(bar)}`),
       ),
     )
     if (bar.kind === 'atLeast') marks.append(floor(bar.x + bar.width / 2, bar.y, series.role, bar.series))
@@ -78,15 +80,15 @@ function svgFor(model: ChartModel, props: ChartProps, width: number, ctx: DrawCo
   for (const line of g.lines) {
     const series = model.series[line.series]!
     const layer = dom.svg('g', { class: `intui-role-${series.role}` })
-    for (const run of line.runs) layer.append(dom.svg('path', { class: 'intui-chart-line', d: pathData(run) }))
+    for (const run of line.runs) for (const piece of splitRun(run)) layer.append(dom.svg('path', { class: `intui-chart-line${piece.partial ? ' is-partial' : ''}`, d: pathData(piece.points) }))
     // Past 24 x values dots would crowd, but a point alone between gaps has no line to show it.
     {
-      for (const run of line.runs) for (const p of model.xs.length <= 24 || run.length === 1 ? run : []) {
+      for (const run of line.runs) for (const p of model.xs.length <= 24 || run.length === 1 ? run : run.filter(p => p.partial)) {
         layer.append(
           dom.svg(
             'circle',
-            { class: `intui-chart-dot${p.kind === 'estimate' ? ' is-estimate' : ''}`, 'data-reading': p.kind, cx: t(p.x), cy: t(p.y), r: series.role === 'primary' ? 3.5 : 2.5 },
-            dom.svg('title', {}, `${series.label}, ${model.xs[p.index]}: ${value(p.value, p.kind)}`),
+            { class: `intui-chart-dot${p.kind === 'estimate' ? ' is-estimate' : ''}${p.partial ? ' is-partial' : ''}`, 'data-reading': p.kind, cx: t(p.x), cy: t(p.y), r: series.role === 'primary' ? 3.5 : 2.5 },
+            dom.svg('title', {}, `${series.label}, ${model.xs[p.index]}: ${value(p.value, p.kind)}${soFar(p)}`),
           ),
         )
         if (p.kind === 'atLeast') layer.append(floor(p.x, p.y - (series.role === 'primary' ? 3.5 : 2.5) + 4, series.role, line.series))

@@ -120,7 +120,7 @@ fn chart_text(chart: &forms::Chart) -> String {
         .map(|x| {
             let mut row = vec![x_cell(x)];
             row.extend(chart.series.iter().map(|series| match series.points.iter().find(|point| point.x == **x) {
-                Some(point) => escape_cell(&reading_text(point.y, None, false)),
+                Some(point) => escape_cell(&point_text(point)),
                 None => String::new(),
             }));
             row
@@ -152,13 +152,27 @@ fn chart_text(chart: &forms::Chart) -> String {
 
 fn stat_text(stat: &forms::Stat) -> String {
     let value = reading_text(stat.value, non_empty(&stat.unit), false);
-    match &stat.change {
+    let figure = match &stat.change {
         Some(change) => {
             let unit = matches!(change.as_, forms::StatChangeAs::Percent).then_some("%");
             let figure = reading_text(change.value, unit, true);
             format!("**{}:** {value} ({figure})", stat.label)
         }
         None => format!("**{}:** {value}", stat.label),
+    };
+    match &stat.note {
+        Some(note) => format!("{figure}; {note}"),
+        None => figure,
+    }
+}
+
+/// A point in words; a partial period that has a number says "so far".
+fn point_text(point: &forms::Point) -> String {
+    let text = reading_text(point.y, None, false);
+    match (point.period, point.y) {
+        (forms::ChartPointPeriod::Partial, Reading::Unknown) => text,
+        (forms::ChartPointPeriod::Partial, _) => format!("{text} so far"),
+        (forms::ChartPointPeriod::Complete, _) => text,
     }
 }
 

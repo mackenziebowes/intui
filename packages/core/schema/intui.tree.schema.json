@@ -289,6 +289,13 @@
         },
         "y": {
           "$ref": "#/$defs/Reading"
+        },
+        "period": {
+          "type": "string",
+          "enum": [
+            "complete",
+            "partial"
+          ]
         }
       },
       "required": [
@@ -419,6 +426,10 @@
         "tone": {
           "default": "neutral",
           "$ref": "#/$defs/Tone"
+        },
+        "note": {
+          "type": "string",
+          "minLength": 1
         }
       },
       "required": [

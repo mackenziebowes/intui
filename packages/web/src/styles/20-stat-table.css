@@ -34,6 +34,10 @@
 
 .intui-stat.intui-tone-neutral .intui-stat-change { color: var(--_muted); }
 
+/* The reason or context in words (proposal 006); a toned tile's note carries a bar of its tone, so the tone has words beside it. */
+.intui-stat-note { font-size: 0.8em; color: var(--_muted); max-width: 22em; }
+.intui-stat:not(.intui-tone-neutral):not(.intui-tone-muted) .intui-stat-note { border-inline-start: 2px solid var(--_tone); padding-inline-start: 0.45em; color: var(--_fg); }
+
 .intui-stat-change svg {
   fill: currentColor;
   flex: none;

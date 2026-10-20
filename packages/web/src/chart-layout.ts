@@ -13,9 +13,10 @@ export type Measure = (text: string) => number
 export const estimateWidth: Measure = text => [...text].length * 7
 
 export type Tick = { value: number; y: number; label: string }
-export type LinePoint = { index: number; x: number; y: number; value: number; kind: ReadingKind }
+/** `partial` is true when the point's period isn't over (today, so far; proposal 006). */
+export type LinePoint = { index: number; x: number; y: number; value: number; kind: ReadingKind; partial: boolean }
 /** `up` is true when the bar rises from the baseline, so its data end (the rounded one) is its top. */
-export type Bar = { series: number; index: number; x: number; y: number; width: number; height: number; value: number; kind: ReadingKind; up: boolean }
+export type Bar = { series: number; index: number; x: number; y: number; width: number; height: number; value: number; kind: ReadingKind; up: boolean; partial: boolean }
 
 export type ChartGeometry = {
   width: number
@@ -65,7 +66,15 @@ export function yTicks(domain: Domain, plotHeight: number, minGap = 32): number[
 /** The chart's height for a width: shorter on a phone so it doesn't fill the screen. */
 export const chartHeight = (width: number) => (width < 420 ? 200 : 240)
 
-export function chartLayout(model: ChartModel, width: number, measure: Measure = estimateWidth, height = chartHeight(width)): ChartGeometry {
+/** `partial[s][i]` says the point of series s at x index i is a period that isn't over. */
+export function chartLayout(
+  model: ChartModel,
+  width: number,
+  measure: Measure = estimateWidth,
+  height = chartHeight(width),
+  partial: readonly (readonly boolean[])[] = [],
+): ChartGeometry {
+  const isPartial = (s: number, i: number) => partial[s]?.[i] === true
   const markerBand = model.markers.some(m => m.index !== undefined) ? 22 : 10
   const labelled = model.readable ? model.series.findIndex(s => s.role === 'primary') : -1
   // A callout above the peak needs a line of room between the plot and the marker band.
@@ -111,7 +120,7 @@ export function chartLayout(model: ChartModel, width: number, measure: Measure =
         if (value === undefined) return
         const x = xAt(index) - group / 2 + s * (barWidth + gap) + gap / 2
         const y = yAt(value)
-        bars.push({ series: s, index, x, y: Math.min(y, base), width: barWidth, height: Math.max(1, Math.abs(base - y)), value, kind: series.kinds[index]!, up: y <= base })
+        bars.push({ series: s, index, x, y: Math.min(y, base), width: barWidth, height: Math.max(1, Math.abs(base - y)), value, kind: series.kinds[index]!, up: y <= base, partial: isPartial(s, index) })
       }),
     )
   } else {
@@ -123,7 +132,7 @@ export function chartLayout(model: ChartModel, width: number, measure: Measure =
           if (runs[runs.length - 1]!.length > 0) runs.push([])
           return
         }
-        runs[runs.length - 1]!.push({ index, x: xAt(index), y: yAt(value), value, kind: series.kinds[index]! })
+        runs[runs.length - 1]!.push({ index, x: xAt(index), y: yAt(value), value, kind: series.kinds[index]!, partial: isPartial(s, index) })
       })
       lines.push({ series: s, runs: runs.filter(run => run.length > 0) })
     })
@@ -149,14 +158,27 @@ export function chartLayout(model: ChartModel, width: number, measure: Measure =
       for (const index of peak === latest ? [latest] : [peak, latest]) {
         const v = series.values[index]!
         // The axis carries the unit; a currency or symbol stays, since it is part of how the number reads.
-        const text = WORDS[series.kinds[index]!] + withUnit(formatValue(v), model.unit && /^[^\p{L}\p{N}]/u.test(model.unit) ? model.unit : undefined)
+        const figure = WORDS[series.kinds[index]!] + withUnit(formatValue(v), model.unit && /^[^\p{L}\p{N}]/u.test(model.unit) ? model.unit : undefined)
         const bar = bars.find(b => b.series === labelled && b.index === index)
         const x = bar ? bar.x + bar.width / 2 : xAt(index)
         // Above the bar or dot, clear of the floor chevron an atLeast carries.
         const y = (bar ? bar.y : yAt(v) - 4) - (series.kinds[index] === 'atLeast' ? 13 : 6)
-        const w = measure(text)
-        const anchor = x + w / 2 > right ? 'end' : x - w / 2 < left ? 'start' : 'middle'
-        callouts.push({ index, x: anchor === 'end' ? Math.min(x + w / 2, right) : anchor === 'start' ? Math.max(x - w / 2, left) : x, y, anchor, text })
+        const place = (text: string) => {
+          const w = measure(text)
+          const anchor: 'start' | 'middle' | 'end' = x + w / 2 > right ? 'end' : x - w / 2 < left ? 'start' : 'middle'
+          const at = anchor === 'end' ? Math.min(x + w / 2, right) : anchor === 'start' ? Math.max(x - w / 2, left) : x
+          // A label wider than its mark rises above every other mark under it, so it never sits on a neighbour.
+          const from = anchor === 'end' ? at - w : anchor === 'start' ? at : at - w / 2
+          const under = [
+            ...bars.filter(b => b !== bar && b.x < from + w + 3 && b.x + b.width > from - 3).map(b => b.y - (b.kind === 'atLeast' ? 13 : 6)),
+            ...lines.flatMap(l => l.runs.flat()).filter(p => p.index !== index && p.x >= from - 4 && p.x <= from + w + 4).map(p => p.y - 10),
+          ]
+          return { index, x: at, y: Math.min(y, ...under), anchor, text }
+        }
+        // "so far" goes on the label only when it fits over its own mark; a raised label reads as a
+        // neighbour's, and the hollow mark already says the period isn't over.
+        const long = isPartial(labelled, index) ? place(`${figure} so far`) : undefined
+        callouts.push(long && long.y >= y ? long : place(figure))
       }
     }
   }
@@ -186,6 +208,21 @@ export function barPath(bar: Bar): string {
   return bar.up
     ? `M${r(x)} ${r(y + h)}V${r(y + rad)}Q${r(x)} ${r(y)} ${r(x + rad)} ${r(y)}H${r(x + w - rad)}Q${r(x + w)} ${r(y)} ${r(x + w)} ${r(y + rad)}V${r(y + h)}Z`
     : `M${r(x)} ${r(y)}V${r(y + h - rad)}Q${r(x)} ${r(y + h)} ${r(x + rad)} ${r(y + h)}H${r(x + w - rad)}Q${r(x + w)} ${r(y + h)} ${r(x + w)} ${r(y + h - rad)}V${r(y)}Z`
+}
+
+/**
+ * A run of line points cut where a segment touches a partial point, so a renderer can draw
+ * that stretch apart (dashed): the line into today is a day so far, not a drop.
+ */
+export function splitRun(run: readonly LinePoint[]): { partial: boolean; points: LinePoint[] }[] {
+  const pieces: { partial: boolean; points: LinePoint[] }[] = []
+  for (let k = 1; k < run.length; k++) {
+    const partial = run[k - 1]!.partial || run[k]!.partial
+    const last = pieces[pieces.length - 1]
+    if (last && last.partial === partial) last.points.push(run[k]!)
+    else pieces.push({ partial, points: [run[k - 1]!, run[k]!] })
+  }
+  return pieces
 }
 
 /** `M x y L x y ...` through points, rounded to a tenth of a pixel. */

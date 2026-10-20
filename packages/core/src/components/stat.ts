@@ -22,6 +22,8 @@ export interface StatProps extends Node {
   change?: ChangeReading;
   /** Whether the change is good news. Renderers never guess this from the sign. */
   tone: Tone;
+  /** The reason or context in words ("oldest 9d"), for any tone: a tone is never colour alone (proposal 006). */
+  note?: string;
 }
 
 export const Stat = defineKind<StatProps>({
@@ -36,11 +38,13 @@ export const Stat = defineKind<StatProps>({
       unit: z.string().optional(),
       change: z.strictObject({ value: readingSchema(), as: z.enum(["amount", "percent"]) }).meta({ id: "StatChange" }).optional(),
       tone: tone.default("neutral"),
+      note: z.string().min(1).optional(),
     })
     .meta({ id: "Stat" }),
   toText: (props) => {
     const value = readingText(props.value, { unit: props.unit });
-    return props.change ? `**${props.label}:** ${value} (${changeText(props.change)})` : `**${props.label}:** ${value}`;
+    const figure = props.change ? `**${props.label}:** ${value} (${changeText(props.change)})` : `**${props.label}:** ${value}`;
+    return props.note ? `${figure}; ${props.note}` : figure;
   },
   example: {
     type: "Stat",
