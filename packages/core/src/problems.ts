@@ -1,7 +1,8 @@
 /**
  * Turns a schema failure into problems a model can act on: each names a path inside the
  * tree (`root.children[1] (Chart).series[0]`), the rule that failed and what to do.
- * `IntuiError` carries all of them in one message, so one retry can fix everything.
+ * A `Refusal` carries all of them, and one message listing them, so one retry can fix
+ * everything. Parsing returns `Parsed<T>`, a value or a refusal, and never throws (hub #1956).
  */
 import type { z } from "zod";
 
@@ -13,20 +14,25 @@ export interface Problem {
 }
 
 /**
- * Bad input: a tree or event that doesn't match the schemas.
- *
- * The message lists every problem with its path, so a model whose tool call
- * failed can fix all of them in one retry.
+ * Bad input: a tree or event that doesn't match the schemas. `message` lists every problem
+ * with its path, so a model whose tool call failed can fix all of them in one retry.
  */
-export class IntuiError extends Error {
-  constructor(
-    readonly summary: string,
-    readonly problems: readonly Problem[] = [],
-  ) {
-    super(problems.length === 0 ? summary : `${summary}\n${problems.map((p) => `- ${p.path}: ${p.message}`).join("\n")}`);
-    this.name = "IntuiError";
-  }
+export type Refusal = {
+  readonly kind: "refused";
+  readonly summary: string;
+  readonly problems: readonly Problem[];
+  readonly message: string;
+};
+
+/** What parsing gives back: the value, or why it was refused. */
+export type Parsed<T> = { readonly kind: "parsed"; readonly value: T } | Refusal;
+
+export function refusal(summary: string, problems: readonly Problem[] = []): Refusal {
+  const message = problems.length === 0 ? summary : `${summary}\n${problems.map((p) => `- ${p.path}: ${p.message}`).join("\n")}`;
+  return { kind: "refused", summary, problems, message };
 }
+
+export const parsed = <T>(value: T): Parsed<T> => ({ kind: "parsed", value });
 
 /** Turns zod issues into problems a model or a person can act on. */
 export function problemsFrom(issues: readonly z.core.$ZodIssue[], input: unknown, prefix: PropertyKey[] = []): Problem[] {

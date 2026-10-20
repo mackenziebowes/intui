@@ -4,7 +4,7 @@
  * the Markdown report that turns them into trends. It keeps counts and component names,
  * never content, and old entries missing newer fields still summarize.
  */
-import type { Tree } from '@intui/core'
+import { Tree } from '@intui/core'
 
 /**
  * One `show` call, kept for evals: which components the model picked, whether
@@ -56,7 +56,7 @@ export function shownEntry(
   drawnNatively?: Iterable<string>,
 ): UsageEntry {
   const types: Record<string, number> = {}
-  for (const { node } of tree.walk()) types[node.type] = (types[node.type] ?? 0) + 1
+  for (const { node } of Tree.walk(tree)) types[node.type] = (types[node.type] ?? 0) + 1
   const native = drawnNatively ? new Set(drawnNatively) : undefined
   const interactive = sum(Object.entries(types).filter(([type]) => INTERACTIVE.has(type)).map(([, n]) => n))
   const fallbacks = native ? sum(Object.entries(types).filter(([type]) => !native.has(type)).map(([, n]) => n)) : 0

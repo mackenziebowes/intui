@@ -10,29 +10,41 @@ import type { Measure } from './chart-layout'
 type Attrs = Record<string, string | number | boolean | undefined>
 type DomNode = globalThis.Node
 
-/** Builds HTML and SVG elements in one document. */
-export class Dom {
-  constructor(readonly doc: Document) {}
+type Child = DomNode | string | null | undefined | false
 
-  el<K extends keyof HTMLElementTagNameMap>(tag: K, attrs: Attrs = {}, ...children: (DomNode | string | null | undefined | false)[]): HTMLElementTagNameMap[K] {
-    const element = this.doc.createElement(tag)
-    setAttrs(element, attrs)
-    for (const child of children) if (child !== null && child !== undefined && child !== false) element.append(child)
-    return element
-  }
-
-  svg<K extends keyof SVGElementTagNameMap>(tag: K, attrs: Attrs = {}, ...children: (DomNode | string | null | undefined | false)[]): SVGElementTagNameMap[K] {
-    const element = this.doc.createElementNS('http://www.w3.org/2000/svg', tag)
-    setAttrs(element, attrs)
-    for (const child of children) if (child !== null && child !== undefined && child !== false) element.append(child)
-    return element
-  }
-
+/** Builds HTML and SVG elements in one document: a record of builder functions over `doc`, no hidden state (hub #1956). */
+export type Dom = {
+  readonly doc: Document
+  el<K extends keyof HTMLElementTagNameMap>(tag: K, attrs?: Attrs, ...children: Child[]): HTMLElementTagNameMap[K]
+  svg<K extends keyof SVGElementTagNameMap>(tag: K, attrs?: Attrs, ...children: Child[]): SVGElementTagNameMap[K]
   /** An element whose content is already-safe HTML (the Markdown renderer's output). */
-  html<K extends keyof HTMLElementTagNameMap>(tag: K, attrs: Attrs, safeHtml: string): HTMLElementTagNameMap[K] {
-    const element = this.el(tag, attrs)
-    element.innerHTML = safeHtml
+  html<K extends keyof HTMLElementTagNameMap>(tag: K, attrs: Attrs, safeHtml: string): HTMLElementTagNameMap[K]
+}
+
+export function domOf(doc: Document): Dom {
+  const append = (element: Element, children: Child[]) => {
+    for (const child of children) if (child !== null && child !== undefined && child !== false) element.append(child)
+  }
+  const el: Dom['el'] = (tag, attrs = {}, ...children) => {
+    const element = doc.createElement(tag)
+    setAttrs(element, attrs)
+    append(element, children)
     return element
+  }
+  return {
+    doc,
+    el,
+    svg: (tag, attrs = {}, ...children) => {
+      const element = doc.createElementNS('http://www.w3.org/2000/svg', tag)
+      setAttrs(element, attrs)
+      append(element, children)
+      return element
+    },
+    html: (tag, attrs, safeHtml) => {
+      const element = el(tag, attrs)
+      element.innerHTML = safeHtml
+      return element
+    },
   }
 }
 

@@ -5,7 +5,7 @@
  * missing.
  */
 import type { ElementTable, RenderElement, RenderSurface } from 'claude-code'
-import { core, type Node, type Tree } from '@intui/core'
+import { Catalog, core, type Node, type Tree } from '@intui/core'
 import type { DrawContext, Drawer } from './drawer'
 import { chart } from './chart'
 import { choice } from './choice'
@@ -36,7 +36,7 @@ export type Surroundings = {
 
 /** Draws a whole tree for one transcript row. */
 export function drawTree(tree: Tree, around: Surroundings): RenderElement {
-  const text = (node: Node) => core.kindOf(node).toText(node, text)
+  const text = (node: Node) => Catalog.kindOf(core, node).toText(node, text)
   const draw = (node: Node, path: string, columns: number): RenderElement => {
     let index = 0
     const ctx: DrawContext = {

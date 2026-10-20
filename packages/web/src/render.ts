@@ -4,9 +4,9 @@
  * drawer that throws shows that node's text form instead, and a kind with no drawer is
  * drawn as its text form, so a valid tree never comes out blank.
  */
-import { type FieldValue, type IntuiEvent, type Node, type Tree } from '@intui/core'
+import { Tree, type FieldValue, type IntuiEvent, type Node } from '@intui/core'
 import { estimateWidth, type Measure } from './chart-layout'
-import { Dom, type DrawContext, type Drawer } from './dom'
+import { domOf, type Dom, type DrawContext, type Drawer } from './dom'
 import { group, label, stat, table, text } from './draw/basic'
 import { chart } from './draw/chart'
 import { choice, form } from './draw/controls'
@@ -60,7 +60,7 @@ let counter = 0
 
 /** A node's Markdown text form, written by the catalog the tree was parsed with. */
 export function textOf(tree: Tree, node: Node): string {
-  return tree.textOf(node)
+  return Tree.textOf(node)
 }
 
 /** A DOM id from a name that may hold anything (a field id with spaces): only letters, digits, `_` and `-`, and unique on the page. */
@@ -75,7 +75,7 @@ function domId(prefix: string, name: string, n: number): string {
  */
 export function render(tree: Tree, options: RenderOptions): HTMLElement {
   const doc = options.document ?? globalThis.document
-  const dom = new Dom(doc)
+  const dom = domOf(doc)
   const view = doc.defaultView
   const prefix = `intui${++counter}`
   let ids = 0
@@ -85,7 +85,7 @@ export function render(tree: Tree, options: RenderOptions): HTMLElement {
     tree,
     source: options.source,
     child: node => draw(node),
-    text: node => tree.textOf(node),
+    text: node => Tree.textOf(node),
     ...(options.onEvent ? { send: async (event: IntuiEvent) => void (await options.onEvent!(event)) } : {}),
     pressed: options.pressed ?? (() => undefined),
     submitted: options.submitted ?? (() => undefined),
@@ -112,11 +112,11 @@ export function render(tree: Tree, options: RenderOptions): HTMLElement {
         console.error(`@intui/web: couldn't draw a ${node.type}, showing its text form instead`, error)
       }
     }
-    return dom.html('div', { class: 'intui-text intui-fallback', 'data-type': node.type }, markdownToHtml(tree.textOf(node)))
+    return dom.html('div', { class: 'intui-text intui-fallback', 'data-type': node.type }, markdownToHtml(Tree.textOf(node)))
   }
 
   const root = dom.el('div', { class: 'intui', 'data-theme': options.theme, 'data-source': options.source }, draw(tree.root))
-  if (options.copyButton !== false) root.append(copyButton(dom, tree.toText()))
+  if (options.copyButton !== false) root.append(copyButton(dom, Tree.toText(tree)))
   return root
 }
 

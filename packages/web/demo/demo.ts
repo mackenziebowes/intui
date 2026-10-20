@@ -131,7 +131,7 @@ const log = document.getElementById('log')!
 const onEvent = async (event: IntuiEvent) => {
   await new Promise(resolve => setTimeout(resolve, 350))
   const line = document.createElement('li')
-  line.textContent = JSON.stringify(event.toJSON())
+  line.textContent = JSON.stringify(event)
   log.prepend(line)
 }
 

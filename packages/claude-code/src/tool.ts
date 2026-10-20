@@ -3,7 +3,7 @@
  * model may write, and the input schema (a tree plus an optional `wanted` note).
  * Components that show numbers are left out, because only code may write those.
  */
-import { core } from '@intui/core'
+import { Catalog, core } from '@intui/core'
 
 export const TOOL_NAME = 'show'
 
@@ -12,7 +12,7 @@ const DESCRIPTION = `Show the person an interactive answer: components drawn in 
 Use it when a component says it better than prose: a Flow instead of an ASCII diagram, a Table for a comparison, a Choice when you want the person to pick what happens next. Don't use it when a sentence or two is enough.
 
 The input is a tree: {"v": 1, "root": <component>}. Components:
-${core.writableBy('model').describe()}
+${Catalog.describe(Catalog.writableBy(core, 'model'))}
 
 Group holds others in a row or column. Pressing a Choice option sends you a message saying what was pressed. Charts and stats with numbers can't be written here: they must come from a tool that ran a query. The tool result is the tree's text form, so you can refer back to what you showed.
 
@@ -20,7 +20,7 @@ If you wanted a component that doesn't exist, draw the closest thing and say wha
 
 /** The tree's schema, plus the optional `wanted` note. */
 function inputSchema(): Record<string, unknown> {
-  const schema = core.writableBy('model').jsonSchema() as { properties: Record<string, unknown> }
+  const schema = Catalog.jsonSchema(Catalog.writableBy(core, 'model')) as { properties: Record<string, unknown> }
   return {
     ...schema,
     properties: {

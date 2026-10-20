@@ -47,11 +47,8 @@ function candidates(output: unknown): unknown[] {
 export function treeFromOutput(output: unknown): Tree | undefined {
   for (const candidate of candidates(output)) {
     if (!isRecord(candidate) || !(ENVELOPE_KEY in candidate)) continue
-    try {
-      return Tree.parse(candidate[ENVELOPE_KEY], { author: 'code' })
-    } catch {
-      return undefined
-    }
+    const result = Tree.parse(candidate[ENVELOPE_KEY], { author: 'code' })
+    return result.kind === 'parsed' ? result.value : undefined
   }
   return undefined
 }
@@ -59,9 +56,9 @@ export function treeFromOutput(output: unknown): Tree | undefined {
 /**
  * What an MCP server returns for a tree: the model reads `content` (the tree's
  * text form), IntUI draws `structuredContent`. A plugin tool can't: its result
- * must be a string, so it returns `tree.toText()` and keeps the tree in state.
+ * must be a string, so it returns `Tree.toText(tree)` and keeps the tree in state.
  */
 export function mcpResult(root: Node) {
   const tree = Tree.of(root)
-  return { content: [{ type: 'text' as const, text: tree.toText() }], structuredContent: { [ENVELOPE_KEY]: tree.toJSON() }, isError: false }
+  return { content: [{ type: 'text' as const, text: Tree.toText(tree) }], structuredContent: { [ENVELOPE_KEY]: Tree.toJSON(tree) }, isError: false }
 }

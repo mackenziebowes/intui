@@ -38,15 +38,10 @@ const same = (what: string, a: string, b: string) => {
     console.log(`--- core\n${a}\n--- rust\n${b}`);
   }
 };
-good.forEach((root, i) => same(`text form ${i + 1}`, Tree.parse({ v: 1, root }, { author: "code" }).toText(), rust(root).text));
+good.forEach((root, i) => same(`text form ${i + 1}`, Tree.toText(Tree.of(root)), rust(root).text));
 bad.forEach((root, i) => {
-  let core = "ACCEPTED";
-  try {
-    Tree.parse({ v: 1, root }, { author: "code" });
-  } catch (e: any) {
-    core = String(e.message);
-  }
-  same(`refusal ${i + 1}`, core, rust(root).refusal || "ACCEPTED");
+  const result = Tree.parse({ v: 1, root }, { author: "code" });
+  same(`refusal ${i + 1}`, result.kind === "refused" ? result.message : "ACCEPTED", rust(root).refusal || "ACCEPTED");
 });
 console.log(differences === 0 ? "ALL SAME" : `${differences} DIFFERENT`);
 process.exit(differences === 0 ? 0 : 1);

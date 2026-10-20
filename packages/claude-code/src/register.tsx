@@ -7,7 +7,7 @@
  */
 import { atom, read, update } from 'claude-code'
 import type { EngineInterface, Register, RenderInput } from 'claude-code'
-import { IntuiError, IntuiEvent, startControl, stepControl, Tree, whyOf, type Answer, type ControlEvent, type ControlState } from '@intui/core'
+import { startControl, stepControl, Tree, whyOf, type Answer, type ControlEvent, type ControlState } from '@intui/core'
 import type { IntuiControls, IntuiForms, IntuiNotes, IntuiTrees, IntuiUsed } from '../types'
 import { drawnTypes, drawTree } from './draw'
 import { DEMO_TOOL, DEMO_TOOL_FULL_NAME, demoTree } from './demo'
@@ -58,7 +58,7 @@ async function drawForRow($: EngineInterface, e: RenderInput<'ToolUse' | 'ToolRe
   const fresh: ControlState = startControl(true, undefined)
   /** One step of a control's machine, written back to the store; returns the step so its effects can run. */
   const advance = async (controlId: string, event: ControlEvent) => {
-    const control = tree.interactive(controlId)
+    const control = Tree.interactive(tree, controlId)
     if (!control) return undefined
     const step = stepControl({ source, control }, (await read($, controls))[at(controlId)] ?? fresh, event)
     if (!step.ignored) await update($, controls, all => ({ ...all, [at(controlId)]: step.state }))
@@ -76,7 +76,7 @@ async function drawForRow($: EngineInterface, e: RenderInput<'ToolUse' | 'ToolRe
       for (const effect of step?.effects ?? []) {
         try {
           await answered()
-          await $.prompt.submit({ text: tree.describe(IntuiEvent.parse(effect.event)) })
+          await $.prompt.submit({ text: Tree.describe(tree, effect.event) })
           await advance(controlId, { kind: 'accepted' })
         } catch (error) {
           await advance(controlId, { kind: 'refused', why: whyOf(error) })
@@ -148,28 +148,21 @@ export const register: Register = on => {
     const session = await $.session.id()
     const log = async (entry: UsageEntry) =>
       $.store.set(LOG, appended(((await $.store.get(LOG)) ?? []) as UsageEntry[], entry))
-    try {
-      const tree = Tree.parse(input, { author: 'model' })
-      const entry = shownEntry(tree, session, wanted, new Date(), drawnTypes())
-      await log(entry)
-      await $.store.set(PENDING, pendingAfterShow(((await $.store.get(PENDING)) ?? {}) as Pending, session, entry.interactive ?? 0))
-      return { result: tree.toText() }
-    } catch (error) {
-      if (!(error instanceof IntuiError)) throw error
-      await log(refusedEntry(error.problems.length || 1, session, wanted))
-      return { deny: error.message }
+    const result = Tree.parse(input, { author: 'model' })
+    if (result.kind === 'refused') {
+      await log(refusedEntry(result.problems.length || 1, session, wanted))
+      return { deny: result.message }
     }
+    const entry = shownEntry(result.value, session, wanted, new Date(), drawnTypes())
+    await log(entry)
+    await $.store.set(PENDING, pendingAfterShow(((await $.store.get(PENDING)) ?? {}) as Pending, session, entry.interactive ?? 0))
+    return { result: Tree.toText(result.value) }
   })
 
   on('ui.render', { component: 'ToolUse', props: { tool: 'mcp__intui__show' } }, async ($, e, next) => {
     if (e.props.isErrored || e.props.isInterrupted) return next(e)
-    let tree: Tree
-    try {
-      tree = Tree.parse(showInput(e.props.input as Record<string, unknown>).tree, { author: 'model' })
-    } catch {
-      return next(e)
-    }
-    return drawForRow($, e, tree)
+    const result = Tree.parse(showInput(e.props.input as Record<string, unknown>).tree, { author: 'model' })
+    return result.kind === 'parsed' ? drawForRow($, e, result.value) : next(e)
   })
 
   // The result is the tree's text form, for the model. The row above already
@@ -186,12 +179,8 @@ export const register: Register = on => {
   on('ui.render', { component: 'ToolResult' }, async ($, e, next) => {
     if (e.props.isErrored) return next(e)
     const kept = (await read($, trees))[e.props.tool_use_id]
-    let tree: Tree | undefined
-    try {
-      tree = kept ? Tree.parse(kept, { author: 'code' }) : treeFromOutput(e.props.output)
-    } catch {
-      tree = undefined
-    }
+    const fromStore = kept ? Tree.parse(kept, { author: 'code' }) : undefined
+    const tree = fromStore ? (fromStore.kind === 'parsed' ? fromStore.value : undefined) : treeFromOutput(e.props.output)
     return tree ? drawForRow($, e, tree) : next(e)
   })
 
@@ -205,8 +194,8 @@ export const register: Register = on => {
     if (e.tool === DEMO_TOOL_FULL_NAME) {
       const made = demoTree()
       tree = made
-      await update($, trees, all => Object.fromEntries(Object.entries({ ...all, [e.tool_use_id]: made.toJSON() }).slice(-MAX_TREES)))
-      answer = { result: made.toText() }
+      await update($, trees, all => Object.fromEntries(Object.entries({ ...all, [e.tool_use_id]: Tree.toJSON(made) }).slice(-MAX_TREES)))
+      answer = { result: Tree.toText(made) }
     } else {
       answer = await next(e)
       if (e.tool !== 'mcp__intui__show' && 'result' in answer && answer.result !== undefined) tree = treeFromOutput(answer.result)

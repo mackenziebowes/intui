@@ -80,9 +80,9 @@ export function stepControl(at: ControlAt, state: ControlState, event: ControlEv
       if (state.kind === "sending") return ignore(state, "an answer is already being sent; wait for it to be accepted or refused");
       if (state.kind === "sent" && !repeats(at.control)) return ignore(state, "this control was used once already and takes one answer");
       const sent = eventOf(at, event.answer);
-      const problem = sent.problemWith(at.control);
+      const problem = IntuiEvent.problemWith(sent, at.control);
       if (problem !== null) return go({ kind: "refused", answer: event.answer, why: problem.slice(0, WHY_LENGTH) });
-      return go({ kind: "sending", answer: event.answer }, [{ kind: "send", event: sent.toJSON() }]);
+      return go({ kind: "sending", answer: event.answer }, [{ kind: "send", event: sent }]);
     }
     case "accepted":
       if (state.kind !== "sending") return ignore(state, `nothing is being sent (the control is ${state.kind})`);

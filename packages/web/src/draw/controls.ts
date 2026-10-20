@@ -4,7 +4,7 @@
  * goes in as accepted or refused, and `paint` draws whatever state comes out. The machine decides
  * when a control is used up, busy or read-only; nothing here does.
  */
-import { IntuiEvent, canAnswer, startControl, stepControl, whyOf, type Answer, type ControlAt, type ControlEvent, type ControlState, type FieldValue, type FormField, type FormProps, type ChoiceProps } from '@intui/core'
+import { canAnswer, startControl, stepControl, whyOf, type Answer, type ControlAt, type ControlEvent, type ControlState, type FieldValue, type FormField, type FormProps, type ChoiceProps } from '@intui/core'
 import type { DrawContext, Drawer } from '../dom'
 import { readForm, type RawValue } from '../form-values'
 import { markdownToHtml } from '../markdown'
@@ -32,8 +32,7 @@ function drive(ctx: DrawContext, at: ControlAt, start: ControlState, paint: (sta
     state = step.state
     paint(state)
     for (const effect of step.effects) {
-      // Until IntuiEvent is data (hub #1956, section 2) the host takes the class; parse rebuilds it from the checked data.
-      ctx.send!(IntuiEvent.parse(effect.event)).then(
+      ctx.send!(effect.event).then(
         () => dispatch({ kind: 'accepted' }),
         error => dispatch({ kind: 'refused', why: whyOf(error) }),
       )

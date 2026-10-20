@@ -110,76 +110,77 @@ const GRID_CAPS = [24, 16, 12]
 
 type Cell = { ch: string; kind: CellKind; mask: number; edges: Set<number> }
 
-/** A character grid that boxes, edge lines and labels are painted onto. */
-class Canvas {
-  private readonly cells: Cell[][]
+/**
+ * A character grid that boxes, edge lines and labels are painted onto: a plain value that
+ * `tryGrid` builds and the functions below paint, one call at a time (hub #1956).
+ */
+type Canvas = Cell[][]
 
-  constructor(rows: number, cols: number) {
-    this.cells = Array.from({ length: rows }, () =>
-      Array.from({ length: cols }, () => ({ ch: ' ', kind: 'blank' as CellKind, mask: 0, edges: new Set<number>() })),
-    )
+function canvasOf(rows: number, cols: number): Canvas {
+  return Array.from({ length: rows }, () =>
+    Array.from({ length: cols }, () => ({ ch: ' ', kind: 'blank' as CellKind, mask: 0, edges: new Set<number>() })),
+  )
+}
+
+function put(canvas: Canvas, row: number, col: number, ch: string, kind: CellKind) {
+  const cell = canvas[row]?.[col]
+  if (cell) Object.assign(cell, { ch, kind })
+}
+
+/** Paints a rounded box whose first line of text sits one row below `top`. */
+function paintBox(canvas: Canvas, top: number, left: number, width: number, lines: readonly BoxLine[]) {
+  const bottom = top + lines.length + 1
+  put(canvas, top, left, '╭', 'border')
+  put(canvas, top, left + width - 1, '╮', 'border')
+  put(canvas, bottom, left, '╰', 'border')
+  put(canvas, bottom, left + width - 1, '╯', 'border')
+  for (let c = 1; c < width - 1; c++) {
+    put(canvas, top, left + c, '─', 'border')
+    put(canvas, bottom, left + c, '─', 'border')
   }
+  lines.forEach((line, k) => {
+    put(canvas, top + 1 + k, left, '│', 'border')
+    put(canvas, top + 1 + k, left + width - 1, '│', 'border')
+    ;[...line.text].forEach((ch, c) => put(canvas, top + 1 + k, left + 2 + c, ch, line.kind))
+  })
+}
 
-  put(row: number, col: number, ch: string, kind: CellKind) {
-    const cell = this.cells[row]?.[col]
-    if (cell) Object.assign(cell, { ch, kind })
-  }
-
-  /** Paints a rounded box whose first line of text sits one row below `top`. */
-  box(top: number, left: number, width: number, lines: readonly BoxLine[]) {
-    const bottom = top + lines.length + 1
-    this.put(top, left, '╭', 'border')
-    this.put(top, left + width - 1, '╮', 'border')
-    this.put(bottom, left, '╰', 'border')
-    this.put(bottom, left + width - 1, '╯', 'border')
-    for (let c = 1; c < width - 1; c++) {
-      this.put(top, left + c, '─', 'border')
-      this.put(bottom, left + c, '─', 'border')
+/**
+ * Lays one segment of edge `id` along `row` (horizontal) or column `row` (vertical) from `a` to `b`.
+ * Fails when it would touch a line of an unrelated edge, so unrelated lines never merge.
+ */
+function laySegment(canvas: Canvas, id: number, edges: readonly Edge[], row: number, a: number, b: number, vertical: boolean): boolean {
+  const [lo, hi] = [Math.min(a, b), Math.max(a, b)]
+  for (let k = lo; k <= hi; k++) {
+    const cell = vertical ? canvas[k]?.[row] : canvas[row]?.[k]
+    if (!cell) return false
+    for (const other of cell.edges) {
+      if (other !== id && edges[other]!.from !== edges[id]!.from && edges[other]!.to !== edges[id]!.to) return false
     }
-    lines.forEach((line, k) => {
-      this.put(top + 1 + k, left, '│', 'border')
-      this.put(top + 1 + k, left + width - 1, '│', 'border')
-      ;[...line.text].forEach((ch, c) => this.put(top + 1 + k, left + 2 + c, ch, line.kind))
-    })
+    cell.edges.add(id)
+    const [before, after] = vertical ? [N, S] : [W, E]
+    cell.mask |= (k > lo ? before : 0) | (k < hi ? after : 0)
   }
+  return true
+}
 
-  /**
-   * Lays one segment of edge `id` along `row` (horizontal) or column `row` (vertical) from `a` to `b`.
-   * Fails when it would touch a line of an unrelated edge, so unrelated lines never merge.
-   */
-  segment(id: number, edges: readonly Edge[], row: number, a: number, b: number, vertical: boolean): boolean {
-    const [lo, hi] = [Math.min(a, b), Math.max(a, b)]
-    for (let k = lo; k <= hi; k++) {
-      const cell = vertical ? this.cells[k]?.[row] : this.cells[row]?.[k]
-      if (!cell) return false
-      for (const other of cell.edges) {
-        if (other !== id && edges[other]!.from !== edges[id]!.from && edges[other]!.to !== edges[id]!.to) return false
-      }
-      cell.edges.add(id)
-      const [before, after] = vertical ? [N, S] : [W, E]
-      cell.mask |= (k > lo ? before : 0) | (k < hi ? after : 0)
-    }
-    return true
-  }
+/** Turns the segments laid so far into line glyphs. */
+function drawLines(canvas: Canvas) {
+  for (const row of canvas) for (const cell of row) if (cell.mask) Object.assign(cell, { ch: GLYPH[cell.mask] ?? '─', kind: 'arrow' })
+}
 
-  /** Turns the segments laid so far into line glyphs. */
-  drawLines() {
-    for (const row of this.cells) for (const cell of row) if (cell.mask) Object.assign(cell, { ch: GLYPH[cell.mask] ?? '─', kind: 'arrow' })
+/** Writes text onto blank cells only; false when it would land on anything else. */
+function paintLabel(canvas: Canvas, row: number, col: number, text: string): boolean {
+  for (const [k, ch] of [...text].entries()) {
+    const cell = canvas[row]?.[col + k]
+    if (!cell || cell.kind !== 'blank') return false
+    Object.assign(cell, { ch, kind: 'edge' })
   }
+  return true
+}
 
-  /** Writes text onto blank cells only; false when it would land on anything else. */
-  label(row: number, col: number, text: string): boolean {
-    for (const [k, ch] of [...text].entries()) {
-      const cell = this.cells[row]?.[col + k]
-      if (!cell || cell.kind !== 'blank') return false
-      Object.assign(cell, { ch, kind: 'edge' })
-    }
-    return true
-  }
-
-  runs(): Run[][] {
-    return this.cells.map(row => toRuns(row))
-  }
+function runsOf(canvas: Canvas): Run[][] {
+  return canvas.map(row => toRuns(row))
 }
 
 /**
@@ -241,9 +242,9 @@ function tryGrid(steps: readonly FlowStep[], analysis: Analysis, notes: string[]
   if (total > columns) return undefined
 
   const top = placeVertically(analysis, height)
-  const canvas = new Canvas(Math.max(...steps.map((_, i) => top[i]! + height[i]!)), total)
+  const canvas = canvasOf(Math.max(...steps.map((_, i) => top[i]! + height[i]!)), total)
   layers.forEach((layer, l) => {
-    for (const i of layer) canvas.box(top[i]!, left[l]!, width[i]!, lines[i]!)
+    for (const i of layer) paintBox(canvas, top[i]!, left[l]!, width[i]!, lines[i]!)
   })
 
   // Routing: each edge runs from its source's first line, along a vertical trunk, to its target's first line.
@@ -260,18 +261,18 @@ function tryGrid(steps: readonly FlowStep[], analysis: Analysis, notes: string[]
     const gw = gutter[l]!
     const trunkAtTarget = outdeg(edge.from) === 1 && indeg(edge.to) > 1
     const trunk = trunkAtTarget ? gx + gw - 3 : gx + 1
-    if (!canvas.segment(id, edges, ys, sourceRight, trunk, false)) return undefined
-    if (ys !== yt && !canvas.segment(id, edges, trunk, ys, yt, true)) return undefined
-    if (!canvas.segment(id, edges, yt, trunk, gx + gw - 1, false)) return undefined
+    if (!laySegment(canvas, id, edges, ys, sourceRight, trunk, false)) return undefined
+    if (ys !== yt && !laySegment(canvas, id, edges, trunk, ys, yt, true)) return undefined
+    if (!laySegment(canvas, id, edges, yt, trunk, gx + gw - 1, false)) return undefined
     if (edge.label) labels.push(trunkAtTarget ? { row: ys - 1, col: gx + 1, text: edge.label } : { row: yt - 1, col: gx + 3, text: edge.label })
   }
-  canvas.drawLines()
+  drawLines(canvas)
   for (const edge of edges) {
     const l = layerOf[edge.from]!
-    canvas.put(top[edge.to]! + 1, left[l]! + layerWidth[l]! + gutter[l]! - 1, '→', 'arrow')
+    put(canvas, top[edge.to]! + 1, left[l]! + layerWidth[l]! + gutter[l]! - 1, '→', 'arrow')
   }
-  for (const label of labels) if (!canvas.label(label.row, label.col, label.text)) return undefined
-  return canvas.runs()
+  for (const label of labels) if (!paintLabel(canvas, label.row, label.col, label.text)) return undefined
+  return runsOf(canvas)
 }
 
 /** Joins neighbouring cells of one kind into runs, dropping trailing blanks. */

@@ -1,16 +1,17 @@
 /**
- * A Tree is a validated component tree, the thing an agent shows on any surface.
- * `Tree.parse` takes whatever crossed a wire and refuses with every problem listed,
+ * A Tree is a validated component tree, the thing an agent shows on any surface, as plain
+ * data with its functions on `Tree` (hub #1956).
+ * `Tree.parse` takes whatever crossed a wire and returns the tree or a refusal listing every problem,
  * checking who wrote it; `Tree.of` takes one code built. It also renders the text form,
  * finds the interactive components by id, and checks that an event answers something in
  * this tree.
  */
 import type { Node } from "./component";
-import { core, type Author, type Catalog } from "./catalog";
+import { Catalog, core, type Author } from "./catalog";
 import type { ChoiceProps } from "./components/choice";
 import type { FormProps } from "./components/form";
-import type { IntuiEvent } from "./event";
-import { IntuiError, problemsFrom, type Problem } from "./problems";
+import { IntuiEvent } from "./event";
+import { parsed, problemsFrom, refusal, type Parsed, type Problem, type Refusal } from "./problems";
 import { toWire } from "./reading";
 
 /** The protocol version every tree carries. Changes to the schema are additive only. */
@@ -27,117 +28,114 @@ export interface ParseOptions {
   catalog?: Catalog;
 }
 
+declare const validated: unique symbol;
+
 /**
- * A validated component tree: what an agent shows, on any surface.
- *
- * Build one with `Tree.of(root)` in code, or `Tree.parse(json)` for anything
- * that crossed a wire (a tool call's input, a stored transcript).
+ * A validated component tree: what an agent shows, on any surface. Plain data with its
+ * functions on `Tree` (hub #1956). The brand exists only for the compiler, so a tree can
+ * only come from `Tree.of` (code built it) or `Tree.parse` (it crossed a wire).
  */
-export class Tree {
-  private constructor(
-    readonly root: Node,
-    private readonly catalog: Catalog,
-  ) {}
+export type Tree = { readonly v: typeof VERSION; readonly root: Node; readonly [validated]: true };
 
-  /** A tree that code built, e.g. from a query result. */
-  static of(root: Node, catalog: Catalog = core): Tree {
-    return Tree.parse({ v: VERSION, root }, { author: "code", catalog });
-  }
+type Walked = { node: Node; path: string }[];
 
-  static parse(input: unknown, options: ParseOptions = {}): Tree {
-    const catalog = options.catalog ?? core;
-    const envelope = parseEnvelope(input);
-    const parsed = catalog.node.safeParse(envelope.root);
-    if (!parsed.success) {
-      throw new IntuiError("This tree doesn't match the IntUI schemas:", problemsFrom(parsed.error.issues, envelope.root, ["root"]));
-    }
-    const tree = new Tree(parsed.data, catalog);
-    tree.assertIdsUnique();
-    if (options.author) tree.assertWritableBy(options.author);
-    return tree;
-  }
-
-  /** Every node, depth first, with its path. */
-  walk(): { node: Node; path: string }[] {
-    const visit = (node: Node, path: string): { node: Node; path: string }[] => [
-      { node, path: `${path} (${node.type})` },
-      ...this.catalog
-        .kindOf(node)
-        .children(node)
-        .flatMap((child, index) => visit(child, `${path}.children[${index}]`)),
-    ];
-    return visit(this.root, "root");
-  }
-
-  /** Markdown for the whole tree: what the model reads back, and every surface's fallback. */
-  toText(): string {
-    return this.textOf(this.root);
-  }
-
-  /** Markdown for one node of this tree, written by the catalog the tree was parsed with. */
-  textOf(node: Node): string {
-    const text = (child: Node): string => this.catalog.kindOf(child).toText(child, text);
-    return text(node);
-  }
-
-  toJSON(): TreeData {
-    return { v: VERSION, root: toWire(this.root) as Node };
-  }
-
-  /** The `Choice` or `Form` with this id. */
-  interactive(id: string): ChoiceProps | FormProps | undefined {
-    return this.walk()
-      .map(({ node }) => node)
-      .find((node): node is ChoiceProps | FormProps => (node.type === "Choice" || node.type === "Form") && (node as ChoiceProps).id === id);
-  }
-
-  /** Checks that an event answers something in this tree, with values that fit it. */
-  verify(event: IntuiEvent): void {
-    const problem = event.problemWith(this.interactive(event.target));
-    if (problem) throw new IntuiError(`This event doesn't fit the tree it came from: ${problem}`);
-  }
-
-  /** How the event reads to the model, with labels looked up in this tree. */
-  describe(event: IntuiEvent): string {
-    return event.describe(this.interactive(event.target));
-  }
-
-  private assertWritableBy(author: Author): void {
-    const allowed = new Set(this.catalog.writableBy(author).types());
-    const problems: Problem[] = this.walk()
-      .filter(({ node }) => !allowed.has(node.type))
-      .map(({ path }) => ({
-        path,
-        message: "this component shows numbers, which must come from code: call a tool that returns it, or show the figures in a Text or Table you can vouch for",
-      }));
-    if (problems.length > 0) throw new IntuiError("The model can't write this tree directly:", problems);
-  }
-
-  private assertIdsUnique(): void {
-    const seen = new Map<string, string>();
-    const problems: Problem[] = [];
-    for (const { node, path } of this.walk()) {
-      for (const id of this.catalog.kindOf(node).ids(node)) {
-        const first = seen.get(id);
-        if (first) problems.push({ path, message: `id "${id}" is already used at ${first}; give each Choice and Form its own id` });
-        else seen.set(id, path);
-      }
-    }
-    if (problems.length > 0) throw new IntuiError("This tree has duplicate ids:", problems);
-  }
+function walk(tree: Tree, catalog: Catalog = core): Walked {
+  const visit = (node: Node, path: string): Walked => [
+    { node, path: `${path} (${node.type})` },
+    ...Catalog.kindOf(catalog, node)
+      .children(node)
+      .flatMap((child, index) => visit(child, `${path}.children[${index}]`)),
+  ];
+  return visit(tree.root, "root");
 }
 
-function parseEnvelope(input: unknown): { root: unknown } {
+function textOf(node: Node, catalog: Catalog = core): string {
+  const text = (child: Node): string => Catalog.kindOf(catalog, child).toText(child, text);
+  return text(node);
+}
+
+function interactive(tree: Tree, id: string, catalog: Catalog = core): ChoiceProps | FormProps | undefined {
+  return walk(tree, catalog)
+    .map(({ node }) => node)
+    .find((node): node is ChoiceProps | FormProps => (node.type === "Choice" || node.type === "Form") && (node as ChoiceProps).id === id);
+}
+
+function parse(input: unknown, options: ParseOptions = {}): Parsed<Tree> {
+  const catalog = options.catalog ?? core;
+  const envelope = parseEnvelope(input);
+  if (envelope.kind === "refused") return envelope;
+  const result = catalog.node.safeParse(envelope.value.root);
+  if (!result.success) return refusal("This tree doesn't match the IntUI schemas:", problemsFrom(result.error.issues, envelope.value.root, ["root"]));
+  const tree = { v: VERSION, root: result.data } as Tree;
+  return duplicateIds(tree, catalog) ?? (options.author ? notWritableBy(tree, options.author, catalog) : undefined) ?? parsed(tree);
+}
+
+export const Tree = {
+  /**
+   * A tree that code built, e.g. from a query result. A tree code built wrong is a bug in that
+   * code, not input to handle, so this throws with the refusal's message.
+   */
+  of(root: Node, catalog: Catalog = core): Tree {
+    const result = parse({ v: VERSION, root }, { author: "code", catalog });
+    if (result.kind === "refused") throw new Error(result.message);
+    return result.value;
+  },
+  /** Anything that crossed a wire (a tool call's input, a stored transcript): the tree, or a refusal listing every problem. */
+  parse,
+  /** Every node, depth first, with its path. */
+  walk,
+  /** Markdown for the whole tree: what the model reads back, and every surface's fallback. */
+  toText: (tree: Tree, catalog: Catalog = core): string => textOf(tree.root, catalog),
+  /** Markdown for one node. */
+  textOf,
+  /** The wire form: exact readings become bare numbers again. */
+  toJSON: (tree: Tree): TreeData => ({ v: VERSION, root: toWire(tree.root) as Node }),
+  /** The `Choice` or `Form` with this id. */
+  interactive,
+  /** Why an event doesn't answer anything in this tree with values that fit, or null when it does. */
+  problemWith(tree: Tree, event: IntuiEvent, catalog: Catalog = core): string | null {
+    const problem = IntuiEvent.problemWith(event, interactive(tree, event.target, catalog));
+    return problem === null ? null : `This event doesn't fit the tree it came from: ${problem}`;
+  },
+  /** How the event reads to the model, with labels looked up in this tree. */
+  describe: (tree: Tree, event: IntuiEvent, catalog: Catalog = core): string => IntuiEvent.describe(event, interactive(tree, event.target, catalog)),
+} as const;
+
+function notWritableBy(tree: Tree, author: Author, catalog: Catalog): Refusal | undefined {
+  const allowed = new Set(Catalog.types(Catalog.writableBy(catalog, author)));
+  const problems: Problem[] = walk(tree, catalog)
+    .filter(({ node }) => !allowed.has(node.type))
+    .map(({ path }) => ({
+      path,
+      message: "this component shows numbers, which must come from code: call a tool that returns it, or show the figures in a Text or Table you can vouch for",
+    }));
+  return problems.length > 0 ? refusal("The model can't write this tree directly:", problems) : undefined;
+}
+
+function duplicateIds(tree: Tree, catalog: Catalog): Refusal | undefined {
+  const seen = new Map<string, string>();
+  const problems: Problem[] = [];
+  for (const { node, path } of walk(tree, catalog)) {
+    for (const id of Catalog.kindOf(catalog, node).ids(node)) {
+      const first = seen.get(id);
+      if (first) problems.push({ path, message: `id "${id}" is already used at ${first}; give each Choice and Form its own id` });
+      else seen.set(id, path);
+    }
+  }
+  return problems.length > 0 ? refusal("This tree has duplicate ids:", problems) : undefined;
+}
+
+function parseEnvelope(input: unknown): Parsed<{ root: unknown }> {
   if (typeof input !== "object" || input === null || !("root" in input)) {
-    throw new IntuiError(`A tree is an object like { "v": ${VERSION}, "root": { "type": "Text", ... } }; this one has no "root"`);
+    return refusal(`A tree is an object like { "v": ${VERSION}, "root": { "type": "Text", ... } }; this one has no "root"`);
   }
   const v = (input as { v?: unknown }).v;
   if (v !== VERSION) {
-    throw new IntuiError(
+    return refusal(
       v === undefined
         ? `A tree needs a version: add "v": ${VERSION} next to "root"`
         : `This tree is version ${JSON.stringify(v)}, and this copy of IntUI reads version ${VERSION}; update @intui/core to draw it`,
     );
   }
-  return input as { root: unknown };
+  return parsed(input as { root: unknown });
 }

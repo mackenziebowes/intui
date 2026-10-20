@@ -4,7 +4,7 @@
  */
 import { mkdir, rm } from "node:fs/promises";
 import { join } from "node:path";
-import { core, Tree, VERSION, type ComponentKind } from "../packages/core/src";
+import { Catalog, core, Tree, VERSION, type ComponentKind } from "../packages/core/src";
 
 const DIST = join(import.meta.dir, "dist");
 const DOMAIN = "intui.mackenziebowes.com";
@@ -25,7 +25,7 @@ function component(kind: ComponentKind): string {
     <p>${escape(kind.summary)}</p>
     <div class="pair">
       <figure><figcaption>Tree</figcaption><pre><code>${escape(JSON.stringify(kind.example, null, 2))}</code></pre></figure>
-      <figure><figcaption>Text form</figcaption><pre class="text"><code>${escape(tree.toText())}</code></pre></figure>
+      <figure><figcaption>Text form</figcaption><pre class="text"><code>${escape(Tree.toText(tree))}</code></pre></figure>
     </div>
   </article>`;
 }
@@ -71,20 +71,22 @@ const page = `<!doctype html>
 
   <section>
     <h2>Use it</h2>
-    <pre><code>import { Tree, IntuiEvent, core } from "@intui/core";
+    <pre><code>import { Catalog, Tree, IntuiEvent, core } from "@intui/core";
 
 // A tool's input schema: only what the model may write.
-const inputSchema = core.writableBy("model").jsonSchema();
+const inputSchema = Catalog.jsonSchema(Catalog.writableBy(core, "model"));
 
-// Validate what the model sent. Throws IntuiError listing every problem.
-const tree = Tree.parse(input, { author: "model" });
+// Validate what the model sent: the tree, or a refusal listing every problem.
+const result = Tree.parse(input, { author: "model" });
+if (result.kind === "refused") return { deny: result.message };
+const tree = result.value;
 
-tree.toText();   // Markdown, returned as the tool result
+Tree.toText(tree);   // Markdown, returned as the tool result
 
 // When the person presses a button:
 const event = IntuiEvent.press(toolUseId, "next", "park");
-tree.verify(event);
-tree.describe(event);   // 'Pressed "Park" in next (from toolu_1).'</code></pre>
+Tree.problemWith(tree, event);   // null: it fits
+Tree.describe(tree, event);   // 'Pressed "Park" in next (from toolu_1).'</code></pre>
     <p class="note">Not on npm yet. For now, clone <a href="${REPO}">the repo</a>.</p>
   </section>
 

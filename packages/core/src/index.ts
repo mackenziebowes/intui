@@ -8,7 +8,7 @@ export { defineKind, type ComponentKind, type Node, type Writer } from "./compon
 export { IntuiEvent, type EventData, type FieldValue } from "./event";
 export { canAnswer, startControl, stepControl, whyOf, WHY_LENGTH, type Answer, type ControlAt, type ControlEffect, type ControlEvent, type ControlState, type Step } from "./control";
 export { never, parseReading, Reading, READING_KINDS, readingSchema, readingText, readingValue, shownNumber, toWire, type ReadingKind } from "./reading";
-export { IntuiError, type Problem } from "./problems";
+export { parsed, refusal, type Parsed, type Problem, type Refusal } from "./problems";
 export { cell, cellText, formatNumber, markdownTable } from "./text";
 export { Tree, VERSION, type ParseOptions, type TreeData } from "./tree";
 

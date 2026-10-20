@@ -285,7 +285,7 @@ Marks and Ladder, core against the Rust crates (proposal 005): the text form of 
 Writes core's JSON Schemas to `packages/core/schema/`, the files other languages generate their types from, so the TypeScript here stays the one definition. `--check` writes nothing and exits 1, naming the file and the command to run, when a committed copy no longer matches core. The committed schema gives the shape; `Tree.parse` gives the verdict, including the cross-field rules a schema can't express. Each kind's `$defs` entry carries `x-intui-writer` (`anyone` or `code`), the rule that decides which trees a model may author.
 
 ## packages/core/src/catalog.ts
-A Catalog is a set of component kinds and the schemas for trees built from them; `core` holds every component IntUI defines. It knows who may write each kind (`model` or `code`), so a tree is checked against the author, and it makes the JSON Schema and the one-line descriptions a tool shows a model.
+A Catalog is a set of component kinds and the schemas for trees built from them, as plain data with its functions on `Catalog` (hub #1956); `core` holds every component IntUI defines. It knows who may write each kind (`model` or `code`), so a tree is checked against the author, and it makes the JSON Schema and the one-line descriptions a tool shows a model.
 
 ## packages/core/src/component.ts
 What a component kind is: its schema, who may write it, its text form, the children and ids it holds, and a valid example. Every kind has a text form, which is what the model reads back and what any surface that can't draw it falls back to.
@@ -333,7 +333,7 @@ What a person did with a component: pressed a Choice option or submitted a Form,
 The public face of `@intui/core`: the tree, the catalog and every component, readings, events and refusals, and the text helpers. Everything a renderer or a host imports comes from here.
 
 ## packages/core/src/problems.ts
-Turns a schema failure into problems a model can act on: each names a path inside the tree (`root.children[1] (Chart).series[0]`), the rule that failed and what to do. `IntuiError` carries all of them in one message, so one retry can fix everything.
+Turns a schema failure into problems a model can act on: each names a path inside the tree (`root.children[1] (Chart).series[0]`), the rule that failed and what to do. A `Refusal` carries all of them, and one message listing them, so one retry can fix everything. Parsing returns `Parsed<T>`, a value or a refusal, and never throws (hub #1956).
 
 ## packages/core/src/reading.ts
 A Reading is a number and how sure it is: exact, at least, an estimate, or unknown. An unknown holds no number, so it can never pass for 0, and a bare number on the wire means exact so older trees keep their meaning. This module parses readings, says them in words, and turns them back into wire form.
@@ -342,7 +342,7 @@ A Reading is a number and how sure it is: exact, at least, an estimate, or unkno
 Small helpers for the Markdown text forms.
 
 ## packages/core/src/tree.ts
-A Tree is a validated component tree, the thing an agent shows on any surface. `Tree.parse` takes whatever crossed a wire and refuses with every problem listed, checking who wrote it; `Tree.of` takes one code built. It also renders the text form, finds the interactive components by id, and checks that an event answers something in this tree.
+A Tree is a validated component tree, the thing an agent shows on any surface, as plain data with its functions on `Tree` (hub #1956). `Tree.parse` takes whatever crossed a wire and returns the tree or a refusal listing every problem, checking who wrote it; `Tree.of` takes one code built. It also renders the text form, finds the interactive components by id, and checks that an event answers something in this tree.
 
 ## packages/layout/src/chart-scale.ts
 The geometry of a Chart that doesn't depend on how it is drawn: categories in order, round axis domains and steps, which x labels fit, and the numbered markers. Both the terminal and the web chart are drawn from this one model, so they agree on what each point is.
