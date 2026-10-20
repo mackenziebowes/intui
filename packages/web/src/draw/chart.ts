@@ -5,7 +5,7 @@
  * in the data breaks a line.
  */
 import { formatNumber, type ChartProps, type ReadingKind } from '@intui/core'
-import { chartLayout, pathData } from '../chart-layout'
+import { barPath, chartLayout, pathData } from '../chart-layout'
 import { buildModel, chartLabel, type ChartModel } from '@intui/layout'
 import type { DrawContext, Drawer } from '../dom'
 import { markdownToHtml } from '../markdown'
@@ -19,7 +19,8 @@ export const chart: Drawer<ChartProps> = (props, ctx) => {
   if (props.title) figure.append(dom.el('figcaption', { class: 'intui-chart-title' }, props.title))
   const plot = dom.el('div', { class: 'intui-chart-plot' })
   figure.append(plot)
-  figure.append(legend(model, ctx))
+  // One series under a title needs no legend: the title already names it.
+  if (model.series.length > 1 || !props.title) figure.append(legend(model, ctx))
   if (model.markers.length > 0) figure.append(markerList(model, ctx))
   figure.append(asText(ctx, ctx.text(props), 'Show data'))
 
@@ -41,8 +42,10 @@ function svgFor(model: ChartModel, props: ChartProps, width: number, ctx: DrawCo
   const t = (n: number) => Number(n.toFixed(1))
   const WORDS = { exact: '', atLeast: 'at least ', estimate: 'about ', unknown: '' } as const
   const value = (v: number, kind: ReadingKind) => `${WORDS[kind]}${formatNumber(v, props.unit)}`
-  const floor = (x: number, y: number, role: string) =>
-    dom.svg('path', { class: `intui-chart-floor intui-role-${role}`, d: `M${t(x - 4)} ${t(y - 6)}L${t(x)} ${t(y - 10)}L${t(x + 4)} ${t(y - 6)}`, 'aria-hidden': 'true' })
+  // When most of a series' points are floors, each chevron is still drawn but quietly, so they don't turn into texture.
+  const mostlyFloors = model.series.map(s => s.kinds.filter(k => k === 'atLeast').length * 2 > s.kinds.filter(k => k !== undefined).length)
+  const floor = (x: number, y: number, role: string, series: number) =>
+    dom.svg('path', { class: `intui-chart-floor intui-role-${role}${mostlyFloors[series] ? ' is-common' : ''}`, d: `M${t(x - 4)} ${t(y - 6)}L${t(x)} ${t(y - 10)}L${t(x + 4)} ${t(y - 6)}`, 'aria-hidden': 'true' })
 
   const grid = dom.svg('g', { class: 'intui-chart-grid' })
   for (const tick of g.ticks) {
@@ -65,12 +68,12 @@ function svgFor(model: ChartModel, props: ChartProps, width: number, ctx: DrawCo
     const series = model.series[bar.series]!
     marks.append(
       dom.svg(
-        'rect',
-        { class: `intui-role-${series.role} intui-chart-bar${bar.kind === 'estimate' ? ' is-estimate' : ''}`, 'data-reading': bar.kind, x: t(bar.x), y: t(bar.y), width: t(bar.width), height: t(bar.height), rx: Math.min(2, bar.width / 4) },
+        'path',
+        { class: `intui-role-${series.role} intui-chart-bar${bar.kind === 'estimate' ? ' is-estimate' : ''}`, 'data-reading': bar.kind, d: barPath(bar) },
         dom.svg('title', {}, `${series.label}, ${model.xs[bar.index]}: ${value(bar.value, bar.kind)}`),
       ),
     )
-    if (bar.kind === 'atLeast') marks.append(floor(bar.x + bar.width / 2, bar.y, series.role))
+    if (bar.kind === 'atLeast') marks.append(floor(bar.x + bar.width / 2, bar.y, series.role, bar.series))
   }
   for (const line of g.lines) {
     const series = model.series[line.series]!
@@ -86,7 +89,7 @@ function svgFor(model: ChartModel, props: ChartProps, width: number, ctx: DrawCo
             dom.svg('title', {}, `${series.label}, ${model.xs[p.index]}: ${value(p.value, p.kind)}`),
           ),
         )
-        if (p.kind === 'atLeast') layer.append(floor(p.x, p.y - (series.role === 'primary' ? 3.5 : 2.5) + 4, series.role))
+        if (p.kind === 'atLeast') layer.append(floor(p.x, p.y - (series.role === 'primary' ? 3.5 : 2.5) + 4, series.role, line.series))
       }
     }
     marks.append(layer)

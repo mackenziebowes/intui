@@ -72,9 +72,9 @@
 
 .intui-role-baseline .intui-chart-dot { fill: var(--_surface); stroke: var(--_series); }
 
-rect.intui-role-primary { fill: var(--_series); }
-rect.intui-role-baseline { fill: color-mix(in oklab, var(--_series) 40%, transparent); stroke: var(--_series); stroke-width: 1; stroke-dasharray: 3 2; }
-rect.intui-role-comparison { fill: var(--_series); }
+path.intui-chart-bar.intui-role-primary { fill: var(--_series); }
+path.intui-chart-bar.intui-role-baseline { fill: color-mix(in oklab, var(--_series) 40%, transparent); stroke: var(--_series); stroke-width: 1; stroke-dasharray: 3 2; }
+path.intui-chart-bar.intui-role-comparison { fill: var(--_series); }
 
 .intui-chart-legend {
   display: flex;

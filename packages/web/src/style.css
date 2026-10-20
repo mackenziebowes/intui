@@ -516,9 +516,9 @@
 
 .intui-role-baseline .intui-chart-dot { fill: var(--_surface); stroke: var(--_series); }
 
-rect.intui-role-primary { fill: var(--_series); }
-rect.intui-role-baseline { fill: color-mix(in oklab, var(--_series) 40%, transparent); stroke: var(--_series); stroke-width: 1; stroke-dasharray: 3 2; }
-rect.intui-role-comparison { fill: var(--_series); }
+path.intui-chart-bar.intui-role-primary { fill: var(--_series); }
+path.intui-chart-bar.intui-role-baseline { fill: color-mix(in oklab, var(--_series) 40%, transparent); stroke: var(--_series); stroke-width: 1; stroke-dasharray: 3 2; }
+path.intui-chart-bar.intui-role-comparison { fill: var(--_series); }
 
 .intui-chart-legend {
   display: flex;
@@ -1011,6 +1011,7 @@ rect.intui-role-comparison { fill: var(--_series); }
 .intui-stat-change .intui-reading-mark { font-weight: inherit; }
 
 .intui-chart-floor { fill: none; stroke: var(--_series); stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
+.intui-chart-floor.is-common { stroke: var(--_muted); stroke-width: 1.25; }
 .intui-chart-dot.is-estimate { fill: var(--_surface); stroke: var(--_series); stroke-width: 1.5; }
 .intui-chart-bar.is-estimate { fill-opacity: 0.45; stroke: var(--_series); stroke-dasharray: 3 2; }
 .intui-chart-unknown { stroke: var(--_muted); stroke-width: 1.5; stroke-linecap: round; fill: none; }

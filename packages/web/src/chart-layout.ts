@@ -14,7 +14,8 @@ export const estimateWidth: Measure = text => [...text].length * 7
 
 export type Tick = { value: number; y: number; label: string }
 export type LinePoint = { index: number; x: number; y: number; value: number; kind: ReadingKind }
-export type Bar = { series: number; index: number; x: number; y: number; width: number; height: number; value: number; kind: ReadingKind }
+/** `up` is true when the bar rises from the baseline, so its data end (the rounded one) is its top. */
+export type Bar = { series: number; index: number; x: number; y: number; width: number; height: number; value: number; kind: ReadingKind; up: boolean }
 
 export type ChartGeometry = {
   width: number
@@ -72,15 +73,15 @@ export function chartLayout(model: ChartModel, width: number, measure: Measure =
   const bottom = height - 26
   // With no readable number there is no range: no ticks, so no axis number that was made up.
   const values = model.readable ? yTicks(model.domain, bottom - top) : []
-  const labelWith = (unit: boolean) => values.map(v => (unit ? withUnit(formatValue(v), model.unit) : formatValue(v)))
-  let labels = labelWith(true)
-  let gutter = labels.length > 0 ? Math.max(...labels.map(measure)) + 10 : 10
-  let unitCaption: string | undefined
-  if (model.readable && model.unit && gutter > width * 0.3) {
-    labels = labelWith(false)
-    gutter = Math.max(...labels.map(measure)) + 10
-    unitCaption = model.unit
-  }
+  // The unit is said once, on the top tick; the rest are plain numbers. If even that one
+  // label would take too much of the width, the unit moves to a caption above the axis.
+  const plain = values.map(formatValue)
+  const withTop = plain.map((label, i) => (i === plain.length - 1 && model.unit ? withUnit(label, model.unit) : label))
+  const gutterOf = (labels: string[]) => (labels.length > 0 ? Math.max(...labels.map(measure)) + 10 : 10)
+  const fits = gutterOf(withTop) <= width * 0.3
+  const labels = fits ? withTop : plain
+  const gutter = gutterOf(labels)
+  const unitCaption = model.readable && model.unit && !fits ? model.unit : undefined
   const left = Math.ceil(gutter)
   const right = width - 4
   const n = model.xs.length
@@ -99,8 +100,9 @@ export function chartLayout(model: ChartModel, width: number, measure: Measure =
   const unknowns: ChartGeometry['unknowns'] = []
   if (isBar) {
     const count = model.series.length
-    const group = slot * 0.72
-    const gap = group / count > 8 ? 2 : 0
+    // Thin marks with a 2px gap between a group's bars, so each bar reads as one mark.
+    const group = slot * 0.5
+    const gap = count > 1 && group / count > 6 ? 2 : 0
     const barWidth = Math.max(1, group / count - gap)
     const base = yAt(Math.max(model.domain.lo, Math.min(0, model.domain.hi)))
     model.series.forEach((series, s) =>
@@ -109,7 +111,7 @@ export function chartLayout(model: ChartModel, width: number, measure: Measure =
         if (value === undefined) return
         const x = xAt(index) - group / 2 + s * (barWidth + gap) + gap / 2
         const y = yAt(value)
-        bars.push({ series: s, index, x, y: Math.min(y, base), width: barWidth, height: Math.max(1, Math.abs(base - y)), value, kind: series.kinds[index]! })
+        bars.push({ series: s, index, x, y: Math.min(y, base), width: barWidth, height: Math.max(1, Math.abs(base - y)), value, kind: series.kinds[index]!, up: y <= base })
       }),
     )
   } else {
@@ -174,6 +176,16 @@ export function chartLayout(model: ChartModel, width: number, measure: Measure =
     lines,
     unknowns,
   }
+}
+
+/** A bar as a path: square where it meets the baseline, rounded (up to 4px) at its data end. */
+export function barPath(bar: Bar): string {
+  const r = (n: number) => Number(n.toFixed(1))
+  const rad = Math.min(4, bar.width / 2, bar.height)
+  const { x, y, width: w, height: h } = bar
+  return bar.up
+    ? `M${r(x)} ${r(y + h)}V${r(y + rad)}Q${r(x)} ${r(y)} ${r(x + rad)} ${r(y)}H${r(x + w - rad)}Q${r(x + w)} ${r(y)} ${r(x + w)} ${r(y + rad)}V${r(y + h)}Z`
+    : `M${r(x)} ${r(y)}V${r(y + h - rad)}Q${r(x)} ${r(y + h)} ${r(x + rad)} ${r(y + h)}H${r(x + w - rad)}Q${r(x + w)} ${r(y + h)} ${r(x + w)} ${r(y + h - rad)}V${r(y)}Z`
 }
 
 /** `M x y L x y ...` through points, rounded to a tenth of a pixel. */
