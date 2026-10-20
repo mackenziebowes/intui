@@ -1,0 +1,246 @@
+/* ---- Controls (Choice, Form, copy) ---- */
+
+.intui-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4em;
+  min-height: 2.25rem;
+  padding: 0.35em 0.95em;
+  border: 1px solid var(--_line-strong);
+  border-radius: var(--_radius);
+  background: var(--_surface);
+  color: var(--_fg);
+  font: inherit;
+  font-weight: 550;
+  line-height: 1.25;
+  cursor: pointer;
+  transition: background-color 150ms ease-out, border-color 150ms ease-out, color 150ms ease-out;
+}
+
+.intui-button:hover:not(:disabled) {
+  border-color: color-mix(in oklab, var(--_fg) 40%, var(--_line-strong));
+  background: color-mix(in oklab, var(--_fg) 4%, var(--_surface));
+}
+
+.intui-button:active:not(:disabled) { background: color-mix(in oklab, var(--_fg) 9%, var(--_surface)); }
+
+.intui-button--primary {
+  border-color: var(--_accent);
+  background: var(--_accent);
+  color: var(--_on-accent);
+}
+
+.intui-button--primary:hover:not(:disabled) {
+  border-color: color-mix(in oklab, var(--_accent) 86%, var(--_fg));
+  background: color-mix(in oklab, var(--_accent) 86%, var(--_fg));
+}
+
+.intui-button--primary:active:not(:disabled) { background: color-mix(in oklab, var(--_accent) 76%, var(--_fg)); }
+
+.intui-button--quiet {
+  min-height: 1.9rem;
+  padding: 0.2em 0.6em;
+  border-color: transparent;
+  background: transparent;
+  color: var(--_muted);
+  font-size: 0.8em;
+  font-weight: 500;
+}
+
+.intui-button--quiet:hover:not(:disabled) {
+  color: var(--_fg);
+  border-color: var(--_line);
+  background: transparent;
+}
+
+.intui-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.intui [aria-busy="true"] .intui-button:disabled { cursor: progress; }
+
+.intui-icon {
+  flex: none;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+@media (pointer: coarse) {
+  .intui-button { min-height: 2.75rem; }
+  .intui-button--quiet { min-height: 2.5rem; }
+}
+
+.intui-status {
+  margin: 0;
+  font-size: 0.8em;
+  color: var(--_muted);
+}
+
+.intui-status:empty { display: none; }
+.intui-status.is-error { color: var(--_critical); }
+
+.intui-choice {
+  display: grid;
+  gap: 0.6em;
+}
+
+.intui-choice-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5em;
+}
+
+/* Answered: the pick stays legible; the rest step back. */
+.intui-choice.is-used .intui-button:disabled { opacity: 1; cursor: default; }
+.intui-choice.is-used .intui-button:not(.is-chosen) { color: var(--_muted); border-color: var(--_line); background: transparent; text-decoration: line-through; text-decoration-color: color-mix(in oklab, var(--_muted) 60%, transparent); }
+.intui-choice.is-used .intui-button.is-chosen { border-color: var(--_accent); background: color-mix(in oklab, var(--_accent) 12%, var(--_surface)); color: var(--_fg); }
+.intui-choice.is-used .intui-button.is-chosen .intui-icon { color: var(--_accent); }
+
+@container intui (max-width: 22em) {
+  .intui-choice-options { flex-direction: column; align-items: stretch; }
+}
+
+.intui-form {
+  display: grid;
+  gap: 0.9em;
+  max-width: 34em;
+  margin: 0;
+}
+
+.intui-field {
+  display: grid;
+  gap: 0.3em;
+}
+
+.intui-field > label {
+  font-size: 0.8em;
+  font-weight: 600;
+  display: flex;
+  gap: 0.5em;
+  align-items: baseline;
+}
+
+.intui-required {
+  font-size: inherit;
+  font-weight: 450;
+  color: var(--_muted);
+}
+
+.intui-field input:not([type="checkbox"]),
+.intui-field select,
+.intui-copy-box {
+  width: 100%;
+  min-height: 2.25rem;
+  padding: 0.4em 0.65em;
+  border: 1px solid var(--_line-strong);
+  border-radius: var(--_radius);
+  background: var(--_surface);
+  color: var(--_fg);
+  font: inherit;
+  line-height: 1.3;
+  caret-color: var(--_accent);
+  transition: border-color 150ms ease-out, box-shadow 150ms ease-out;
+}
+
+.intui-field select {
+  appearance: none;
+  padding-right: 2em;
+  background-image: linear-gradient(45deg, transparent 50%, var(--_muted) 50%), linear-gradient(-45deg, transparent 50%, var(--_muted) 50%);
+  background-position: calc(100% - 1.05em) 55%, calc(100% - 0.75em) 55%;
+  background-size: 0.3em 0.3em;
+  background-repeat: no-repeat;
+}
+
+@media (pointer: coarse) {
+  .intui-field input:not([type="checkbox"]),
+  .intui-field select { min-height: 2.75rem; font-size: max(1em, 16px); }
+}
+
+.intui-field input:not([type="checkbox"]):hover:not(:disabled),
+.intui-field select:hover:not(:disabled) { border-color: color-mix(in oklab, var(--_fg) 40%, var(--_line-strong)); }
+
+.intui-field input:not([type="checkbox"]):focus-visible,
+.intui-field select:focus-visible {
+  outline: none;
+  border-color: var(--_accent);
+  box-shadow: 0 0 0 3px color-mix(in oklab, var(--_accent) 25%, transparent);
+}
+
+.intui-field [aria-invalid="true"] { border-color: var(--_critical); }
+.intui-field [aria-invalid="true"]:focus-visible { border-color: var(--_critical); box-shadow: 0 0 0 3px color-mix(in oklab, var(--_critical) 22%, transparent); }
+
+.intui-field :disabled { opacity: 0.7; cursor: not-allowed; }
+
+.intui-field--checkbox > label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55em;
+  font-weight: 500;
+  font-size: 1em;
+  cursor: pointer;
+  min-height: 1.75rem;
+}
+
+.intui-field--checkbox input {
+  width: 1.05em;
+  height: 1.05em;
+  margin: 0;
+  accent-color: var(--_accent);
+}
+
+.intui-field-error {
+  margin: 0;
+  font-size: 0.8em;
+  color: var(--_critical);
+}
+
+.intui-field-error:empty { display: none; }
+
+.intui-form-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5em 0.9em;
+}
+
+.intui-form.is-used .intui-button:disabled { opacity: 1; cursor: default; border-color: var(--_accent); background: color-mix(in oklab, var(--_accent) 12%, var(--_surface)); color: var(--_fg); }
+.intui-form.is-used .intui-icon { color: var(--_accent); }
+
+.intui-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.25em 0.6em;
+  margin-top: 0.75em;
+  margin-left: -0.6em;
+}
+
+.intui-copy-box {
+  margin-top: 0.4em;
+  font-family: var(--_mono);
+  font-size: 0.8em;
+  resize: vertical;
+}
+
+.intui-fallback {
+  padding: 0.5em 0.75em;
+  border: 1px dashed var(--_line-strong);
+  border-radius: var(--_radius);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .intui * { transition: none !important; }
+}
+
+/* A used-up form shows what was sent, so its values stay fully legible. */
+.intui-form.is-used .intui-field :disabled {
+  opacity: 1;
+  cursor: default;
+  background: transparent;
+  border-style: dashed;
+}

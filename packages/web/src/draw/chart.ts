@@ -55,8 +55,8 @@ function svgFor(model: ChartModel, props: ChartProps, width: number, ctx: DrawCo
   const markers = dom.svg('g', { class: 'intui-chart-markers' })
   for (const m of g.markers) {
     markers.append(dom.svg('line', { x1: t(m.x), x2: t(m.x), y1: g.plot.top, y2: g.plot.bottom }))
-    markers.append(dom.svg('circle', { cx: t(m.x), cy: g.plot.top - 10, r: 8 }))
-    markers.append(dom.svg('text', { x: t(m.x), y: g.plot.top - 10, 'text-anchor': 'middle', 'dominant-baseline': 'central' }, m.glyph))
+    markers.append(dom.svg('circle', { cx: t(m.x), cy: g.markerY, r: 8 }))
+    markers.append(dom.svg('text', { x: t(m.x), y: g.markerY, 'text-anchor': 'middle', 'dominant-baseline': 'central' }, m.glyph))
   }
   svg.append(markers)
 
@@ -102,6 +102,10 @@ function svgFor(model: ChartModel, props: ChartProps, width: number, ctx: DrawCo
     )
   }
   svg.append(marks)
+
+  const callouts = dom.svg('g', { class: 'intui-chart-callouts', 'aria-hidden': 'true' })
+  for (const c of g.callouts) callouts.append(dom.svg('text', { x: t(c.x), y: t(c.y), 'text-anchor': c.anchor }, c.text))
+  svg.append(callouts)
 
   const axis = dom.svg('g', { class: 'intui-chart-axis' })
   axis.append(dom.svg('line', { x1: g.plot.left, x2: g.plot.right, y1: g.plot.bottom, y2: g.plot.bottom }))

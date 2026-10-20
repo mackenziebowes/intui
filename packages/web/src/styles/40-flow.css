@@ -1,0 +1,135 @@
+/* ---- Flow ---- */
+
+.intui-flow {
+  margin: 0;
+  min-width: 0;
+}
+
+.intui-flow-canvas {
+  position: relative;
+  --intui-flow-gutter: 44px;
+}
+
+.intui-flow-layers,
+.intui-flow-layer > ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.intui-flow-layers {
+  display: flex;
+  position: relative;
+  z-index: 1;
+}
+
+.intui-flow-layer > ul {
+  display: flex;
+  gap: 0.75em;
+}
+
+.intui-flow-canvas[data-direction="row"] .intui-flow-layers {
+  flex-direction: row;
+  align-items: center;
+  gap: var(--intui-flow-gutter);
+}
+
+.intui-flow-canvas[data-direction="row"] .intui-flow-layer {
+  flex: 1 1 0;
+  min-width: 0;
+  max-width: 17em;
+}
+
+.intui-flow-canvas[data-direction="row"] .intui-flow-layer > ul { flex-direction: column; }
+
+.intui-flow-canvas:not([data-direction="row"]) .intui-flow-layers {
+  flex-direction: column;
+  align-items: stretch;
+  gap: 2.25em;
+}
+
+/* A column only happens when each layer's steps fit side by side (flowPlan checks), so they never wrap. */
+.intui-flow-canvas:not([data-direction="row"]) .intui-flow-layer > ul {
+  flex-flow: row nowrap;
+  justify-content: center;
+}
+
+.intui-flow-canvas:not([data-direction="row"]) .intui-flow-step {
+  flex: 1 1 0;
+  min-width: 0;
+  max-width: 24em;
+}
+
+.intui-flow-canvas[data-direction="list"] .intui-flow-layers,
+.intui-flow-canvas[data-direction="list"] .intui-flow-layer > ul {
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0.6em;
+}
+
+.intui-flow-canvas[data-direction="list"] .intui-flow-step[data-arrow-in] {
+  margin-top: 1.65em;
+}
+
+.intui-flow-canvas[data-direction="list"] .intui-flow-step {
+  flex: none;
+  max-width: none;
+}
+
+.intui-flow-step {
+  display: grid;
+  gap: 0.15em;
+  padding: 0.6em 0.8em;
+  border: 1px solid var(--_line-strong);
+  border-radius: var(--_radius);
+  background: var(--_surface);
+  box-shadow: 0 1px 2px color-mix(in oklab, var(--_fg) 6%, transparent);
+}
+
+.intui-flow-label {
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+.intui-flow-detail {
+  font-size: 0.8em;
+  color: var(--_muted);
+  line-height: 1.4;
+}
+
+.intui-flow-note {
+  font-size: 0.8em;
+  color: var(--_accent);
+  line-height: 1.4;
+}
+
+.intui-flow-notes { display: grid; }
+.intui-flow-notes:empty { display: none; }
+.intui-flow-note--back::before { content: "\21A9\FE0E\00A0"; }
+.intui-flow-note--link::before { content: "\2192\FE0E\00A0"; }
+
+.intui-flow-edges {
+  position: absolute;
+  inset: 0;
+  overflow: visible;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.intui-flow-arrow {
+  fill: none;
+  stroke: var(--_line-strong);
+  stroke-width: 1.5;
+}
+
+.intui-flow-head { fill: var(--_line-strong); }
+
+.intui-flow-edge-label {
+  font-family: var(--_font);
+  font-size: 12px;
+  fill: var(--_muted);
+  paint-order: stroke;
+  stroke: var(--intui-bg, var(--_surface));
+  stroke-width: 5px;
+  stroke-linejoin: round;
+}

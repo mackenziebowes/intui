@@ -1,0 +1,144 @@
+/* ---- Stat ---- */
+
+.intui-stat {
+  display: grid;
+  gap: 0.1em;
+  min-width: 7em;
+  font-variant-numeric: tabular-nums;
+}
+
+.intui-stat p { margin: 0; }
+
+.intui-stat-label {
+  color: var(--_muted);
+  font-size: 0.8em;
+}
+
+.intui-stat-value {
+  font-size: 1.95em;
+  font-weight: 650;
+  line-height: 1.15;
+  letter-spacing: -0.015em;
+  /* A figure standing alone reads better in proportional digits; columns keep tabular ones. */
+  font-variant-numeric: proportional-nums;
+}
+
+.intui-stat-change {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35em;
+  font-size: 0.8em;
+  font-weight: 550;
+  color: color-mix(in oklab, var(--_tone) 85%, var(--_fg));
+}
+
+.intui-stat.intui-tone-neutral .intui-stat-change { color: var(--_muted); }
+
+.intui-stat-change svg {
+  fill: currentColor;
+  flex: none;
+}
+
+/* ---- Table ---- */
+
+.intui-table {
+  min-width: 0;
+}
+
+.intui-table-scroll {
+  overflow-x: auto;
+  border-radius: 2px;
+}
+
+.intui-table table {
+  width: auto;
+  min-width: min(100%, 30em);
+  border-collapse: collapse;
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: normal;
+}
+
+.intui-table caption {
+  caption-side: top;
+  text-align: left;
+  color: var(--_muted);
+  font-size: 0.8em;
+  padding-bottom: 0.4em;
+}
+
+.intui-table th,
+.intui-table td {
+  padding: 0.45em 1em 0.45em 0;
+  text-align: left;
+  vertical-align: top;
+  border-bottom: 1px solid var(--_line);
+}
+
+.intui-table th:last-child,
+.intui-table td:last-child { padding-right: 0; }
+
+.intui-table th {
+  font-size: 0.8em;
+  font-weight: 600;
+  color: var(--_muted);
+  border-bottom-color: var(--_line-strong);
+  white-space: nowrap;
+}
+
+.intui-table .is-end { text-align: right; }
+
+.intui-table tbody tr:last-child td { border-bottom: 0; }
+
+.intui-empty {
+  margin: 0.5em 0 0;
+  color: var(--_muted);
+  font-size: 0.8em;
+}
+
+/* In a narrow column, a table of three or more columns becomes one block per row. */
+@container intui (max-width: 30em) {
+  .intui-table--stackable thead {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+  }
+
+  .intui-table--stackable table,
+  .intui-table--stackable tbody,
+  .intui-table--stackable tr,
+  .intui-table--stackable td {
+    display: block;
+  }
+
+  .intui-table--stackable caption { display: block; }
+
+  .intui-table--stackable tr {
+    padding: 0.55em 0;
+    border-bottom: 1px solid var(--_line);
+  }
+
+  .intui-table--stackable tbody tr:last-child { border-bottom: 0; }
+
+  .intui-table--stackable td {
+    display: grid;
+    grid-template-columns: minmax(6em, 38%) 1fr;
+    gap: 0.75em;
+    padding: 0.12em 0;
+    border: 0;
+    text-align: left;
+  }
+
+  .intui-table--stackable td.is-end { text-align: left; }
+
+  .intui-table--stackable td::before {
+    content: attr(data-label);
+    color: var(--_muted);
+    font-size: 0.8em;
+  }
+
+  .intui-table--stackable td:first-child {
+    font-weight: 600;
+  }
+}

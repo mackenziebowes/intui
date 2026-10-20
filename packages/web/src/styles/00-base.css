@@ -1,0 +1,126 @@
+/*
+ * @intui/web stylesheet.
+ *
+ * Tokens: a host page sets any of the public --intui-* properties, on :root or on
+ * any ancestor of .intui, and they win over the defaults below. Map your own:
+ *
+ *   .intui { --intui-fg: var(--text); --intui-accent: var(--accent); }
+ *
+ * Public tokens
+ *   --intui-font, --intui-font-mono       type (default: the host's font)
+ *   --intui-fg, --intui-muted             text, secondary text
+ *   --intui-bg                            behind the tree (default transparent)
+ *   --intui-surface                       inside boxes, buttons and inputs
+ *   --intui-line, --intui-line-strong     hairlines, control borders
+ *   --intui-accent, --intui-on-accent     the primary action and its text
+ *   --intui-positive, --intui-warning, --intui-critical   tones
+ *   --intui-series-primary, --intui-series-baseline, --intui-series-comparison, --intui-marker
+ *   --intui-radius                        corner radius of boxes and controls
+ *
+ * Theme: follows the system, or [data-theme="light|dark"] on .intui or any ancestor.
+ * Props are meanings; this file decides looks: .intui-tone-*, .intui-role-*.
+ */
+
+.intui {
+  --_font: var(--intui-font, inherit);
+  --_mono: var(--intui-font-mono, ui-monospace, "SF Mono", "Cascadia Code", Menlo, Consolas, monospace);
+  --_fg: var(--intui-fg, oklch(0.24 0.012 75));
+  --_muted: var(--intui-muted, oklch(0.5 0.012 75));
+  --_bg: var(--intui-bg, transparent);
+  --_surface: var(--intui-surface, oklch(0.995 0.002 75));
+  --_line: var(--intui-line, oklch(0.9 0.006 75));
+  --_line-strong: var(--intui-line-strong, oklch(0.78 0.008 75));
+  --_accent: var(--intui-accent, oklch(0.47 0.12 252));
+  --_on-accent: var(--intui-on-accent, oklch(0.99 0.004 252));
+  --_positive: var(--intui-positive, oklch(0.5 0.12 152));
+  --_warning: var(--intui-warning, oklch(0.56 0.13 68));
+  --_critical: var(--intui-critical, oklch(0.52 0.17 27));
+  --_series-primary: var(--intui-series-primary, var(--_accent));
+  --_series-baseline: var(--intui-series-baseline, var(--_muted));
+  --_series-comparison: var(--intui-series-comparison, oklch(0.62 0.11 195));
+  --_marker: var(--intui-marker, var(--_warning));
+  --_radius: var(--intui-radius, 6px);
+  --_gap: 0.75em;
+
+  container: intui / inline-size;
+  min-width: 0;
+  color: var(--_fg);
+  background: var(--_bg);
+  font-family: var(--_font);
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+  -webkit-text-size-adjust: 100%;
+}
+
+@media (prefers-color-scheme: dark) {
+  .intui:not([data-theme="light"]):not(:where([data-theme="light"]) .intui) {
+    --_fg: var(--intui-fg, oklch(0.93 0.006 75));
+    --_muted: var(--intui-muted, oklch(0.7 0.01 75));
+    --_surface: var(--intui-surface, oklch(0.25 0.006 75));
+    --_line: var(--intui-line, oklch(0.34 0.008 75));
+    --_line-strong: var(--intui-line-strong, oklch(0.46 0.01 75));
+    --_accent: var(--intui-accent, oklch(0.76 0.1 252));
+    --_on-accent: var(--intui-on-accent, oklch(0.2 0.03 252));
+    --_positive: var(--intui-positive, oklch(0.76 0.13 152));
+    --_warning: var(--intui-warning, oklch(0.8 0.12 75));
+    --_critical: var(--intui-critical, oklch(0.74 0.14 27));
+    --_series-comparison: var(--intui-series-comparison, oklch(0.78 0.09 195));
+    color-scheme: dark;
+  }
+}
+
+.intui[data-theme="dark"],
+:where([data-theme="dark"]) .intui:not([data-theme="light"]) {
+  --_fg: var(--intui-fg, oklch(0.93 0.006 75));
+  --_muted: var(--intui-muted, oklch(0.7 0.01 75));
+  --_surface: var(--intui-surface, oklch(0.25 0.006 75));
+  --_line: var(--intui-line, oklch(0.34 0.008 75));
+  --_line-strong: var(--intui-line-strong, oklch(0.46 0.01 75));
+  --_accent: var(--intui-accent, oklch(0.76 0.1 252));
+  --_on-accent: var(--intui-on-accent, oklch(0.2 0.03 252));
+  --_positive: var(--intui-positive, oklch(0.76 0.13 152));
+  --_warning: var(--intui-warning, oklch(0.8 0.12 75));
+  --_critical: var(--intui-critical, oklch(0.74 0.14 27));
+  --_series-comparison: var(--intui-series-comparison, oklch(0.78 0.09 195));
+  color-scheme: dark;
+}
+
+.intui[data-theme="light"] {
+  color-scheme: light;
+}
+
+.intui *,
+.intui *::before,
+.intui *::after {
+  box-sizing: border-box;
+}
+
+.intui ::selection {
+  background: color-mix(in oklab, var(--_accent) 28%, transparent);
+}
+
+.intui :focus-visible {
+  outline: 2px solid var(--_accent);
+  outline-offset: 2px;
+}
+
+.intui-sr {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.intui-muted {
+  color: var(--_muted);
+}
+
+/* Tones: what a value means. Text stays readable by mixing the tone toward the foreground. */
+.intui-tone-neutral { --_tone: var(--_fg); }
+.intui-tone-muted { --_tone: var(--_muted); }
+.intui-tone-positive { --_tone: var(--_positive); }
+.intui-tone-warning { --_tone: var(--_warning); }
+.intui-tone-critical { --_tone: var(--_critical); }

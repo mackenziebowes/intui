@@ -1,0 +1,169 @@
+/* ---- Text ---- */
+
+/* The reading measure is for prose; code and tables use the width they're given. */
+.intui-text > :not(pre, table) {
+  max-width: 70ch;
+}
+
+.intui-text > :first-child { margin-top: 0; }
+.intui-text > :last-child { margin-bottom: 0; }
+
+.intui-text p,
+.intui-text ul,
+.intui-text ol,
+.intui-text pre,
+.intui-text blockquote,
+.intui-text table {
+  margin: 0 0 0.65em;
+}
+
+.intui-text h1,
+.intui-text h2,
+.intui-text h3,
+.intui-text h4,
+.intui-text h5,
+.intui-text h6 {
+  margin: 1.1em 0 0.35em;
+  line-height: 1.25;
+  font-weight: 650;
+  text-wrap: balance;
+}
+
+/* One step of 1.25 between sizes: 0.8em small, 1em body, 1.25em, 1.5625em; Stat values at 1.95em. */
+.intui-text h1 { font-size: 1.5625em; }
+.intui-text h2 { font-size: 1.25em; }
+.intui-text h3,
+.intui-text h4,
+.intui-text h5,
+.intui-text h6 { font-size: 1em; }
+
+.intui-text ul,
+.intui-text ol {
+  padding-left: 1.4em;
+}
+
+.intui-text li + li { margin-top: 0.2em; }
+
+.intui-text a {
+  color: var(--_accent);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.18em;
+}
+
+.intui-text code {
+  font-family: var(--_mono);
+  font-size: 0.9em;
+  padding: 0.08em 0.3em;
+  border-radius: 4px;
+  background: color-mix(in oklab, var(--_fg) 7%, transparent);
+}
+
+.intui-text pre {
+  overflow-x: auto;
+  padding: 0.7em 0.85em;
+  border: 1px solid var(--_line);
+  border-radius: var(--_radius);
+  background: color-mix(in oklab, var(--_fg) 4%, transparent);
+  overflow-wrap: normal;
+}
+
+.intui-text pre code {
+  padding: 0;
+  background: none;
+  font-size: 0.8em;
+}
+
+.intui-text blockquote {
+  padding: 0.1em 0 0.1em 0.9em;
+  border-left: 1px solid var(--_line-strong);
+  color: var(--_muted);
+}
+
+.intui-text hr {
+  border: 0;
+  border-top: 1px solid var(--_line);
+  margin: 1em 0;
+}
+
+.intui-text img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 4px;
+}
+
+.intui-text table {
+  border-collapse: collapse;
+  font-variant-numeric: tabular-nums;
+  display: block;
+  overflow-x: auto;
+}
+
+.intui-text th,
+.intui-text td {
+  padding: 0.3em 0.75em 0.3em 0;
+  border-bottom: 1px solid var(--_line);
+  text-align: left;
+}
+
+/* ---- Group ---- */
+
+.intui-group {
+  display: flex;
+  gap: var(--_gap);
+  min-width: 0;
+}
+
+.intui-group--column {
+  flex-direction: column;
+  gap: 1em;
+}
+
+.intui-group--row {
+  flex-flow: row wrap;
+  align-items: baseline;
+  column-gap: 1.25em;
+}
+
+.intui-group--column > * { min-width: 0; }
+.intui-group--row > * { min-width: 0; max-width: 100%; }
+
+/* Big pieces in a row share it instead of shrinking to their content. */
+.intui-group--row > :is(.intui-chart, .intui-flow, .intui-table, .intui-form, .intui-group--column) {
+  flex: 1 1 18em;
+}
+
+@container intui (max-width: 30em) {
+  .intui-group--row:has(> :is(.intui-chart, .intui-flow, .intui-table, .intui-form, .intui-group--column)) {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}
+
+/* ---- Label ---- */
+
+.intui-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35em;
+  padding: 0.1em 0.55em;
+  border-radius: 999px;
+  font-size: 0.8em;
+  font-weight: 550;
+  line-height: 1.5;
+  white-space: nowrap;
+  color: color-mix(in oklab, var(--_tone) 78%, var(--_fg));
+  background: color-mix(in oklab, var(--_tone) 12%, transparent);
+  box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--_tone) 24%, transparent);
+}
+
+.intui-label.intui-tone-neutral {
+  color: var(--_fg);
+  background: color-mix(in oklab, var(--_fg) 6%, transparent);
+  box-shadow: inset 0 0 0 1px var(--_line);
+}
+
+.intui-label.intui-tone-muted {
+  color: var(--_muted);
+  background: transparent;
+  box-shadow: inset 0 0 0 1px var(--_line);
+}

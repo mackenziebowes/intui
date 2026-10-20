@@ -27,6 +27,13 @@ export type ChartGeometry = {
   unitCaption?: string
   xLabels: { index: number; x: number; text: string }[]
   markers: { n: number; glyph: string; x: number }[]
+  /** The y of the marker glyphs' centres, in the band above the plot. */
+  markerY: number
+  /**
+   * Direct labels on the first primary series: its latest point and its peak, one label when
+   * they are the same point. Never every point (label selectively), and none on other series.
+   */
+  callouts: { index: number; x: number; y: number; anchor: 'start' | 'middle' | 'end'; text: string }[]
   bars: Bar[]
   /** Per series, runs of consecutive points; a missing value breaks the line. */
   lines: { series: number; runs: LinePoint[][] }[]
@@ -58,7 +65,10 @@ export function yTicks(domain: Domain, plotHeight: number, minGap = 32): number[
 export const chartHeight = (width: number) => (width < 420 ? 200 : 240)
 
 export function chartLayout(model: ChartModel, width: number, measure: Measure = estimateWidth, height = chartHeight(width)): ChartGeometry {
-  const top = model.markers.some(m => m.index !== undefined) ? 22 : 10
+  const markerBand = model.markers.some(m => m.index !== undefined) ? 22 : 10
+  const labelled = model.readable ? model.series.findIndex(s => s.role === 'primary') : -1
+  // A callout above the peak needs a line of room between the plot and the marker band.
+  const top = markerBand + (labelled >= 0 ? 16 : 0)
   const bottom = height - 26
   // With no readable number there is no range: no ticks, so no axis number that was made up.
   const values = model.readable ? yTicks(model.domain, bottom - top) : []
@@ -126,6 +136,29 @@ export function chartLayout(model: ChartModel, width: number, measure: Measure =
   }))
   const markers = model.markers.flatMap(m => (m.index === undefined ? [] : [{ n: m.n, glyph: markerGlyph(m.n), x: xAt(m.index) }]))
 
+  const callouts: ChartGeometry['callouts'] = []
+  if (labelled >= 0) {
+    const series = model.series[labelled]!
+    const readable = series.values.flatMap((v, i) => (v === undefined ? [] : [i]))
+    if (readable.length > 0) {
+      const latest = readable[readable.length - 1]!
+      const peak = readable.reduce((best, i) => (series.values[i]! > series.values[best]! ? i : best))
+      const WORDS = { exact: '', atLeast: '≥', estimate: '~', unknown: '' } as const
+      for (const index of peak === latest ? [latest] : [peak, latest]) {
+        const v = series.values[index]!
+        // The axis carries the unit; a currency or symbol stays, since it is part of how the number reads.
+        const text = WORDS[series.kinds[index]!] + withUnit(formatValue(v), model.unit && /^[^\p{L}\p{N}]/u.test(model.unit) ? model.unit : undefined)
+        const bar = bars.find(b => b.series === labelled && b.index === index)
+        const x = bar ? bar.x + bar.width / 2 : xAt(index)
+        // Above the bar or dot, clear of the floor chevron an atLeast carries.
+        const y = (bar ? bar.y : yAt(v) - 4) - (series.kinds[index] === 'atLeast' ? 13 : 6)
+        const w = measure(text)
+        const anchor = x + w / 2 > right ? 'end' : x - w / 2 < left ? 'start' : 'middle'
+        callouts.push({ index, x: anchor === 'end' ? Math.min(x + w / 2, right) : anchor === 'start' ? Math.max(x - w / 2, left) : x, y, anchor, text })
+      }
+    }
+  }
+
   return {
     width,
     height,
@@ -135,6 +168,8 @@ export function chartLayout(model: ChartModel, width: number, measure: Measure =
     ...(unitCaption ? { unitCaption } : {}),
     xLabels,
     markers,
+    markerY: 12,
+    callouts,
     bars,
     lines,
     unknowns,

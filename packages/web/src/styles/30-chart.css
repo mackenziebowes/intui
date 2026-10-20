@@ -1,0 +1,176 @@
+/* ---- Chart ---- */
+
+.intui-chart {
+  margin: 0;
+  min-width: 0;
+}
+
+.intui-chart-title {
+  font-weight: 600;
+  margin-bottom: 0.4em;
+}
+
+.intui-chart-plot {
+  width: 100%;
+  min-width: 0;
+}
+
+.intui-chart-plot svg {
+  display: block;
+  overflow: visible;
+  font-family: var(--_font);
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+}
+
+.intui-chart-grid line {
+  stroke: var(--_line);
+  stroke-width: 1;
+  shape-rendering: crispEdges;
+}
+
+.intui-chart-grid line.intui-chart-zero { stroke: var(--_line-strong); }
+
+.intui-chart text { fill: var(--_muted); }
+
+.intui-chart-axis line {
+  stroke: var(--_line-strong);
+  shape-rendering: crispEdges;
+}
+
+.intui-chart-unit { font-size: 12px; }
+
+.intui-chart-markers line {
+  stroke: var(--_marker);
+  stroke-dasharray: 2 3;
+}
+
+.intui-chart-markers circle { fill: color-mix(in oklab, var(--_marker) 18%, var(--_surface)); stroke: var(--_marker); }
+.intui-chart-callouts text { fill: var(--_fg); font-weight: 600; paint-order: stroke; stroke: var(--_surface); stroke-width: 4px; stroke-linejoin: round; }
+.intui-chart-markers text { fill: color-mix(in oklab, var(--_marker) 70%, var(--_fg)); font-size: 11px; font-weight: 650; }
+
+.intui-role-primary { --_series: var(--_series-primary); }
+.intui-role-baseline { --_series: var(--_series-baseline); }
+.intui-role-comparison { --_series: var(--_series-comparison); }
+
+.intui-chart-line {
+  fill: none;
+  stroke: var(--_series);
+  stroke-width: 2.25;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+}
+
+.intui-role-baseline .intui-chart-line { stroke-width: 1.75; stroke-dasharray: 6 4; }
+.intui-role-comparison .intui-chart-line { stroke-width: 1.75; }
+
+.intui-chart-dot {
+  fill: var(--_series);
+  stroke: var(--_surface);
+  stroke-width: 1.5;
+}
+
+.intui-role-baseline .intui-chart-dot { fill: var(--_surface); stroke: var(--_series); }
+
+rect.intui-role-primary { fill: var(--_series); }
+rect.intui-role-baseline { fill: color-mix(in oklab, var(--_series) 40%, transparent); stroke: var(--_series); stroke-width: 1; stroke-dasharray: 3 2; }
+rect.intui-role-comparison { fill: var(--_series); }
+
+.intui-chart-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3em 1.1em;
+  margin: 0.6em 0 0;
+  padding: 0;
+  list-style: none;
+  font-size: 0.8em;
+}
+
+.intui-chart-legend li {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45em;
+}
+
+.intui-swatch {
+  flex: none;
+  width: 1.15em;
+  height: 0;
+  border-top: 2.5px solid var(--_series);
+  border-radius: 2px;
+}
+
+.intui-chart-legend .intui-role-baseline .intui-swatch { border-top-style: dashed; border-top-width: 2px; }
+.intui-chart--bar .intui-swatch { height: 0.7em; border: 0; background: var(--_series); }
+.intui-chart--bar .intui-role-baseline .intui-swatch { background: color-mix(in oklab, var(--_series) 40%, transparent); outline: 1px dashed var(--_series); outline-offset: -1px; }
+
+.intui-chart-notes {
+  margin: 0.5em 0 0;
+  padding: 0;
+  list-style: none;
+  font-size: 0.8em;
+  display: grid;
+  gap: 0.25em;
+}
+
+.intui-chart-notes li {
+  display: flex;
+  gap: 0.5em;
+  align-items: baseline;
+}
+
+.intui-chart-glyph {
+  flex: none;
+  display: inline-grid;
+  place-items: center;
+  width: 1.45em;
+  height: 1.45em;
+  border-radius: 50%;
+  font-size: 0.8em;
+  font-weight: 650;
+  color: color-mix(in oklab, var(--_marker) 70%, var(--_fg));
+  background: color-mix(in oklab, var(--_marker) 18%, transparent);
+  box-shadow: inset 0 0 0 1px var(--_marker);
+  transform: translateY(-0.05em);
+}
+
+/* ---- Text-form disclosure (Chart, Flow) ---- */
+
+.intui-as-text {
+  margin-top: 0.5em;
+  font-size: 0.8em;
+}
+
+.intui-as-text summary {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35em;
+  cursor: pointer;
+  color: var(--_muted);
+  border-radius: 4px;
+  list-style: none;
+  min-height: 1.75em;
+}
+
+.intui-as-text summary::-webkit-details-marker { display: none; }
+
+.intui-as-text summary::before {
+  content: "";
+  width: 0.4em;
+  height: 0.4em;
+  border-right: 1.5px solid currentColor;
+  border-bottom: 1.5px solid currentColor;
+  transform: rotate(-45deg);
+  transition: transform 160ms cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+
+.intui-as-text[open] summary::before { transform: rotate(45deg); }
+
+.intui-as-text summary:hover { color: var(--_fg); }
+
+.intui-as-text > .intui-text {
+  margin-top: 0.5em;
+  padding: 0.6em 0.8em;
+  border: 1px solid var(--_line);
+  border-radius: var(--_radius);
+}
