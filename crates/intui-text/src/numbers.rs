@@ -137,6 +137,11 @@ pub fn format_number(value: f64, unit: Option<&str>) -> String {
     let formatted = intl_number(value);
     match unit {
         None | Some("") => formatted,
+        // A currency symbol leads, after any minus sign: "$1,284.5", "-$5".
+        Some(unit @ ("$" | "€" | "£" | "¥")) => match formatted.strip_prefix('-') {
+            Some(rest) => format!("-{unit}{rest}"),
+            None => format!("{unit}{formatted}"),
+        },
         Some("%") => format!("{formatted}%"),
         Some(unit) => format!("{formatted} {unit}"),
     }

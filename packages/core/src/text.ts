@@ -5,6 +5,8 @@ const numbers = new Intl.NumberFormat("en", { maximumFractionDigits: 2 });
 export function formatNumber(value: number, unit?: string): string {
   const formatted = numbers.format(value);
   if (!unit) return formatted;
+  // A currency symbol leads, after any minus sign: "$1,284.5", "-$5".
+  if (/^[$€£¥]$/.test(unit)) return formatted.startsWith("-") ? `-${unit}${formatted.slice(1)}` : `${unit}${formatted}`;
   return unit === "%" ? `${formatted}%` : `${formatted} ${unit}`;
 }
 
