@@ -7,7 +7,7 @@
  * `x-intui-writer` (`anyone` or `code`), the rule that decides which trees a model may author.
  */
 import { join } from "node:path";
-import { core, IntuiEvent } from "./src";
+import { Catalog, core, IntuiEvent } from "./src";
 
 const dir = join(import.meta.dir, "schema");
 const command = "bun run schema";
@@ -18,7 +18,7 @@ const command = "bun run schema";
  * its schema separately and carries no mark.
  */
 function treeSchema(): Record<string, unknown> {
-  const schema = core.jsonSchema() as { $defs: Record<string, Record<string, unknown>> };
+  const schema = Catalog.jsonSchema(core) as { $defs: Record<string, Record<string, unknown>> };
   for (const kind of core.kinds) {
     const definition = schema.$defs[kind.type];
     if (!definition) throw new Error(`core's schema has no definition for ${kind.type}, so its writer can't be marked; give the kind's schema .meta({ id: "${kind.type}" })`);
