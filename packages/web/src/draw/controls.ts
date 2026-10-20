@@ -11,6 +11,9 @@ import { markdownToHtml } from '../markdown'
 
 const READ_ONLY = 'This view is read-only: there is nowhere to send an answer.'
 
+/** The host's words without a closing full stop, so the control's own sentence ends them once. */
+const sentence = (why: string) => why.trimEnd().replace(/\.+$/, '')
+
 function check({ dom }: DrawContext) {
   return dom.svg(
     'svg',
@@ -72,7 +75,7 @@ export const choice: Drawer<ChoiceProps> = (props, ctx) => {
     })
     status.classList.toggle('is-error', state.kind === 'refused')
     status.textContent =
-      state.kind === 'refused' ? `Couldn't send “${labelOf(state.answer)}”: ${state.why}. Try again.`
+      state.kind === 'refused' ? `Couldn't send “${labelOf(state.answer)}”: ${sentence(state.why)}. Try again.`
       : state.kind === 'sent' ? (used ? `Answered: ${labelOf(state.answer)}` : `Sent “${labelOf(state.answer)}”.`)
       : ''
   }
@@ -128,7 +131,7 @@ export const form: Drawer<FormProps> = (props, ctx) => {
     submit.title = state.kind === 'readOnly' ? READ_ONLY : ''
     submit.replaceChildren(...(used ? [check(ctx), 'Sent'] : [busy ? 'Sending…' : props.submitLabel]))
     status.classList.toggle('is-error', state.kind === 'refused')
-    status.textContent = state.kind === 'refused' ? `Couldn't send this: ${state.why}. Your answers are still here; try again.` : ''
+    status.textContent = state.kind === 'refused' ? `Couldn't send this: ${sentence(state.why)}. Your answers are still here; try again.` : ''
   }
 
   // A used-up form shows what it was sent with, in place.

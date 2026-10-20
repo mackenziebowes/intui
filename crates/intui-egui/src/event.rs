@@ -8,22 +8,6 @@ use crate::controls::{ControlId, Source};
 use intui_types::{Event, FieldValue};
 use serde_json::{json, Map, Number, Value};
 
-/// What the person answered: the option they pressed, or the values they submitted, field by field in the form's order.
-#[derive(Clone, Debug, PartialEq)]
-pub enum Answer {
-    Option(String),
-    Values(Vec<(String, FieldValue)>),
-}
-
-impl Answer {
-    pub fn of(event: &Event) -> Answer {
-        match event {
-            Event::Press { option, .. } => Answer::Option(option.clone()),
-            Event::Submit { values, .. } => Answer::Values(values.iter().map(|(id, value)| (id.to_string(), value.clone())).collect()),
-        }
-    }
-}
-
 fn parsed(wire: Value) -> Event {
     intui_types::parse_event(&wire.to_string()).expect("a control builds only events the edge accepts: ids and options come from a parsed tree")
 }

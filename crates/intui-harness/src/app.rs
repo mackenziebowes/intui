@@ -8,7 +8,7 @@ use crate::cli::{Arguments, Refusal};
 use crate::tokens::FileStyle;
 use crate::trees::{Loaded, Shown};
 use eframe::egui::{self, Frame, RichText, ScrollArea};
-use intui_egui::{event_json, settle, Controls, Outcome};
+use intui_egui::{event_json, keep_only, settle, Controls, Outcome};
 use std::time::{Duration, Instant};
 
 /// How often the files are looked at again.
@@ -24,7 +24,7 @@ pub struct Harness {
 
 impl Harness {
     pub fn new(arguments: &Arguments, loaded: Loaded, style: FileStyle) -> Harness {
-        Harness { loaded, style, controls: Controls::new(), refusals: arguments.refusals.clone(), checked: Instant::now() }
+        Harness { loaded, style, controls: Controls::default(), refusals: arguments.refusals.clone(), checked: Instant::now() }
     }
 
     /// How this press ends: refused if a rule is waiting on its target (once), accepted otherwise.
@@ -41,7 +41,7 @@ impl eframe::App for Harness {
         if self.checked.elapsed() >= LOOK_AGAIN {
             self.checked = Instant::now();
             if let Some(on_screen) = self.loaded.reload_if_changed() {
-                self.controls.keep_only(&on_screen);
+                keep_only(&mut self.controls, &on_screen);
             }
         }
         ui.ctx().request_repaint_after(LOOK_AGAIN);
@@ -49,12 +49,12 @@ impl eframe::App for Harness {
         let mut events = Vec::new();
         egui::CentralPanel::default().frame(Frame::new().fill(background).inner_margin(16.0)).show(ui, |ui| {
             ScrollArea::vertical().auto_shrink([false, false]).show(ui, |ui| {
-                for shown in &self.loaded.shown {
+                for (at, shown) in self.loaded.shown.iter().enumerate() {
                     if self.loaded.named {
                         ui.label(RichText::new(shown.name()).weak());
                     }
                     match shown {
-                        Shown::Tree { source, tree, .. } => events.extend(intui_egui::show(ui, tree, source, &self.style, &mut self.controls)),
+                        Shown::Tree { source, tree, .. } => events.extend(intui_egui::show(ui, tree, source, &self.style, &mut self.controls).into_iter().map(|event| (event, at))),
                         Shown::Refused { words, .. } => {
                             ui.colored_label(ui.visuals().error_fg_color, words);
                         }
@@ -63,10 +63,13 @@ impl eframe::App for Harness {
                 }
             });
         });
-        for event in events {
+        for (event, at) in events {
             println!("{}", event_json(&event));
             let outcome = self.outcome_for(event.target().as_str());
-            settle(&mut self.controls, &event, outcome);
+            // The machine needs the tree the press came from (whether a Choice takes one answer or many).
+            if let Some(Shown::Tree { tree, .. }) = self.loaded.shown.get(at) {
+                settle(&mut self.controls, tree, &event, outcome);
+            }
             ui.ctx().request_repaint();
         }
     }

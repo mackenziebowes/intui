@@ -15,9 +15,10 @@ mod scene;
 mod style;
 mod words;
 
-pub use controls::{settle, Control, ControlId, Controls, Outcome, Settlement, Source};
+pub use controls::{control_state, keep_only, settle, ControlId, Controls, Outcome, Settlement, Source};
+pub use intui_types::{Answer, ControlState};
 pub use error::Error;
-pub use event::{event_json, Answer};
+pub use event::event_json;
 pub use style::{
     ButtonLook, ButtonRole, Dash, Fallback, Family, FrameLook, FrameRole, SeriesRole, Style, StrokeLook, TextLook, TextRole, ToneLook,
 };

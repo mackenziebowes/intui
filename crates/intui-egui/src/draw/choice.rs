@@ -1,29 +1,29 @@
 //! Choice: buttons that send an event. A `once` choice is used up after one answer and shows what was chosen; a refused
 //! press shows the app's words by the control and the buttons work again.
 
-use crate::controls::{Control, ControlId};
-use crate::event::{self, Answer};
+use crate::controls::{self, ControlId};
+use crate::event;
 use crate::scene::{galley, rounding, Scene};
 use crate::style::{ButtonRole, TextRole};
 use crate::words;
 use egui::{Button, RichText, Sense, Ui, WidgetInfo, WidgetType};
 use intui_types::forms::{Choice, ChoiceRepeat, Emphasis};
-use intui_types::Drawn;
+use intui_types::{Answer, ControlState, Drawn};
 
 /// How the person last answered this control, if the control remembers an option.
-fn chosen(state: &Control) -> Option<&str> {
+fn chosen(state: &ControlState) -> Option<&str> {
     match state {
-        Control::Sending { value: Answer::Option(option) } | Control::Sent { value: Answer::Option(option) } | Control::Refused { value: Answer::Option(option), .. } => Some(option),
-        Control::Ready | Control::Sending { .. } | Control::Sent { .. } | Control::Refused { .. } => None,
+        ControlState::Sending { answer: Answer::Press(option) } | ControlState::Sent { answer: Answer::Press(option) } | ControlState::Refused { answer: Answer::Press(option), .. } => Some(option),
+        ControlState::ReadOnly | ControlState::Ready | ControlState::Sending { .. } | ControlState::Sent { .. } | ControlState::Refused { .. } => None,
     }
 }
 
 pub(crate) fn draw(scene: &mut Scene, ui: &mut Ui, drawn: &Drawn, choice: &Choice) {
     let id = ControlId::new(&choice.id);
-    let state = scene.controls.state(scene.source, &id).clone();
+    let state = controls::control_state(scene.controls, scene.source, &id).clone();
     let once = matches!(choice.repeat, ChoiceRepeat::Once);
-    let used = once && matches!(state, Control::Sent { .. });
-    let sending = matches!(state, Control::Sending { .. });
+    let used = once && matches!(state, ControlState::Sent { .. });
+    let sending = matches!(state, ControlState::Sending { .. });
     let label_of = |option_id: &str| choice.options.iter().find(|option| option.id == option_id).map_or(option_id.to_string(), |option| option.label.clone());
     let mut pressed: Option<String> = None;
     let response = ui
@@ -53,18 +53,19 @@ pub(crate) fn draw(scene: &mut Scene, ui: &mut Ui, drawn: &Drawn, choice: &Choic
                 }
             });
             let status = match &state {
-                Control::Ready => None,
-                Control::Sending { .. } => Some((words::SENDING.to_string(), false)),
-                Control::Sent { value } => Some(match (used, value) {
-                    (true, Answer::Option(option)) => (words::answered(&label_of(option)), false),
-                    (_, Answer::Option(option)) => (words::sent_option(&label_of(option)), false),
-                    (_, Answer::Values(_)) => (words::SENT.to_string(), false),
+                ControlState::Ready => None,
+                ControlState::ReadOnly => Some((words::READ_ONLY.to_string(), false)),
+                ControlState::Sending { .. } => Some((words::SENDING.to_string(), false)),
+                ControlState::Sent { answer: value } => Some(match (used, value) {
+                    (true, Answer::Press(option)) => (words::answered(&label_of(option)), false),
+                    (_, Answer::Press(option)) => (words::sent_option(&label_of(option)), false),
+                    (_, Answer::Submit(_)) => (words::SENT.to_string(), false),
                 }),
-                Control::Refused { value, why } => {
+                ControlState::Refused { answer: value, why } => {
                     let why = if why.is_empty() { words::REFUSED_NO_WORDS } else { why.as_str() };
                     let what = match value {
-                        Answer::Option(option) => label_of(option),
-                        Answer::Values(_) => choice.id.clone(),
+                        Answer::Press(option) => label_of(option),
+                        Answer::Submit(_) => choice.id.clone(),
                     };
                     Some((words::refused(&what, why), true))
                 }

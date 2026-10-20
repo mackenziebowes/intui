@@ -2,7 +2,7 @@
 //! holding something that isn't a number, sends nothing and says which field and why; a refused submit keeps what the
 //! person typed; a sent form shows what it was sent with and can't be sent again.
 
-use crate::controls::{Control, ControlId, Draft, Problems};
+use crate::controls::{self, ControlId, Draft, Problems};
 use crate::draw::choice::status_line;
 use crate::event;
 use crate::scene::{galley, rounding, Scene};
@@ -11,15 +11,15 @@ use crate::words;
 use egui::{Button, ComboBox, Frame, RichText, Sense, TextEdit, Ui, WidgetInfo, WidgetType};
 use intui_layout::{parse_number, NumberInput};
 use intui_types::forms::{Field, FieldInput, Form};
-use intui_types::{Drawn, FieldValue};
+use intui_types::{ControlState, Drawn, FieldValue};
 use std::collections::HashMap;
 
 pub(crate) fn draw(scene: &mut Scene, ui: &mut Ui, drawn: &Drawn, form: &Form) {
     let id = ControlId::new(&form.id);
-    let state = scene.controls.state(scene.source, &id).clone();
-    let locked = matches!(state, Control::Sending { .. } | Control::Sent { .. });
+    let state = controls::control_state(scene.controls, scene.source, &id).clone();
+    let locked = matches!(state, ControlState::Sending { .. } | ControlState::Sent { .. });
     let (mut drafts, problems) = {
-        let slot = scene.controls.slot(scene.source, &id);
+        let slot = controls::slot(scene.controls, scene.source, &id);
         (std::mem::take(&mut slot.drafts), slot.problems.clone())
     };
     let mut submit = false;
@@ -33,22 +33,23 @@ pub(crate) fn draw(scene: &mut Scene, ui: &mut Ui, drawn: &Drawn, form: &Form) {
             });
             ui.horizontal(|ui| {
                 let (role, text) = match &state {
-                    Control::Sent { .. } => (ButtonRole::Chosen, words::SENT.to_string()),
-                    Control::Sending { .. } => (ButtonRole::Primary, words::SENDING.to_string()),
-                    Control::Ready | Control::Refused { .. } => (ButtonRole::Primary, form.submit_label.clone()),
+                    ControlState::Sent { .. } => (ButtonRole::Chosen, words::SENT.to_string()),
+                    ControlState::Sending { .. } => (ButtonRole::Primary, words::SENDING.to_string()),
+                    ControlState::ReadOnly | ControlState::Ready | ControlState::Refused { .. } => (ButtonRole::Primary, form.submit_label.clone()),
                 };
                 let look = scene.button(role);
                 let button = Button::new(RichText::new(text).color(look.text)).fill(look.fill).stroke(look.stroke).corner_radius(rounding(look.rounding));
                 submit = ui.add_enabled(!locked, button).clicked();
             });
             let status = match &state {
-                Control::Refused { why, .. } => {
+                ControlState::Refused { why, .. } => {
                     let why = if why.is_empty() { words::REFUSED_NO_WORDS } else { why.as_str() };
                     Some((words::refused_form(why), true))
                 }
-                Control::Sending { .. } => Some((words::SENDING.to_string(), false)),
-                Control::Ready | Control::Sent { .. } if !problems.summary.is_empty() => Some((problems.summary.clone(), true)),
-                Control::Ready | Control::Sent { .. } => None,
+                ControlState::Sending { .. } => Some((words::SENDING.to_string(), false)),
+                ControlState::ReadOnly => Some((words::READ_ONLY.to_string(), false)),
+                ControlState::Ready | ControlState::Sent { .. } if !problems.summary.is_empty() => Some((problems.summary.clone(), true)),
+                ControlState::Ready | ControlState::Sent { .. } => None,
             };
             if let Some((words, failed)) = status {
                 status_line(scene, ui, &words, failed);
@@ -56,14 +57,14 @@ pub(crate) fn draw(scene: &mut Scene, ui: &mut Ui, drawn: &Drawn, form: &Form) {
         })
         .response;
     scene.name(ui, &response, drawn, WidgetType::Panel);
-    scene.controls.slot(scene.source, &id).drafts = drafts.clone();
+    controls::slot(scene.controls, scene.source, &id).drafts = drafts.clone();
     if submit {
         match read(form, &drafts) {
             Ok(values) => {
                 let event = event::submit(scene.source, &id, &values);
                 scene.send(event);
             }
-            Err(found) => scene.controls.slot(scene.source, &id).problems = found,
+            Err(found) => controls::slot(scene.controls, scene.source, &id).problems = found,
         }
     }
 }

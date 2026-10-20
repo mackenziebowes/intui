@@ -1,13 +1,13 @@
-//! The state of every control the person has used: Ready, Sending, Sent or Refused, kept per (Source, control id),
-//! and what they have typed into a form that isn't sent yet.
+//! The state of every control the person has used, in the control machine `intui-types` shares with core
+//! (hub #1956), kept per (Source, control id), and what they have typed into a form that isn't sent yet.
 //!
 //! The promise: a control is used at most once when it says `once`, a refused control is usable again with what
 //! the person typed still in it, and a tree from a new Source starts with every control Ready. The app keeps one
-//! `Controls` between frames and tells it how each press ended with `settle`.
+//! `Controls` between frames and tells it how each press ended with `settle`. Every change goes through `step`;
+//! the functions here only find the slot and store what `step` returns.
 
 use crate::error::Error;
-use crate::event::Answer;
-use intui_types::Event;
+use intui_types::{step, ControlAt, ControlEvent, ControlState, Effect, Event, Step, Tree};
 use std::collections::HashMap;
 
 /// Which tree a press came from: the id of whatever drew it (a tool call, a reply, "overview@4182"). It must change
@@ -44,18 +44,6 @@ impl ControlId {
     }
 }
 
-/// One Choice or Form as the person has used it.
-#[derive(Clone, Debug, PartialEq)]
-pub enum Control {
-    Ready,
-    /// The press was returned by `show`; the app hasn't said what became of it.
-    Sending { value: Answer },
-    /// A `once` control is used up and shows what was chosen; one that says `many` can be pressed again.
-    Sent { value: Answer },
-    /// The app's words, shown by the control. The control is usable again.
-    Refused { value: Answer, why: String },
-}
-
 /// How the app says a press ended.
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum Outcome {
@@ -87,20 +75,20 @@ pub(crate) struct Problems {
 
 #[derive(Debug)]
 pub(crate) struct Slot {
-    pub control: Control,
+    pub control: ControlState,
     pub drafts: HashMap<String, Draft>,
     pub problems: Problems,
 }
 
 impl Slot {
     fn new() -> Slot {
-        Slot { control: Control::Ready, drafts: HashMap::new(), problems: Problems::default() }
+        Slot { control: ControlState::Ready, drafts: HashMap::new(), problems: Problems::default() }
     }
 }
 
 /// A control's place: the tree it is in and its id. Events from `intui-types` carry both as text.
 #[derive(Clone, Debug, PartialEq, Eq, Hash)]
-struct Key {
+pub(crate) struct Key {
     source: String,
     id: String,
 }
@@ -115,56 +103,54 @@ impl Key {
     }
 }
 
+/// Every control's slot, between frames. The app holds it and passes it to `show`, `settle` and `keep_only`.
 #[derive(Debug, Default)]
 pub struct Controls {
-    slots: HashMap<Key, Slot>,
+    pub(crate) slots: HashMap<Key, Slot>,
 }
 
-impl Controls {
-    pub fn new() -> Controls {
-        Controls::default()
-    }
+const READY: ControlState = ControlState::Ready;
 
-    /// How a control stands; Ready when the person hasn't touched it.
-    pub fn state(&self, source: &Source, id: &ControlId) -> &Control {
-        const READY: Control = Control::Ready;
-        self.slots.get(&Key::of(source, id)).map_or(&READY, |slot| &slot.control)
-    }
-
-    /// Forgets every control of a tree that is no longer on screen, so state doesn't pile up as trees come and go.
-    pub fn keep_only(&mut self, on_screen: &[Source]) {
-        self.slots.retain(|key, _| on_screen.iter().any(|source| source.as_str() == key.source));
-    }
-
-    pub(crate) fn slot(&mut self, source: &Source, id: &ControlId) -> &mut Slot {
-        self.slots.entry(Key::of(source, id)).or_insert_with(Slot::new)
-    }
-
-    /// A press or submit was returned to the app: the control waits for its answer.
-    pub(crate) fn begin(&mut self, event: &Event) {
-        let slot = self.slots.entry(Key::of_event(event)).or_insert_with(Slot::new);
-        slot.control = Control::Sending { value: Answer::of(event) };
-        slot.problems = Problems::default();
-    }
-
-    /// Records how the app says `event` ended. A press that is settled twice, or one this `Controls` never sent, changes nothing.
-    pub fn settle(&mut self, event: &Event, outcome: Outcome) -> Settlement {
-        let Some(slot) = self.slots.get_mut(&Key::of_event(event)) else {
-            return Settlement::NotWaiting;
-        };
-        let Control::Sending { value } = &slot.control else {
-            return Settlement::NotWaiting;
-        };
-        let value = value.clone();
-        slot.control = match outcome {
-            Outcome::Accepted => Control::Sent { value },
-            Outcome::Refused(why) => Control::Refused { value, why },
-        };
-        Settlement::Applied
-    }
+/// How a control stands; Ready when the person hasn't touched it.
+pub fn control_state<'c>(controls: &'c Controls, source: &Source, id: &ControlId) -> &'c ControlState {
+    controls.slots.get(&Key::of(source, id)).map_or(&READY, |slot| &slot.control)
 }
 
-/// The app tells the renderer how a press ended.
-pub fn settle(controls: &mut Controls, event: &Event, outcome: Outcome) -> Settlement {
-    controls.settle(event, outcome)
+/// Forgets every control of a tree that is no longer on screen, so state doesn't pile up as trees come and go.
+pub fn keep_only(controls: &mut Controls, on_screen: &[Source]) {
+    controls.slots.retain(|key, _| on_screen.iter().any(|source| source.as_str() == key.source));
+}
+
+pub(crate) fn slot<'c>(controls: &'c mut Controls, source: &Source, id: &ControlId) -> &'c mut Slot {
+    controls.slots.entry(Key::of(source, id)).or_insert_with(Slot::new)
+}
+
+/// Sends one event into the machine for the control `event` names, stores the state it returns, and hands back
+/// the events to send to the app. An ignored event changes nothing.
+pub(crate) fn feed(controls: &mut Controls, tree: &Tree, event: &Event, input: ControlEvent) -> (Step, Vec<Event>) {
+    let at = ControlAt { tree, source: event.source(), id: event.target() };
+    let slot = controls.slots.entry(Key::of_event(event)).or_insert_with(Slot::new);
+    let result = step(at, &slot.control, input);
+    let mut sends = Vec::new();
+    if let Step::Moved { state, effects } = &result {
+        slot.control = state.clone();
+        if matches!(state, ControlState::Sending { .. }) {
+            slot.problems = Problems::default();
+        }
+        sends.extend(effects.iter().map(|Effect::Send(sent)| sent.clone()));
+    }
+    (result, sends)
+}
+
+/// The app tells the renderer how a press ended. A press that is settled twice, or one this `Controls` never sent,
+/// changes nothing.
+pub fn settle(controls: &mut Controls, tree: &Tree, event: &Event, outcome: Outcome) -> Settlement {
+    let input = match outcome {
+        Outcome::Accepted => ControlEvent::Accepted,
+        Outcome::Refused(why) => ControlEvent::Refused(why),
+    };
+    match feed(controls, tree, event, input).0 {
+        Step::Moved { .. } => Settlement::Applied,
+        Step::Ignored { .. } => Settlement::NotWaiting,
+    }
 }

@@ -2,13 +2,13 @@
 //!
 //! Every kind's drawing asks the `Scene` for looks in meanings and names itself to accessibility with its text form.
 
-use crate::controls::{Controls, Outcome, Source};
+use crate::controls::{self, Controls, Source};
 use crate::draw;
 use crate::style::{ButtonLook, ButtonRole, Family, FrameLook, FrameRole, SeriesRole, Style, StrokeLook, TextLook, TextRole, ToneLook};
 use egui::text::LayoutJob;
 use egui::{Color32, CornerRadius, FontFamily, FontId, Galley, Response, Ui, Visuals, WidgetInfo, WidgetType};
 use intui_types::forms::Tone;
-use intui_types::{Drawn, Event, Node, Tree};
+use intui_types::{Answer, ControlEvent, Drawn, Event, Node, Tree};
 use std::sync::Arc;
 
 pub(crate) struct Scene<'a> {
@@ -68,13 +68,8 @@ impl Scene<'_> {
     /// Hands a press or submit to the app, and the control waits for its answer. An event the tree itself can't have
     /// produced is never sent: the control shows why instead.
     pub fn send(&mut self, event: Event) {
-        self.controls.begin(&event);
-        match self.tree.problem_with(&event) {
-            Some(problem) => {
-                self.controls.settle(&event, Outcome::Refused(problem.to_string()));
-            }
-            None => self.events.push(event),
-        }
+        let (_, sends) = controls::feed(self.controls, self.tree, &event, ControlEvent::Answered(Answer::of(&event)));
+        self.events.extend(sends);
     }
 
     /// The text form of `drawn`, worked out once per place in the tree: it's what accessibility reads.

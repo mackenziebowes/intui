@@ -23,12 +23,17 @@ pub const SENT: &str = "Sent";
 
 /// What the app's refusal looks like by the control, when the app gave its words.
 pub fn refused(label: &str, why: &str) -> String {
-    format!("Couldn't send “{label}”: {why} Try again.")
+    format!("Couldn't send “{label}”: {}. Try again.", sentence(why))
+}
+
+/// The app's words without a closing full stop, so the renderer's own sentence ends them once.
+fn sentence(why: &str) -> &str {
+    why.trim_end().trim_end_matches('.')
 }
 
 /// What a refused form says: the app's words, and that nothing the person typed was lost.
 pub fn refused_form(why: &str) -> String {
-    format!("Couldn't send this: {why} Your answers are still here; try again.")
+    format!("Couldn't send this: {}. Your answers are still here; try again.", sentence(why))
 }
 
 /// What a refusal says when the app gave no words.
@@ -89,3 +94,6 @@ pub fn back_to(label: &str) -> String {
 pub fn to_step(label: &str) -> String {
     format!("To {label}")
 }
+
+/// A control on a surface with nowhere to send an answer (core's web renderer says the same).
+pub const READ_ONLY: &str = "This view is read-only: there is nowhere to send an answer.";
