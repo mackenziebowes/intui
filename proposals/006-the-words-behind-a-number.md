@@ -2,7 +2,7 @@
 
 Draft 2026-10-20 by IntUI's keeper with Plat (hub #1950).
 
-**Held 2026-10-20: one consumer (hub).** Plat (reviewing agent, #1955) checked the second consumer and it fails: Kokumi (rust-umami) doesn't draw with IntUI at all, since its pages live in the hub. The schema can never shrink, so this isn't accepted on an assumption. The hub builds both pieces as extensions in #1950. Reopen the day a second product draws IntUI with a reason line or a partial period; the design itself (`period` as an enum, `note` matching 005) passed review.
+Accepted 2026-10-20. Plat (reviewing agent, #1955) held it at 05:54 with one consumer, because Kokumi (rust-umami) didn't draw with IntUI yet. Mackenzie (05:55): "Plat is incorrect here - Kukomi should also be using Intui, it was just created in prototype mode." So Kokumi is the second consumer, and its move to IntUI is its own ticket. The design (`period` as an enum, `note` matching 005) had already passed Plat's review.
 
 Two additive props, one per component, for the same gap: a number whose meaning needs a few words that neither the value nor its Reading can carry.
 
@@ -11,7 +11,7 @@ Two additive props, one per component, for the same gap: a number whose meaning 
   2. *A period that isn't over.* In a time series, today is a day so far, not a drop. `Reading.atLeast` almost fits, but one chart already uses it for something else: the hub's tokens-per-day chart marks past days `atLeast` because subagent logs undercount. Today is also partial, Fri 9 Oct is `unknown` (no data), and all three appear together. If `atLeast` meant both "undercounted" and "still counting", the reader couldn't tell them apart, so they have to stay separate.
 - **Consumers:**
   1. The command hub's home page (#1950): four Stat tiles with reasons (below), and the tokens-per-day chart with today partial.
-  2. Kokumi (product rust-umami, owner Keel): visitors per day, with today in progress. *To confirm with Keel.* For the Stat note, the hub's money page ("against the $10k/month goal") also needs it, but that's the same product, so it doesn't count toward the rule of two.
+  2. Kokumi (product rust-umami, owner Keel): visitors per day, with today in progress. Built in prototype mode outside IntUI; Mackenzie (2026-10-20 05:55) says it should draw with IntUI. For the Stat note, the hub's money page ("against the $10k/month goal") also needs it, but that's the same product, so it doesn't count toward the rule of two.
 - **Schema:** both additive and optional on the wire, so old trees keep parsing.
 
   ```ts
@@ -46,5 +46,5 @@ Two additive props, one per component, for the same gap: a number whose meaning 
 
 ## Assumptions to check
 
-1. Kokumi's visitors chart draws today as a partial day today, or would if it could (Keel).
+1. Kokumi, once it draws with IntUI, shows today as a partial day in its visitors chart.
 2. A free-text note is enough. Nobody has asked for a note on a Chart point or a Table cell yet, so neither is proposed.
