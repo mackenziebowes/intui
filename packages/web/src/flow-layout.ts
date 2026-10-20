@@ -40,10 +40,32 @@ export type FlowPlan = {
   gutter: number
 }
 
-/** The gutter that fits the widest arrow label, within bounds. */
+/** Room left and right of an arrow label inside its gutter. */
+const LABEL_PAD = 28
+
+/**
+ * The gutter that fits the widest arrow label on one line, within bounds; a label wider than
+ * GUTTER_MAX wraps (see `wrapLabel`), so the gutter only has to fit its longest word.
+ */
 export function gutterFor(edges: readonly Edge[], measure: Measure = estimateWidth): number {
-  const widest = Math.max(0, ...edges.map(edge => (edge.label ? measure(edge.label) : 0)))
-  return Math.round(Math.min(GUTTER_MAX, Math.max(GUTTER_MIN, widest ? widest + 28 : 0)))
+  const labels = edges.flatMap(edge => (edge.label ? [edge.label] : []))
+  const widest = Math.max(0, ...labels.map(measure))
+  const longestWord = Math.max(0, ...labels.flatMap(label => label.split(/\s+/)).map(measure))
+  return Math.round(Math.max(Math.min(GUTTER_MAX, Math.max(GUTTER_MIN, widest ? widest + LABEL_PAD : 0)), longestWord ? longestWord + LABEL_PAD : 0))
+}
+
+/** The width an arrow label may take in a row's gutter. */
+export const labelRoom = (gutter: number) => gutter - LABEL_PAD + 8
+
+/** An arrow label as lines no wider than `width`, broken at spaces; a single word wider than that stays whole. */
+export function wrapLabel(label: string, width: number, measure: Measure = estimateWidth): string[] {
+  const lines: string[] = []
+  for (const word of label.split(/\s+/).filter(Boolean)) {
+    const last = lines[lines.length - 1]
+    if (last !== undefined && measure(`${last} ${word}`) <= width) lines[lines.length - 1] = `${last} ${word}`
+    else lines.push(word)
+  }
+  return lines.length > 0 ? lines : [label]
 }
 
 /**

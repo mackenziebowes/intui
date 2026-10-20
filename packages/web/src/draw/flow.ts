@@ -4,11 +4,18 @@
  * links is kept in the DOM order for screen readers.
  */
 import type { FlowProps } from '@intui/core'
-import type { Drawer } from '../dom'
-import { connector, flowPlan, type Box } from '../flow-layout'
+import type { DrawContext, Drawer } from '../dom'
+import { connector, flowPlan, labelRoom, wrapLabel, type Box } from '../flow-layout'
 import { asText } from './chart'
 
 const LABEL_FONT = 12
+/** Line height of a wrapped arrow label, in pixels. */
+const LABEL_LINE = 14
+
+/** Text with a break opportunity after each `.`, `/`, `-` and `_`, so a long name (`intui.schema.json`) breaks there, not mid-word. */
+function breakable(dom: DrawContext['dom'], text: string): (string | Node)[] {
+  return text.split(/(?<=[./_-])/).flatMap((part, i) => (i === 0 ? [part] : [dom.el('wbr'), part]))
+}
 
 /**
  * Steps are boxes laid out by CSS, one layer after another: side by side when
@@ -31,8 +38,8 @@ export const flow: Drawer<FlowProps> = (props, ctx) => {
     return dom.el(
       'li',
       { class: 'intui-flow-step' },
-      dom.el('strong', { class: 'intui-flow-label' }, step.label),
-      step.detail ? dom.el('span', { class: 'intui-flow-detail' }, step.detail) : null,
+      dom.el('strong', { class: 'intui-flow-label' }, ...breakable(dom, step.label)),
+      step.detail ? dom.el('span', { class: 'intui-flow-detail' }, ...breakable(dom, step.detail)) : null,
       notes[i]!,
       out.length > 0
         ? dom.el('span', { class: 'intui-sr' }, `Leads to ${out.map(edge => `${nameOf(edge.to)}${edge.label ? ` (${edge.label})` : ''}`).join(', ')}.`)
@@ -48,7 +55,10 @@ export const flow: Drawer<FlowProps> = (props, ctx) => {
   figure.append(canvas, asText(ctx, ctx.text(props), 'Show as text'))
 
   ctx.onWidth(canvas, width => {
-    const plan = flowPlan(props.steps, props.links, width, ctx.measureIn(canvas, LABEL_FONT))
+    const measure = ctx.measureIn(canvas, LABEL_FONT)
+    const plan = flowPlan(props.steps, props.links, width, measure)
+    // In a row a label must fit its gutter, so it wraps; stacked, it has the width of the flow.
+    const room = plan.direction === 'row' ? labelRoom(plan.gutter) : Math.max(120, width / 2)
     canvas.dataset.direction = plan.direction
     plan.notes.forEach((list, i) =>
       notes[i]!.replaceChildren(...list.map(note => dom.el('span', { class: `intui-flow-note intui-flow-note--${note.kind}`, 'aria-hidden': note.kind === 'link' ? 'true' : undefined }, note.text))),
@@ -79,11 +89,22 @@ export const flow: Drawer<FlowProps> = (props, ctx) => {
       ...curves.map(({ c }) => dom.svg('path', { class: 'intui-flow-arrow', d: c.d, 'marker-end': `url(#${markerId})` })),
       ...curves.flatMap(({ edge, c }) =>
         edge.label
-          ? [dom.svg('text', { class: 'intui-flow-edge-label', x: c.label.x.toFixed(1), y: c.label.y.toFixed(1), 'text-anchor': 'middle', 'dominant-baseline': 'central' }, edge.label)]
+          ? [labelText(edge.label, c.label)]
           : [],
       ),
     ]
     edgesSvg.replaceChildren(defs, ...paths)
+
+    /** One line per wrapped line, centred on the curve's midpoint. */
+    function labelText(label: string, at: { x: number; y: number }) {
+      const lines = wrapLabel(label, room, measure)
+      const top = at.y - ((lines.length - 1) * LABEL_LINE) / 2
+      return dom.svg(
+        'text',
+        { class: 'intui-flow-edge-label', 'text-anchor': 'middle', 'dominant-baseline': 'central' },
+        ...lines.map((line, k) => dom.svg('tspan', { x: at.x.toFixed(1), y: (top + k * LABEL_LINE).toFixed(1) }, line)),
+      )
+    }
   })
   return figure
 }
