@@ -11,6 +11,8 @@ import { asText } from './chart'
 
 /** Above this many marks in one field, glyphs become a count and a band. */
 const THIN = 30
+/** Up to this many visits on a step line are drawn as one spark each. */
+const SPARKS = 30
 const SHAPES = ['filled', 'hollow', 'ring'] as const
 
 type Look = { kinds: MarkKind[]; states: MarkState[] }
@@ -81,6 +83,9 @@ export const ladder: Drawer<LadderProps> = (props, ctx) => {
   const rungOf = new Map(props.rungs.flatMap((r, i) => r.nodes.map(n => [n.id, i] as const)))
   const labelOf = new Map(props.rungs.flatMap(r => r.nodes.map(n => [n.id, n.label] as const)))
   const figure = dom.el('figure', { class: 'intui-ladder' })
+  const canvas = dom.el('div', { class: 'intui-ladder-canvas' })
+  const lines = dom.svg('svg', { class: 'intui-ladder-lines', 'aria-hidden': 'true' })
+  const sparks = dom.el('div', { class: 'intui-ladder-sparks', 'aria-hidden': 'true' })
   const stack = dom.el('ol', { class: 'intui-ladder-rungs', reversed: true })
   // Top rung first. A step is shown under the rung it climbs to, between that rung and the one below.
   for (let r = props.rungs.length - 1; r >= 0; r--) {
@@ -90,13 +95,13 @@ export const ladder: Drawer<LadderProps> = (props, ctx) => {
         node.unknown !== undefined
           ? dom.el('p', { class: 'intui-unknown' }, `unknown, ${node.unknown}`)
           : field(dom, node.marks, look, node.count)
-      return dom.el('li', { class: 'intui-ladder-node', 'data-group': node.group }, dom.el('strong', { class: 'intui-ladder-node-label' }, node.label), node.group ? dom.el('span', { class: 'intui-muted intui-ladder-group' }, node.group) : null, body)
+      return dom.el('li', { class: 'intui-ladder-node', 'data-group': node.group, 'data-node': node.id }, dom.el('strong', { class: 'intui-ladder-node-label' }, node.label), node.group ? dom.el('span', { class: 'intui-muted intui-ladder-group' }, node.group) : null, body)
     })
     const steps = props.steps.filter(s => rungOf.get(s.to) === r)
     stack.append(
       dom.el(
         'li',
-        { class: 'intui-ladder-rung' },
+        { class: 'intui-ladder-rung', style: `--depth:${props.rungs.length - 1 - r}` },
         dom.el('h4', { class: 'intui-ladder-label' }, rung.label),
         nodes.length ? dom.el('ul', { class: 'intui-ladder-nodes' }, ...nodes) : dom.el('p', { class: 'intui-muted intui-ladder-empty' }, rung.empty ?? 'none'),
         steps.length
@@ -105,6 +110,41 @@ export const ladder: Drawer<LadderProps> = (props, ctx) => {
       ),
     )
   }
-  figure.append(stack, key(dom, look), asText(ctx, ctx.text(props), 'Show as text'))
+  canvas.append(stack, lines, sparks)
+  figure.append(canvas, key(dom, look), asText(ctx, ctx.text(props), 'Show as text'))
+  // Steps as lines from node to node, drawn from the nodes' measured places and redrawn when the width changes. A line's weight
+  // never says a number: its number is the text on it. Up to SPARKS visits on a line each travel it as one spark; above that the
+  // line glows steadily and the number says the rest. Under reduced motion the sparks stand still, spread along the line.
+  ctx.onWidth(canvas, () => {
+    const origin = canvas.getBoundingClientRect()
+    lines.setAttribute('viewBox', `0 0 ${origin.width} ${origin.height}`)
+    lines.setAttribute('width', String(origin.width))
+    lines.setAttribute('height', String(origin.height))
+    lines.replaceChildren()
+    sparks.replaceChildren()
+    const place = (id: string) => {
+      const el = canvas.querySelector(`[data-node="${CSS.escape(id)}"]`)
+      if (!el) return undefined
+      const r = el.getBoundingClientRect()
+      return { x: r.left - origin.left + r.width / 2, top: r.top - origin.top, bottom: r.top - origin.top + r.height }
+    }
+    const paths = props.steps.flatMap(step => {
+      const from = place(step.from)
+      const to = place(step.to)
+      if (!from || !to) return []
+      const bend = Math.max(14, (from.top - to.bottom) / 2)
+      const d = `M${from.x.toFixed(1)} ${from.top.toFixed(1)} C${from.x.toFixed(1)} ${(from.top - bend).toFixed(1)} ${to.x.toFixed(1)} ${(to.bottom + bend).toFixed(1)} ${to.x.toFixed(1)} ${to.bottom.toFixed(1)}`
+      return [{ step, d, mid: { x: (from.x + to.x) / 2, y: (from.top + to.bottom) / 2 } }]
+    })
+    for (const { step, d, mid } of paths) {
+      const glow = (step.n ?? 0) > SPARKS
+      lines.append(dom.svg('path', { class: `intui-ladder-line${glow ? ' is-glowing' : ''}`, d }, dom.svg('title', {}, step.label)))
+      if (step.n !== undefined) lines.append(dom.svg('text', { class: 'intui-ladder-line-n', x: mid.x.toFixed(1), y: mid.y.toFixed(1), 'text-anchor': 'middle' }, String(step.n)))
+      const count = glow ? 0 : Math.min(step.n ?? 0, SPARKS)
+      for (let i = 0; i < count; i++) {
+        sparks.append(dom.el('span', { class: 'intui-spark', style: `offset-path:path('${d}');--at:${((i + 0.5) / count) * 100}%;--delay:${-(i / count) * 6}s` }))
+      }
+    }
+  })
   return figure
 }

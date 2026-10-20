@@ -152,3 +152,28 @@
 @media (prefers-reduced-motion: reduce) {
   .intui-marks-glyphs .intui-mark { animation: none; }
 }
+
+/* Ladder: rungs are glass planes lit from below, each a little darker and further back as the climb goes up, with a faint
+   horizon line. Steps are lines from node to node; a spark is one visit travelling its line. People are lit; visits stay dim. */
+.intui-ladder-canvas { position: relative; }
+.intui-ladder-lines, .intui-ladder-sparks { position: absolute; inset: 0; pointer-events: none; overflow: visible; }
+.intui-ladder-line { fill: none; stroke: color-mix(in oklab, var(--_accent) 55%, var(--_muted)); stroke-width: 1.25; opacity: 0.7; }
+.intui-ladder-line.is-glowing { filter: drop-shadow(0 0 3px var(--_accent)); opacity: 0.95; }
+.intui-ladder-line-n { fill: var(--_fg); font-size: 12px; font-variant-numeric: tabular-nums; paint-order: stroke; stroke: var(--_surface); stroke-width: 4px; stroke-linejoin: round; }
+.intui-spark {
+  position: absolute; left: 0; top: 0; inline-size: 6px; block-size: 6px; margin: -3px 0 0 -3px; border-radius: 50%;
+  background: var(--_accent); box-shadow: 0 0 6px var(--_accent);
+  offset-distance: var(--at, 0%); offset-rotate: 0deg;
+  animation: intui-travel 6s linear infinite; animation-delay: var(--delay, 0s);
+}
+@keyframes intui-travel { from { offset-distance: 0%; opacity: 0; } 10% { opacity: 1; } 90% { opacity: 1; } to { offset-distance: 100%; opacity: 0; } }
+@media (prefers-reduced-motion: reduce) { .intui-spark { animation: none; opacity: 0.9; } }
+.intui-ladder-rung {
+  border-top: 1px solid color-mix(in oklab, var(--_accent) calc(32% - var(--depth, 0) * 4%), var(--_line));
+  background:
+    linear-gradient(to top, color-mix(in oklab, var(--_accent) calc(12% - var(--depth, 0) * 2%), transparent), transparent 65%),
+    color-mix(in oklab, var(--_surface) calc(100% - var(--depth, 0) * 9%), black);
+  box-shadow: inset 0 -1px 0 color-mix(in oklab, var(--_accent) 18%, transparent);
+}
+.intui-ladder .intui-mark[data-shape="filled"] { background: var(--_tone, var(--_accent)); box-shadow: 0 0 0.5em var(--_tone, var(--_accent)), 0 0 1.2em color-mix(in oklab, var(--_tone, var(--_accent)) 60%, transparent); }
+.intui-ladder .intui-mark[data-shape="hollow"] { opacity: 0.7; border-color: var(--_tone, var(--_muted)); box-shadow: none; }

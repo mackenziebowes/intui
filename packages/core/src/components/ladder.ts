@@ -31,6 +31,8 @@ export interface LadderStep {
   from: string;
   to: string;
   label: string;
+  /** How many things went along this step, so a renderer can draw one for each (a spark per visit). The label says it in words. */
+  n?: number;
 }
 
 export interface LadderProps extends Node {
@@ -78,7 +80,7 @@ export const Ladder = defineKind<LadderProps>({
           )
           .min(1, "a Ladder needs at least one rung; use a Text to say there is nothing to show"),
         steps: z
-          .array(z.strictObject({ from: z.string().min(1), to: z.string().min(1), label: z.string().min(1) }).meta({ id: "LadderStep" }))
+          .array(z.strictObject({ from: z.string().min(1), to: z.string().min(1), label: z.string().min(1), n: z.number().int().min(0).optional() }).meta({ id: "LadderStep" }))
           .default([]),
       })
       .superRefine((ladder, ctx) => {

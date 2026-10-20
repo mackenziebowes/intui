@@ -109,6 +109,8 @@ pub struct LadderStep {
     pub from: NodeAt,
     pub to: NodeAt,
     pub label: String,
+    /// How many things went along it; a renderer draws one for each.
+    pub n: Option<u64>,
 }
 
 #[derive(Clone, Debug, PartialEq)]

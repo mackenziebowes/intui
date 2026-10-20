@@ -83,7 +83,11 @@ pub(super) fn ladder(fields: &Fields) -> Result<Ladder, Drift> {
         "steps",
         |step| {
             let end = |key: &str| find(&step.text(key)?).ok_or_else(|| step.drift(key));
-            Ok(LadderStep { from: end("from")?, to: end("to")?, label: step.text("label")? })
+            let n = match step.object.get("n") {
+                None => None,
+                Some(n) => Some(n.as_finite().map(|n| n as u64).ok_or_else(|| step.drift("n"))?),
+            };
+            Ok(LadderStep { from: end("from")?, to: end("to")?, label: step.text("label")?, n })
         },
         "LadderStep",
     )?;
