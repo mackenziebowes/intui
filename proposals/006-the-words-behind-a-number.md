@@ -1,6 +1,8 @@
 # 006: The words behind a number
 
-Draft 2026-10-20 by IntUI's keeper with Plat (hub #1950). Not yet accepted.
+Draft 2026-10-20 by IntUI's keeper with Plat (hub #1950).
+
+**Held 2026-10-20: one consumer (hub).** Plat (reviewing agent, #1955) checked the second consumer and it fails: Kokumi (rust-umami) doesn't draw with IntUI at all, since its pages live in the hub. The schema can never shrink, so this isn't accepted on an assumption. The hub builds both pieces as extensions in #1950. Reopen the day a second product draws IntUI with a reason line or a partial period; the design itself (`period` as an enum, `note` matching 005) passed review.
 
 Two additive props, one per component, for the same gap: a number whose meaning needs a few words that neither the value nor its Reading can carry.
 
