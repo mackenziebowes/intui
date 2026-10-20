@@ -56,40 +56,41 @@ const DRAWERS: Record<string, Drawer> = {
 /** The kinds this renderer draws natively; anything else is drawn as its text form. */
 export const drawnKinds: readonly string[] = Object.keys(DRAWERS)
 
-let counter = 0
-
 /** A node's Markdown text form, written by the catalog the tree was parsed with. */
 export function textOf(tree: Tree, node: Node): string {
   return Tree.textOf(node)
 }
 
-/** A DOM id from a name that may hold anything (a field id with spaces): only letters, digits, `_` and `-`, and unique on the page. */
-function domId(prefix: string, name: string, n: number): string {
-  const safe = name.replace(/[^A-Za-z0-9-]/g, ch => `_${ch.codePointAt(0)!.toString(16)}_`)
-  return `${prefix}-${safe}-${n}`
-}
+/** Text that may hold anything (a field id with spaces) as id-safe characters: letters, digits and `-`, the rest escaped. */
+const safe = (text: string) => text.replace(/[^A-Za-z0-9-]/g, ch => `_${ch.codePointAt(0)!.toString(16)}_`)
+
+/**
+ * A DOM id from where a node sits, not from a counter: the source names the drawing, the path the
+ * node in it, the name the element in the node. Unique on the page because one source names one
+ * drawing (see `render`), so drawing the same tree again gives the same ids.
+ */
+const domId = (source: string, path: string, name: string) => `intui-${safe(source)}-${path}-${safe(name)}`
 
 /**
  * Draws a parsed tree as DOM. Returns a detached `<div class="intui">` for the
  * host to place; include the stylesheet (`@intui/web/style.css`) on the page.
+ *
+ * One source names one drawing on a page: element ids come from the source and each
+ * node's place in the tree, so two drawings with the same source on one page would
+ * share ids. Give each drawing its own source, as a host's tool call or slot id does.
  */
 export function render(tree: Tree, options: RenderOptions): HTMLElement {
   const doc = options.document ?? globalThis.document
   const dom = domOf(doc)
   const view = doc.defaultView
-  const prefix = `intui${++counter}`
-  let ids = 0
-
-  const ctx: DrawContext = {
+  const base: Omit<DrawContext, 'child' | 'uid'> = {
     dom,
     tree,
     source: options.source,
-    child: node => draw(node),
     text: node => Tree.textOf(node),
     ...(options.onEvent ? { send: async (event: IntuiEvent) => void (await options.onEvent!(event)) } : {}),
     pressed: options.pressed ?? (() => undefined),
     submitted: options.submitted ?? (() => undefined),
-    uid: name => domId(prefix, name, ++ids),
     onWidth: (element, draw) => {
       draw(element.getBoundingClientRect().width || 560)
       const Observer = view?.ResizeObserver
@@ -102,8 +103,10 @@ export function render(tree: Tree, options: RenderOptions): HTMLElement {
     measureIn: (element, fontSize) => measurer(element, fontSize, doc),
   }
 
-  function draw(node: Node): HTMLElement {
+  /** `path` is the node's place: `0` for the root, then each child's index (`0.2.1`). */
+  function draw(node: Node, path: string): HTMLElement {
     const drawer = DRAWERS[node.type]
+    const ctx: DrawContext = { ...base, child: (child, index) => draw(child, `${path}.${index}`), uid: name => domId(options.source, path, name) }
     if (drawer) {
       try {
         return drawer(node, ctx)
@@ -115,7 +118,7 @@ export function render(tree: Tree, options: RenderOptions): HTMLElement {
     return dom.html('div', { class: 'intui-text intui-fallback', 'data-type': node.type }, markdownToHtml(Tree.textOf(node)))
   }
 
-  const root = dom.el('div', { class: 'intui', 'data-theme': options.theme, 'data-source': options.source }, draw(tree.root))
+  const root = dom.el('div', { class: 'intui', 'data-theme': options.theme, 'data-source': options.source }, draw(tree.root, '0'))
   if (options.copyButton !== false) root.append(copyButton(dom, Tree.toText(tree)))
   return root
 }

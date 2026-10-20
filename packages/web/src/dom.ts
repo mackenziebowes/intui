@@ -62,7 +62,8 @@ export type DrawContext = {
   /** The id of whatever drew the tree, carried by every event. */
   source: string
   /** Draws a child node. */
-  child: (node: Node) => HTMLElement
+  /** Draws a child node; `index` is its place among its parent's children, which its element ids are built from. */
+  child: (node: Node, index: number) => HTMLElement
   /** A node's Markdown text form. */
   text: (node: Node) => string
   /** Sends an event to the host, or undefined when the host gave no handler (a read-only view). */
@@ -72,7 +73,8 @@ export type DrawContext = {
   /** The values a Form was submitted with, or undefined if it hasn't been. */
   submitted: (formId: string) => Record<string, FieldValue> | undefined
   /** An id unique on the page, for aria wiring. */
-  uid: (prefix: string) => string
+  /** A page-unique element id for `name` in this node, built from the source and the node's path (no counter). */
+  uid: (name: string) => string
   /** Calls `draw` with the element's width now (a guess before it's on the page) and whenever it changes. */
   onWidth: (element: HTMLElement, draw: (width: number) => void) => void
   /** Measures text in the element's own font, falling back to an estimate before it's on the page. */
