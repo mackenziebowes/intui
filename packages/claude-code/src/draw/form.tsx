@@ -1,14 +1,14 @@
 /**
  * The Form drawer for Claude Code: a field per input kind, a submit button that stays
  * blocked, with a sentence saying why, until required fields are filled and numbers parse,
- * and, once submitted, the values it was sent with. Nothing a handler throws reaches the
- * engine; it becomes a note.
+ * and, once submitted, the values it was sent with. Whether it is sent, sending or refused
+ * comes from core's control machine; nothing a field handler throws reaches the engine, it becomes a note.
  */
 import type { FieldValue, FormField, FormProps } from '@intui/core'
 import type { ElementTable } from 'claude-code'
 import { parseNumber } from '@intui/layout'
 import { defineDrawer, type DrawContext } from './drawer'
-import { describeError } from './choice-view'
+import { whyOf } from '@intui/core'
 import { blockedNote, checkboxLabel, fieldLabel, missingRequired, summarize } from './form-logic'
 
 type Fields = ElementTable<'terminal'>
@@ -20,7 +20,7 @@ async function guarded(ctx: DrawContext, noteKey: string, run: () => Promise<voi
     await ctx.setNote(noteKey, undefined)
     await run()
   } catch (error) {
-    await ctx.setNote(noteKey, describeError(error))
+    await ctx.setNote(noteKey, whyOf(error))
   }
 }
 
@@ -30,7 +30,8 @@ export const form = defineDrawer<FormProps>({
     const { el, key } = ctx
     const valueOf = (fieldId: string) => ctx.field(props.id, fieldId)
 
-    if (ctx.submitted(props.id)) {
+    const state = ctx.control(props.id)
+    if (state.kind === 'sent') {
       return (
         <el.Box flexDirection="column">
           <el.Text dimColor>✓ Sent</el.Text>
@@ -55,7 +56,7 @@ export const form = defineDrawer<FormProps>({
     const missing = missingRequired(props.fields, fieldId => effective(props.fields.find(f => f.id === fieldId)!))
     const blocked = blockedNote(missing, invalid)
     const fieldFailure = (field: FormField) => ctx.note(key('field', field.id))
-    const submitFailure = ctx.note(key('submit'))
+    const submitFailure = state.kind === 'refused' ? state.why : undefined
 
     const save = (fieldId: string, value: FieldValue) => ctx.setField(props.id, fieldId, value)
 
@@ -120,12 +121,11 @@ export const form = defineDrawer<FormProps>({
           key={key('submit')}
           label={props.submitLabel}
           variant="primary"
-          onPress={() =>
-            guarded(ctx, key('submit'), async () => {
-              if (blocked) return
-              await ctx.submit(props.id)
-            })
-          }
+          onPress={async () => {
+            if (blocked) return
+            const values = Object.fromEntries(props.fields.flatMap(f => (valueOf(f.id) === undefined ? [] : [[f.id, valueOf(f.id)!] as const])))
+            await ctx.answer(props.id, { kind: 'submit', values })
+          }}
         />
         {blocked ? <el.Text color="yellow">{blocked}</el.Text> : null}
         {submitFailure ? <el.Text color="red">{`Could not send: ${submitFailure}`}</el.Text> : null}

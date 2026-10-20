@@ -2,13 +2,13 @@
  * The plugin's wiring into Claude Code: registers the `show` and demo tools and the
  * `/intui` command, refuses a bad `show` tree with every problem listed, draws a tree on
  * the transcript row of the call or result that carries it, and turns a press or submit
- * into a message to the agent. It keeps the used-up choices, typed form values, notes and
+ * into a message to the agent through core's control machine. It keeps each control's state, typed form values, notes and
  * pending counts across redraws in the plugin's store.
  */
 import { atom, read, update } from 'claude-code'
 import type { EngineInterface, Register, RenderInput } from 'claude-code'
-import { IntuiError, IntuiEvent, Tree } from '@intui/core'
-import type { IntuiForms, IntuiNotes, IntuiTrees, IntuiUsed } from '../types'
+import { IntuiError, IntuiEvent, startControl, stepControl, Tree, whyOf, type Answer, type ControlEvent, type ControlState } from '@intui/core'
+import type { IntuiControls, IntuiForms, IntuiNotes, IntuiTrees, IntuiUsed } from '../types'
 import { drawnTypes, drawTree } from './draw'
 import { DEMO_TOOL, DEMO_TOOL_FULL_NAME, demoTree } from './demo'
 import { MAX_TREES, treeFromOutput } from './envelope'
@@ -34,6 +34,7 @@ const STARTS = 'starts'
 const PENDING = 'pending'
 
 const used = atom({ plugin: 'intui', key: 'used' } as const, {} as IntuiUsed)
+const controls = atom({ plugin: 'intui', key: 'controls' } as const, {} as IntuiControls)
 const forms = atom({ plugin: 'intui', key: 'forms' } as const, {} as IntuiForms)
 const trees = atom({ plugin: 'intui', key: 'trees' } as const, {} as IntuiTrees)
 const notes = atom({ plugin: 'intui', key: 'notes' } as const, {} as IntuiNotes)
@@ -50,37 +51,41 @@ async function drawForRow($: EngineInterface, e: RenderInput<'ToolUse' | 'ToolRe
   // A press or submit answers what is waiting. Written from a handler, never while drawing.
   const answered = async () =>
     $.store.set(PENDING, pendingAfterAnswer(((await $.store.get(PENDING)) ?? {}) as Pending, await $.session.id()))
-  const usedNow = await read($, used)
+  const controlsNow = await read($, controls)
   const formsNow = await read($, forms)
   const notesNow = await read($, notes)
   const at = (id: string) => `${source}:${id}`
+  const fresh: ControlState = startControl(true, undefined)
+  /** One step of a control's machine, written back to the store; returns the step so its effects can run. */
+  const advance = async (controlId: string, event: ControlEvent) => {
+    const control = tree.interactive(controlId)
+    if (!control) return undefined
+    const step = stepControl({ source, control }, (await read($, controls))[at(controlId)] ?? fresh, event)
+    if (!step.ignored) await update($, controls, all => ({ ...all, [at(controlId)]: step.state }))
+    return step
+  }
   return drawTree(tree, {
     surface: e.surface,
     el: $.ui.resolve(e),
     columns: e.viewport?.columns ?? 80,
     source,
-    pressed: choiceId => usedNow[at(choiceId)],
-    press: async (choiceId, optionId) => {
-      const event = IntuiEvent.press(source, choiceId, optionId)
-      tree.verify(event)
-      const choice = tree.interactive(choiceId)
-      if (choice?.type === 'Choice' && choice.repeat === 'once') {
-        await update($, used, all => ({ ...all, [at(choiceId)]: optionId }))
+    control: controlId => controlsNow[at(controlId)] ?? fresh,
+    // The send effect is a message to the agent; once the engine takes it the answer is accepted.
+    answer: async (controlId: string, answer: Answer) => {
+      const step = await advance(controlId, { kind: 'answered', answer })
+      for (const effect of step?.effects ?? []) {
+        try {
+          await answered()
+          await $.prompt.submit({ text: tree.describe(IntuiEvent.parse(effect.event)) })
+          await advance(controlId, { kind: 'accepted' })
+        } catch (error) {
+          await advance(controlId, { kind: 'refused', why: whyOf(error) })
+        }
       }
-      await answered()
-      await $.prompt.submit({ text: tree.describe(event) })
     },
     field: (formId, fieldId) => formsNow[at(formId)]?.[fieldId],
     setField: async (formId, fieldId, value) => {
       await update($, forms, all => ({ ...all, [at(formId)]: { ...all[at(formId)], [fieldId]: value } }))
-    },
-    submitted: formId => usedNow[at(formId)] !== undefined,
-    submit: async formId => {
-      const event = IntuiEvent.submit(source, formId, (await read($, forms))[at(formId)] ?? {})
-      tree.verify(event)
-      await update($, used, all => ({ ...all, [at(formId)]: 'submitted' }))
-      await answered()
-      await $.prompt.submit({ text: tree.describe(event) })
     },
     note: id => notesNow[at(id)],
     setNote: async (id, text) => {
@@ -94,6 +99,15 @@ async function drawForRow($: EngineInterface, e: RenderInput<'ToolUse' | 'ToolRe
 
 export const register: Register = on => {
   on('session.start', async ($, e, next) => {
+    // Rewrite the old record of used-up controls into the machine's states (hub #1956), once.
+    const old = await read($, used)
+    if (Object.keys(old).length > 0) {
+      await update($, controls, all => ({
+        ...Object.fromEntries(Object.entries(old).map(([key, value]): [string, ControlState] => [key, { kind: 'sent', answer: value === 'submitted' ? { kind: 'submit', values: {} } : { kind: 'press', option: value } }])),
+        ...all,
+      }))
+      await update($, used, () => ({}))
+    }
     await $.store.set(STARTS, startCounted(((await $.store.get(STARTS)) ?? {}) as Record<string, number>))
     await $.tool.register(SHOW_TOOL)
     await $.tool.register(DEMO_TOOL)

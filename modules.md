@@ -216,10 +216,10 @@ Draws a ChartModel in character cells for the terminal: braille lines, block-cha
 The Chart drawer for Claude Code: an SVG plot on surfaces that take one, braille and block characters in the terminal, and the chart's text form when there is no room or no number to put on an axis. Whatever it draws, the points that are floors, estimates or unknown are still told apart.
 
 ## packages/claude-code/src/draw/choice-view.ts
-What a Choice shows in Claude Code: its option buttons, or, once a `once` choice is used up, only the option that was chosen. Also turns an error a handler threw into one short line for the note under the buttons.
+What a Choice shows in Claude Code: its option buttons, or, once a `once` choice is used up, only the option that was chosen, read from the control's state in core's machine.
 
 ## packages/claude-code/src/draw/choice.tsx
-The Choice drawer for Claude Code: a row of buttons that sends a press back to the agent, and, once used, only the chosen option. A press the tree rejects or a handler that fails leaves a one-line note and keeps the buttons.
+The Choice drawer for Claude Code: a row of buttons that sends a press back to the agent, and, once used, only the chosen option. A refused answer keeps the buttons and says why in one line. The control's state comes from core's machine; nothing here decides.
 
 ## packages/claude-code/src/draw/drawer.ts
 The shape of a Claude Code drawer and the context it is given: the surface's elements, the width in cells, the tree's interaction state (what was pressed, typed or submitted) and the calls that send a press or a submit back to the agent. `defineDrawer` makes a drawer for one component kind.
@@ -234,7 +234,7 @@ The Flow drawer for Claude Code: steps as boxes joined by arrows, in one row whe
 The words and rules around a Form's state in Claude Code: which required fields still have no value, the lines that say what a submitted form sent, and the sentence under the submit button when it can't go yet. No elements, only strings.
 
 ## packages/claude-code/src/draw/form.tsx
-The Form drawer for Claude Code: a field per input kind, a submit button that stays blocked, with a sentence saying why, until required fields are filled and numbers parse, and, once submitted, the values it was sent with. Nothing a handler throws reaches the engine; it becomes a note.
+The Form drawer for Claude Code: a field per input kind, a submit button that stays blocked, with a sentence saying why, until required fields are filled and numbers parse, and, once submitted, the values it was sent with. Whether it is sent, sending or refused comes from core's control machine; nothing a field handler throws reaches the engine, it becomes a note.
 
 ## packages/claude-code/src/draw/group.tsx
 The Group drawer for Claude Code: its children in a row or a column, with a row stacking into a column when the width is too narrow for it.
@@ -270,7 +270,7 @@ The one place Claude Code colours are chosen: a colour per tone, which tones are
 How a tree travels in a tool result: finds the `{ intui: { v, root } }` envelope in whatever shape the result arrived in, and builds the MCP result that carries one. The tree is parsed as code's, because it comes from a tool; a model-written `show` call never passes through here. A result with no envelope or an invalid one yields no tree.
 
 ## packages/claude-code/src/register.tsx
-The plugin's wiring into Claude Code: registers the `show` and demo tools and the `/intui` command, refuses a bad `show` tree with every problem listed, draws a tree on the transcript row of the call or result that carries it, and turns a press or submit into a message to the agent. It keeps the used-up choices, typed form values, notes and pending counts across redraws in the plugin's store.
+The plugin's wiring into Claude Code: registers the `show` and demo tools and the `/intui` command, refuses a bad `show` tree with every problem listed, draws a tree on the transcript row of the call or result that carries it, and turns a press or submit into a message to the agent through core's control machine. It keeps each control's state, typed form values, notes and pending counts across redraws in the plugin's store.
 
 ## packages/claude-code/src/tool.ts
 The `show` tool the model calls: its name, a description listing the components the model may write, and the input schema (a tree plus an optional `wanted` note). Components that show numbers are left out, because only code may write those.

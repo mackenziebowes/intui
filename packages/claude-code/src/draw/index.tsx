@@ -26,12 +26,10 @@ export type Surroundings = {
   columns: number
   /** Names the tool call that drew the tree, so keys and events are unique to it. */
   source: string
-  pressed: DrawContext['pressed']
-  press: DrawContext['press']
+  control: DrawContext['control']
+  answer: DrawContext['answer']
   field: DrawContext['field']
   setField: DrawContext['setField']
-  submitted: DrawContext['submitted']
-  submit: DrawContext['submit']
   note: DrawContext['note']
   setNote: DrawContext['setNote']
 }
@@ -49,12 +47,10 @@ export function drawTree(tree: Tree, around: Surroundings): RenderElement {
       child: (child, room = columns) => draw(child, `${path}.${index++}`, room),
       text,
       key: (...parts) => [around.source, path, ...parts].join(':'),
-      pressed: around.pressed,
-      press: around.press,
+      control: around.control,
+      answer: around.answer,
       field: around.field,
       setField: around.setField,
-      submitted: around.submitted,
-      submit: around.submit,
       note: around.note,
       setNote: around.setNote,
     }

@@ -5,7 +5,7 @@
  * drawer for one component kind.
  */
 import type { ElementTable, RenderElement, RenderSurface } from 'claude-code'
-import type { FieldValue, Node, Tree } from '@intui/core'
+import type { Answer, ControlState, FieldValue, Node, Tree } from '@intui/core'
 
 /**
  * What a drawer gets besides its props: the surface's elements, the room it has,
@@ -24,19 +24,15 @@ export type DrawContext = {
   text: (node: Node) => string
   /** A stable key for an element, unique within the row. */
   key: (...parts: string[]) => string
-  /** The option already pressed in a used-up Choice, if any. */
-  pressed: (choiceId: string) => string | undefined
-  /** Sends a press back to the agent. */
-  press: (choiceId: string, optionId: string) => Promise<void>
+  /** A Choice or Form's state in core's control machine (hub #1956). */
+  control: (controlId: string) => ControlState
+  /** Sends the person's answer into the machine; the plugin carries out what it says. Never throws. */
+  answer: (controlId: string, answer: Answer) => Promise<void>
   /** A Form field's current value, as typed or selected so far. */
   field: (formId: string, fieldId: string) => FieldValue | undefined
   setField: (formId: string, fieldId: string, value: FieldValue) => Promise<void>
-  /** Whether a Form was already submitted, so it draws as used up. */
-  submitted: (formId: string) => boolean
-  /** Sends the Form's values back to the agent. Throws IntuiError if a required field is empty. */
-  submit: (formId: string) => Promise<void>
   /**
-   * A short note shown next to a control, such as why a number was refused.
+   * A short note shown beside a field the person is still typing in, such as why a number was refused.
    * Kept in plugin state, so it survives a reload and setting it redraws the row.
    * Write it from a handler, never while drawing.
    */

@@ -1,11 +1,11 @@
 /**
  * The Choice drawer for Claude Code: a row of buttons that sends a press back to the
- * agent, and, once used, only the chosen option. A press the tree rejects or a handler
- * that fails leaves a one-line note and keeps the buttons.
+ * agent, and, once used, only the chosen option. A refused answer keeps the buttons and
+ * says why in one line. The control's state comes from core's machine; nothing here decides.
  */
 import type { ChoiceProps } from '@intui/core'
 import { defineDrawer } from './drawer'
-import { choiceView, describeError, variantOf } from './choice-view'
+import { choiceView, variantOf } from './choice-view'
 
 // Digit hotkeys are left off on purpose: they only fire while a band or pane holds
 // the keyboard, never in a transcript row, and two rows with the same digit clash.
@@ -13,7 +13,7 @@ export const choice = defineDrawer<ChoiceProps>({
   type: 'Choice',
   draw: (props, ctx) => {
     const { el, key } = ctx
-    const view = choiceView(props, ctx.pressed(props.id))
+    const view = choiceView(props, ctx.control(props.id))
     const prompt = props.prompt ? <el.Markdown text={props.prompt} /> : null
     if (view.kind === 'used') {
       return (
@@ -23,7 +23,6 @@ export const choice = defineDrawer<ChoiceProps>({
         </el.Box>
       )
     }
-    const failed = ctx.note(key('failed'))
     return (
       <el.Box flexDirection="column">
         {prompt}
@@ -33,18 +32,11 @@ export const choice = defineDrawer<ChoiceProps>({
               key={key('option', option.id)}
               label={option.label}
               variant={variantOf(option.emphasis)}
-              onPress={async () => {
-                try {
-                  await ctx.setNote(key('failed'), undefined)
-                  await ctx.press(props.id, option.id)
-                } catch (error) {
-                  await ctx.setNote(key('failed'), describeError(error))
-                }
-              }}
+              onPress={() => ctx.answer(props.id, { kind: 'press', option: option.id })}
             />
           ))}
         </el.Box>
-        {failed ? <el.Text color="red">{`Could not send that: ${failed}`}</el.Text> : null}
+        {view.refused ? <el.Text color="red">{`Could not send that: ${view.refused}`}</el.Text> : null}
       </el.Box>
     )
   },
