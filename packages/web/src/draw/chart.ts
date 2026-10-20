@@ -25,14 +25,26 @@ export const chart: Drawer<ChartProps> = (props, ctx) => {
   figure.append(asText(ctx, ctx.text(props), 'Show data'))
 
   const label = chartLabel(model, props.title)
-  let drawn = -1
+  let state: Plot = { kind: 'unmeasured' }
   ctx.onWidth(plot, width => {
-    const w = Math.max(160, Math.floor(width))
-    if (w === drawn) return
-    drawn = w
-    plot.replaceChildren(svgFor(model, props, w, ctx, label, plot))
+    const step = stepPlot(state, { kind: 'resized', width })
+    state = step.state
+    if (step.kind === 'draw') plot.replaceChildren(svgFor(model, props, step.width, ctx, label, plot))
   })
   return figure
+}
+
+/** The plot's one piece of state: whether it has been drawn, and at what width (hub #1956). */
+type Plot = { kind: 'unmeasured' } | { kind: 'drawn'; width: number }
+type PlotEvent = { kind: 'resized'; width: number }
+
+type PlotStep = { kind: 'kept'; state: Plot } | { kind: 'draw'; state: Plot; width: number }
+
+/** A resize redraws only when the whole-pixel width (at least 160) changed. */
+function stepPlot(state: Plot, event: PlotEvent): PlotStep {
+  const width = Math.max(160, Math.floor(event.width))
+  if (state.kind === 'drawn' && state.width === width) return { kind: 'kept', state }
+  return { kind: 'draw', state: { kind: 'drawn', width }, width }
 }
 
 function svgFor(model: ChartModel, props: ChartProps, width: number, ctx: DrawContext, label: string, host: Element): SVGSVGElement {
