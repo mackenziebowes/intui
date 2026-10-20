@@ -375,7 +375,7 @@ The browser drawers for the display components: Text, Group, Label, Stat and Tab
 The browser Chart drawer: an SVG plot redrawn at the element's width, with a legend, numbered markers, a label for screen readers and the chart's text form under a disclosure. Readings that are floors, estimates or unknown are drawn as such, and a gap in the data breaks a line.
 
 ## packages/web/src/draw/controls.ts
-The browser drawers for the controls, Choice and Form. A press or submit sends an event the host receives after it is checked against the tree; a used-up control can't fire again and shows what was chosen or sent, and a host handler that throws leaves a note while the control stays usable.
+The browser drawers for the controls, Choice and Form. Each is a surface on core's control machine (`stepControl`, hub #1956): a press or submit goes in as an event, the host's verdict goes in as accepted or refused, and `paint` draws whatever state comes out. The machine decides when a control is used up, busy or read-only; nothing here does.
 
 ## packages/web/src/draw/flow.ts
 The browser Flow drawer: steps as boxes laid out by CSS, with the arrows drawn as SVG from the boxes' measured positions and redrawn when the width changes. The full list of links is kept in the DOM order for screen readers.

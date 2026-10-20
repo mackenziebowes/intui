@@ -1,16 +1,13 @@
 /**
- * The browser drawers for the controls, Choice and Form. A press or submit sends an event
- * the host receives after it is checked against the tree; a used-up control can't fire
- * again and shows what was chosen or sent, and a host handler that throws leaves a note
- * while the control stays usable.
+ * The browser drawers for the controls, Choice and Form. Each is a surface on core's control
+ * machine (`stepControl`, hub #1956): a press or submit goes in as an event, the host's verdict
+ * goes in as accepted or refused, and `paint` draws whatever state comes out. The machine decides
+ * when a control is used up, busy or read-only; nothing here does.
  */
-import { IntuiEvent, type ChoiceProps, type FieldValue, type FormField, type FormProps } from '@intui/core'
+import { IntuiEvent, canAnswer, startControl, stepControl, whyOf, type Answer, type ControlAt, type ControlEvent, type ControlState, type FieldValue, type FormField, type FormProps, type ChoiceProps } from '@intui/core'
 import type { DrawContext, Drawer } from '../dom'
 import { readForm, type RawValue } from '../form-values'
 import { markdownToHtml } from '../markdown'
-
-/** A short, one-line reason from anything a handler threw. */
-const reason = (error: unknown) => (error instanceof Error ? error.message : String(error)).split('\n')[0]!.slice(0, 160)
 
 const READ_ONLY = 'This view is read-only: there is nowhere to send an answer.'
 
@@ -23,72 +20,79 @@ function check({ dom }: DrawContext) {
 }
 
 /**
- * Sends an event built from the tree's own ids, after checking it fits the tree.
- * Throws whatever the host's handler throws, so the control can say it failed.
+ * Runs one control's machine: holds its current state, sends each event through `stepControl`,
+ * carries out the `send` effect through the host and feeds the verdict back in, and calls `paint`
+ * after every step that moved.
  */
-async function sendChecked(ctx: DrawContext, event: IntuiEvent): Promise<void> {
-  ctx.tree.verify(event)
-  await ctx.send!(event)
+function drive(ctx: DrawContext, at: ControlAt, start: ControlState, paint: (state: ControlState) => void): (event: ControlEvent) => void {
+  let state = start
+  const dispatch = (event: ControlEvent) => {
+    const step = stepControl(at, state, event)
+    if (step.ignored) return
+    state = step.state
+    paint(state)
+    for (const effect of step.effects) {
+      // Until IntuiEvent is data (hub #1956, section 2) the host takes the class; parse rebuilds it from the checked data.
+      ctx.send!(IntuiEvent.parse(effect.event)).then(
+        () => dispatch({ kind: 'accepted' }),
+        error => dispatch({ kind: 'refused', why: whyOf(error) }),
+      )
+    }
+  }
+  paint(state)
+  return dispatch
 }
 
 export const choice: Drawer<ChoiceProps> = (props, ctx) => {
   const { dom } = ctx
+  const at: ControlAt = { source: ctx.source, control: props }
   const promptId = ctx.uid('prompt')
   const root = dom.el('div', { class: 'intui-choice', role: 'group', 'aria-labelledby': props.prompt ? promptId : undefined })
   if (props.prompt) root.append(dom.html('div', { class: 'intui-text intui-choice-prompt', id: promptId }, markdownToHtml(props.prompt)))
   const status = dom.el('p', { class: 'intui-status', role: 'status' })
-  let chosen = ctx.pressed(props.id)
-  let busy: string | undefined
+  const labelOf = (answer: Answer) => (answer.kind === 'press' ? props.options.find(o => o.id === answer.option)?.label ?? answer.option : '')
+  const earlier = ctx.pressed(props.id)
+  const buttons = props.options.map(option =>
+    dom.el('button', { type: 'button', class: option.emphasis === 'primary' ? 'intui-button intui-button--primary' : 'intui-button' }),
+  )
 
-  const buttons = props.options.map(option => {
-    const button = dom.el('button', { type: 'button', class: option.emphasis === 'primary' ? 'intui-button intui-button--primary' : 'intui-button' })
-    button.addEventListener('click', async () => {
-      if (busy || !ctx.send) return
-      busy = option.id
-      paint()
-      try {
-        await sendChecked(ctx, IntuiEvent.press(ctx.source, props.id, option.id))
-        chosen = option.id
-        busy = undefined
-        paint(props.repeat === 'many' ? `Sent “${option.label}”.` : undefined)
-      } catch (error) {
-        busy = undefined
-        paint(`Couldn't send “${option.label}”: ${reason(error)}. Try again.`, true)
-      }
-    })
-    return button
-  })
-
-  function paint(message?: string, failed = false) {
-    const used = props.repeat === 'once' && chosen !== undefined
+  function paint(state: ControlState) {
+    const used = state.kind === 'sent' && props.repeat === 'once'
+    const busy = state.kind === 'sending' ? state.answer : undefined
+    const open = canAnswer(at, state)
     root.classList.toggle('is-used', used)
     root.setAttribute('aria-busy', String(busy !== undefined))
     props.options.forEach((option, i) => {
       const button = buttons[i]!
-      const isChosen = used && chosen === option.id
-      button.disabled = used || busy !== undefined || !ctx.send
+      const isChosen = used && state.answer.kind === 'press' && state.answer.option === option.id
+      button.disabled = !open
       button.classList.toggle('is-chosen', isChosen)
       if (used) button.setAttribute('aria-pressed', String(isChosen))
-      button.title = !ctx.send && !used ? READ_ONLY : ''
-      button.replaceChildren(...(isChosen ? [check(ctx)] : []), busy === option.id ? 'Sending…' : option.label)
+      button.title = state.kind === 'readOnly' ? READ_ONLY : ''
+      button.replaceChildren(...(isChosen ? [check(ctx)] : []), busy?.kind === 'press' && busy.option === option.id ? 'Sending…' : option.label)
     })
-    status.classList.toggle('is-error', failed)
-    status.textContent = message ?? (used ? `Answered: ${props.options.find(o => o.id === chosen)?.label ?? chosen}` : '')
+    status.classList.toggle('is-error', state.kind === 'refused')
+    status.textContent =
+      state.kind === 'refused' ? `Couldn't send “${labelOf(state.answer)}”: ${state.why}. Try again.`
+      : state.kind === 'sent' ? (used ? `Answered: ${labelOf(state.answer)}` : `Sent “${labelOf(state.answer)}”.`)
+      : ''
   }
 
-  paint()
+  const dispatch = drive(ctx, at, startControl(ctx.send !== undefined, earlier === undefined ? undefined : { kind: 'press', option: earlier }), paint)
+  props.options.forEach((option, i) => buttons[i]!.addEventListener('click', () => dispatch({ kind: 'answered', answer: { kind: 'press', option: option.id } })))
   root.append(dom.el('div', { class: 'intui-choice-options' }, ...buttons), status)
   return root
 }
 
 export const form: Drawer<FormProps> = (props, ctx) => {
   const { dom } = ctx
+  const at: ControlAt = { source: ctx.source, control: props }
   const element = dom.el('form', { class: 'intui-form', novalidate: true })
   const controls = new Map<string, HTMLInputElement | HTMLSelectElement>()
   const errors = new Map<string, HTMLElement>()
   const status = dom.el('p', { class: 'intui-status', role: 'status' })
   const submit = dom.el('button', { type: 'submit', class: 'intui-button intui-button--primary' }, props.submitLabel)
-  let sent = ctx.submitted(props.id)
+  const earlier = ctx.submitted(props.id)
 
   for (const field of props.fields) element.append(fieldRow(field, ctx, controls, errors))
   element.append(dom.el('div', { class: 'intui-form-actions' }, submit, status))
@@ -109,43 +113,42 @@ export const form: Drawer<FormProps> = (props, ctx) => {
     }
   }
 
-  function paint(message?: string, failed = false, busy = false) {
-    const used = sent !== undefined
+  /** What the person typed that can't be read yet (a field to fix) is said here, before there is an answer. */
+  function sayUnsent(message: string) {
+    status.classList.add('is-error')
+    status.textContent = message
+  }
+
+  function paint(state: ControlState) {
+    const used = state.kind === 'sent'
+    const busy = state.kind === 'sending'
     element.classList.toggle('is-used', used)
     element.setAttribute('aria-busy', String(busy))
     for (const control of controls.values()) control.disabled = used || busy
-    submit.disabled = used || busy || !ctx.send
-    submit.title = !ctx.send && !used ? READ_ONLY : ''
+    submit.disabled = !canAnswer(at, state)
+    submit.title = state.kind === 'readOnly' ? READ_ONLY : ''
     submit.replaceChildren(...(used ? [check(ctx), 'Sent'] : [busy ? 'Sending…' : props.submitLabel]))
-    status.classList.toggle('is-error', failed)
-    status.textContent = message ?? ''
+    status.classList.toggle('is-error', state.kind === 'refused')
+    status.textContent = state.kind === 'refused' ? `Couldn't send this: ${state.why}. Your answers are still here; try again.` : ''
   }
 
   // A used-up form shows what it was sent with, in place.
-  if (sent) fill(props.fields, controls, sent)
+  if (earlier) fill(props.fields, controls, earlier)
+  const dispatch = drive(ctx, at, startControl(ctx.send !== undefined, earlier === undefined ? undefined : { kind: 'submit', values: earlier }), paint)
 
-  element.addEventListener('submit', async event => {
+  element.addEventListener('submit', event => {
     event.preventDefault()
-    if (sent || !ctx.send) return
     const reading = readForm(props.fields, raw)
     showErrors(reading.errors)
     const wrong = props.fields.filter(field => reading.errors[field.id])
     if (wrong.length > 0) {
-      paint(wrong.length === 1 ? 'One field needs fixing before this can be sent.' : `${wrong.length} fields need fixing before this can be sent.`, true)
+      sayUnsent(wrong.length === 1 ? 'One field needs fixing before this can be sent.' : `${wrong.length} fields need fixing before this can be sent.`)
       controls.get(wrong[0]!.id)!.focus()
       return
     }
-    paint(undefined, false, true)
-    try {
-      await sendChecked(ctx, IntuiEvent.submit(ctx.source, props.id, reading.values))
-      sent = reading.values
-      paint()
-    } catch (error) {
-      paint(`Couldn't send this: ${reason(error)}. Your answers are still here; try again.`, true)
-    }
+    dispatch({ kind: 'answered', answer: { kind: 'submit', values: reading.values } })
   })
 
-  paint()
   return element
 }
 
