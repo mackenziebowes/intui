@@ -21,6 +21,8 @@ pub enum MarksProblem {
     DuplicateNode { id: String, rung: String },
     UnknownAndCounted { why: String, count: String },
     StepPointsNowhere { node: String, ids: Vec<String> },
+    UndeclaredUnknownKind { kind: String, ids: Vec<String> },
+    DrawsUnknownKind { kind: String, why: String },
 }
 
 impl fmt::Display for MarksProblem {
@@ -43,6 +45,8 @@ impl fmt::Display for MarksProblem {
             }
             MarksProblem::DuplicateNode { id, rung } => write!(f, "node id \"{id}\" is already used in rung {rung}; give each node its own id"),
             MarksProblem::UnknownAndCounted { why, count } => write!(f, "a node can't be both unknown (\"{why}\") and counted (\"{count}\"); keep one"),
+            MarksProblem::UndeclaredUnknownKind { kind, ids } => write!(f, "unknown kind \"{kind}\" isn't declared; use one of {}", ids.join(", ")),
+            MarksProblem::DrawsUnknownKind { kind, why } => write!(f, "this node draws {kind} marks but calls {kind} unknown (\"{why}\"); drop the marks, or drop the unknown"),
             MarksProblem::StepPointsNowhere { node, ids } => {
                 let known = if ids.is_empty() { "none (this ladder has no nodes)".to_string() } else { ids.join(", ") };
                 write!(f, "step points at node \"{node}\", which doesn't exist; use one of {known}")
@@ -87,6 +91,16 @@ fn kinds_and_states(object: &JsonObject, found: &mut Found) {
     }
 }
 
+/// Each kind a thing calls unknown is a declared kind.
+fn unknown_kinds_declared(at: &[Seg], thing: &JsonObject, declared: &[String], found: &mut Found) {
+    for (i, u) in items(thing, "unknownKinds").iter().enumerate() {
+        let Some(kind) = u.as_object().and_then(|u| text_of(u, "kind")) else { continue };
+        if !declared.iter().any(|id| id == kind) {
+            found.push(([at.to_vec(), vec![key("unknownKinds"), Seg::Index(i), key("kind")]].concat(), MarksProblem::UndeclaredUnknownKind { kind: kind.to_string(), ids: declared.to_vec() }));
+        }
+    }
+}
+
 /// Marks name declared kinds and states, there are at most MAX_MARKS, and a thing that is unknown has none.
 fn marks(at: &[Seg], thing: &JsonObject, object: &JsonObject, found: &mut Found) {
     let list = items(thing, "marks");
@@ -124,12 +138,25 @@ pub(crate) fn check(kind: Kind, object: &JsonObject) -> Found {
         Kind::Ladder => {
             kinds_and_states(object, &mut found);
             let mut seen: Vec<(String, String)> = Vec::new();
+            let declared = ids_of(object, "kinds");
             for (r, rung) in items(object, "rungs").iter().enumerate() {
                 let Some(rung) = rung.as_object() else { continue };
                 let rung_id = text_of(rung, "id").unwrap_or("").to_string();
+                unknown_kinds_declared(&[key("rungs"), Seg::Index(r)], rung, &declared, &mut found);
                 for (n, node) in items(rung, "nodes").iter().enumerate() {
                     let Some(node) = node.as_object() else { continue };
                     let at = [key("rungs"), Seg::Index(r), key("nodes"), Seg::Index(n)];
+                    unknown_kinds_declared(&at, node, &declared, &mut found);
+                    let drawn: Vec<&str> = items(node, "marks").iter().filter_map(|m| text_of(m.as_object()?, "kind")).collect();
+                    for list in [rung, node] {
+                        for u in items(list, "unknownKinds").iter().filter_map(Json::as_object) {
+                            if let (Some(kind), Some(why)) = (text_of(u, "kind"), text_of(u, "why")) {
+                                if drawn.contains(&kind) {
+                                    found.push(([at.to_vec(), vec![key("marks")]].concat(), MarksProblem::DrawsUnknownKind { kind: kind.to_string(), why: why.to_string() }));
+                                }
+                            }
+                        }
+                    }
                     let id = text_of(node, "id").unwrap_or("").to_string();
                     if let Some((_, first)) = seen.iter().find(|(seen_id, _)| *seen_id == id) {
                         found.push(([at.to_vec(), vec![key("id")]].concat(), MarksProblem::DuplicateNode { id: id.clone(), rung: first.clone() }));

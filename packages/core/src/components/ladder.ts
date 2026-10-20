@@ -7,16 +7,26 @@ import { z } from "zod";
 import { defineKind, type Node } from "../component";
 import { checkKindsAndStates, checkMarks, kindCounts, keyText, markKindSchema, markSchema, markStateSchema, stateCounts, type Mark, type MarkKind, type MarkState } from "./marks";
 
+/** A kind of mark that can't be counted here, and why. Marks of the other kinds still draw. */
+export interface UnknownKind {
+  kind: string;
+  why: string;
+}
+
 export interface LadderNode {
   id: string;
   label: string;
+  /** The full name, when `label` is short: the text form says it, a drawing shows it on hover. */
+  full?: string;
   /** What the node belongs to (a site); nodes of one group are read together. */
   group?: string;
   marks: Mark[];
   /** The count in words, used instead of counting marks ("46 a week"). */
   count?: string;
-  /** Why the node can't be counted. Then it has no marks. */
+  /** Why the node can't be counted at all. Then it has no marks. */
   unknown?: string;
+  /** Kinds of mark this node can't count, and why; it has no marks of those kinds. */
+  unknownKinds?: UnknownKind[];
 }
 
 export interface LadderRung {
@@ -25,6 +35,8 @@ export interface LadderRung {
   nodes: LadderNode[];
   /** Said when the rung has no nodes ("none yet"). */
   empty?: string;
+  /** Kinds of mark no node of this rung can count, and why, said once for the rung. */
+  unknownKinds?: UnknownKind[];
 }
 
 export interface LadderStep {
@@ -43,6 +55,8 @@ export interface LadderProps extends Node {
   rungs: LadderRung[];
   steps: LadderStep[];
 }
+
+const unknownKindSchema = z.strictObject({ kind: z.string().min(1), why: z.string().min(1) }).meta({ id: "LadderUnknownKind" });
 
 export const Ladder = defineKind<LadderProps>({
   type: "Ladder",
@@ -66,15 +80,18 @@ export const Ladder = defineKind<LadderProps>({
                       .strictObject({
                         id: z.string().min(1),
                         label: z.string().min(1),
+                        full: z.string().min(1).optional(),
                         group: z.string().min(1).optional(),
                         marks: z.array(markSchema).default([]),
                         count: z.string().min(1).optional(),
                         unknown: z.string().min(1).optional(),
+                        unknownKinds: z.array(unknownKindSchema).optional(),
                       })
                       .meta({ id: "LadderNode" }),
                   )
                   .default([]),
                 empty: z.string().min(1).optional(),
+                unknownKinds: z.array(unknownKindSchema).optional(),
               })
               .meta({ id: "LadderRung" }),
           )
@@ -87,8 +104,20 @@ export const Ladder = defineKind<LadderProps>({
         const issue = (path: (string | number)[], message: string) => ctx.addIssue({ code: "custom", path, message });
         checkKindsAndStates(ladder.kinds, ladder.states, issue);
         const ids = new Map<string, string>();
+        const declared = new Set(ladder.kinds.map((kind) => kind.id));
+        const unknownIn = (path: (string | number)[], list: UnknownKind[] | undefined) =>
+          (list ?? []).forEach((u, i) => {
+            if (!declared.has(u.kind)) issue([...path, "unknownKinds", i, "kind"], `unknown kind "${u.kind}" isn't declared; use one of ${[...declared].join(", ")}`);
+          });
         ladder.rungs.forEach((rung, r) => {
+          unknownIn(["rungs", r], rung.unknownKinds);
           rung.nodes.forEach((node, n) => {
+            unknownIn(["rungs", r, "nodes", n], node.unknownKinds);
+            for (const u of [...(rung.unknownKinds ?? []), ...(node.unknownKinds ?? [])]) {
+              if (node.marks.some((mark) => mark.kind === u.kind)) {
+                issue(["rungs", r, "nodes", n, "marks"], `this node draws ${u.kind} marks but calls ${u.kind} unknown ("${u.why}"); drop the marks, or drop the unknown`);
+              }
+            }
             const path = ["rungs", r, "nodes", n];
             if (ids.has(node.id)) issue([...path, "id"], `node id "${node.id}" is already used in rung ${ids.get(node.id)}; give each node its own id`);
             ids.set(node.id, rung.id);
@@ -106,21 +135,27 @@ export const Ladder = defineKind<LadderProps>({
       })
       .meta({ id: "Ladder" }),
   toText: (props) => {
+    const kindLabel = (id: string) => props.kinds.find((kind) => kind.id === id)?.label ?? id;
+    const unknownText = (list: UnknownKind[] | undefined) => (list ?? []).map((u) => `${kindLabel(u.kind)} unknown, ${u.why}`).join("; ");
     const nodeText = (node: LadderNode): string => {
-      if (node.unknown !== undefined) return `${node.label}: unknown, ${node.unknown}`;
+      const name = node.full ?? node.label;
+      if (node.unknown !== undefined) return `${name}: unknown, ${node.unknown}`;
       const states = stateCounts(node.marks, props.states);
-      return `${node.label} ${node.count ?? kindCounts(node.marks, props.kinds)}${states && !node.count ? ` (${states})` : ""}`;
+      const own = unknownText(node.unknownKinds);
+      return `${name} ${node.count ?? kindCounts(node.marks, props.kinds)}${states && !node.count ? ` (${states})` : ""}${own ? ` (${own})` : ""}`;
     };
     const rungText = (rung: LadderRung): string => {
-      if (rung.nodes.length === 0) return `- **${rung.label}:** ${rung.empty ?? "none"}`;
+      const note = unknownText(rung.unknownKinds);
+      const tail = note ? ` (${note})` : "";
+      if (rung.nodes.length === 0) return `- **${rung.label}:** ${rung.empty ?? "none"}${tail}`;
       const groups = [...new Set(rung.nodes.map((node) => node.group ?? ""))];
       const segments = groups.map((group) => {
         const nodes = rung.nodes.filter((node) => (node.group ?? "") === group).map(nodeText).join("; ");
         return group ? `${group}: ${nodes}` : nodes;
       });
-      return `- **${rung.label}:** ${segments.join(". ")}`;
+      return `- **${rung.label}:** ${segments.join(". ")}${tail}`;
     };
-    const label = new Map(props.rungs.flatMap((rung) => rung.nodes.map((node) => [node.id, node.label] as const)));
+    const label = new Map(props.rungs.flatMap((rung) => rung.nodes.map((node) => [node.id, node.full ?? node.label] as const)));
     const steps = props.steps.map((step) => `- ${label.get(step.from)} → ${label.get(step.to)}: ${step.label}`);
     return [keyText(props.kinds), ...[...props.rungs].reverse().map(rungText), ...(steps.length ? ["Steps:", ...steps] : [])].join("\n");
   },

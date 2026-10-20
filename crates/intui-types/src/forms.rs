@@ -10,7 +10,7 @@ use crate::reading::{Finite, Reading};
 use std::collections::HashMap;
 
 pub use crate::mark_forms::{
-    Halo, KindIndex, Ladder, LadderNode, LadderRung, LadderStep, Mark, MarkKind, MarkState, Marks, MarksRow, NodeAt, NodeBody, RowBody, StateIndex,
+    Halo, KindIndex, Ladder, LadderNode, LadderRung, LadderStep, Mark, MarkKind, MarkState, Marks, MarksRow, NodeAt, NodeBody, RowBody, StateIndex, UnknownKind,
 };
 pub use crate::generated::tree::{
     ChartKind, ChartSeriesRole, ChoiceRepeat, GroupDirection, StatChangeAs, TableColumnAlign, Tone,

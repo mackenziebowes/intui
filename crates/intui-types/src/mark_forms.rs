@@ -81,12 +81,22 @@ pub enum NodeBody {
     Unknown(String),
 }
 
+/// A kind of mark that can't be counted, and why; marks of the other kinds still draw.
+#[derive(Clone, Debug, PartialEq)]
+pub struct UnknownKind {
+    pub kind: KindIndex,
+    pub why: String,
+}
+
 #[derive(Clone, Debug, PartialEq)]
 pub struct LadderNode {
     pub id: String,
     pub label: String,
+    /// The full name, when `label` is short.
+    pub full: Option<String>,
     pub group: Option<String>,
     pub body: NodeBody,
+    pub unknown_kinds: Vec<UnknownKind>,
 }
 
 #[derive(Clone, Debug, PartialEq)]
@@ -95,6 +105,7 @@ pub struct LadderRung {
     pub label: String,
     pub nodes: Vec<LadderNode>,
     pub empty: Option<String>,
+    pub unknown_kinds: Vec<UnknownKind>,
 }
 
 /// A node's place: its rung and its position in it. The edge made one only for nodes that exist.

@@ -17,7 +17,7 @@ export { Flow, type FlowLink, type FlowProps, type FlowStep } from "./components
 export { Form, type FormField, type FormProps } from "./components/form";
 export { Group, type GroupProps } from "./components/group";
 export { Label, TONES, type LabelProps, type Tone } from "./components/label";
-export { Ladder, type LadderNode, type LadderProps, type LadderRung, type LadderStep } from "./components/ladder";
+export { Ladder, type LadderNode, type LadderProps, type LadderRung, type LadderStep, type UnknownKind } from "./components/ladder";
 export { Marks, MAX_MARKS, haloText, keyText, kindCounts, stateCounts, type Mark, type MarkKind, type MarksProps, type MarksRow, type MarkState } from "./components/marks";
 export { Stat, type ChangeReading, type StatProps } from "./components/stat";
 export { Table, cellOf, type CellValue, type TableColumn, type TableProps } from "./components/table";

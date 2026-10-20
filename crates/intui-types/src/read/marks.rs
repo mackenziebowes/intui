@@ -29,6 +29,21 @@ fn marks_of(fields: &Fields, kinds: &[MarkKind], states: &[MarkState]) -> Result
     )
 }
 
+fn unknown_kinds(fields: &Fields, kinds: &[MarkKind]) -> Result<Vec<UnknownKind>, Drift> {
+    match fields.object.get("unknownKinds") {
+        None => Ok(vec![]),
+        Some(_) => fields.each(
+            "unknownKinds",
+            |u| {
+                let kind = u.text("kind")?;
+                let kind = kinds.iter().position(|k| k.id == kind).map(KindIndex).ok_or_else(|| u.drift("kind"))?;
+                Ok(UnknownKind { kind, why: u.text("why")? })
+            },
+            "LadderUnknownKind",
+        ),
+    }
+}
+
 pub(super) fn marks(fields: &Fields) -> Result<Marks, Drift> {
     let (kinds, states) = (kinds(fields)?, states(fields)?);
     let rows = fields.each(
@@ -70,11 +85,11 @@ pub(super) fn ladder(fields: &Fields) -> Result<Ladder, Drift> {
                         (None, Some(count)) => NodeBody::Said { count, marks: marks_of(node, &kinds, &states)? },
                         (None, None) => NodeBody::Marks(marks_of(node, &kinds, &states)?),
                     };
-                    Ok(LadderNode { id: node.text("id")?, label: node.text("label")?, group: node.maybe_text("group")?, body })
+                    Ok(LadderNode { id: node.text("id")?, label: node.text("label")?, full: node.maybe_text("full")?, group: node.maybe_text("group")?, body, unknown_kinds: unknown_kinds(node, &kinds)? })
                 },
                 "LadderNode",
             )?;
-            Ok(LadderRung { id: rung.text("id")?, label: rung.text("label")?, nodes, empty: rung.maybe_text("empty")? })
+            Ok(LadderRung { id: rung.text("id")?, label: rung.text("label")?, nodes, empty: rung.maybe_text("empty")?, unknown_kinds: unknown_kinds(rung, &kinds)? })
         },
         "LadderRung",
     )?;

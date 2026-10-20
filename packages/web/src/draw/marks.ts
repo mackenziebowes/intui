@@ -95,7 +95,8 @@ export const ladder: Drawer<LadderProps> = (props, ctx) => {
         node.unknown !== undefined
           ? dom.el('p', { class: 'intui-unknown' }, `unknown, ${node.unknown}`)
           : field(dom, node.marks, look, node.count)
-      return dom.el('li', { class: 'intui-ladder-node', 'data-group': node.group, 'data-node': node.id }, dom.el('strong', { class: 'intui-ladder-node-label' }, node.label), node.group ? dom.el('span', { class: 'intui-muted intui-ladder-group' }, node.group) : null, body)
+      const own = (node.unknownKinds ?? []).map(u => dom.el('p', { class: 'intui-unknown intui-ladder-unknown' }, `${look.kinds.find(k => k.id === u.kind)?.label ?? u.kind} unknown, ${u.why}`))
+      return dom.el('li', { class: 'intui-ladder-node', 'data-group': node.group, 'data-node': node.id, title: node.full }, dom.el('strong', { class: 'intui-ladder-node-label' }, node.label), node.group ? dom.el('span', { class: 'intui-muted intui-ladder-group' }, node.group) : null, body, ...own)
     })
     const steps = props.steps.filter(s => rungOf.get(s.to) === r)
     stack.append(
@@ -103,6 +104,7 @@ export const ladder: Drawer<LadderProps> = (props, ctx) => {
         'li',
         { class: 'intui-ladder-rung', style: `--depth:${props.rungs.length - 1 - r}` },
         dom.el('h4', { class: 'intui-ladder-label' }, rung.label),
+        ...(rung.unknownKinds ?? []).map(u => dom.el('p', { class: 'intui-unknown intui-ladder-unknown' }, `${look.kinds.find(k => k.id === u.kind)?.label ?? u.kind} unknown, ${u.why}`)),
         nodes.length ? dom.el('ul', { class: 'intui-ladder-nodes' }, ...nodes) : dom.el('p', { class: 'intui-muted intui-ladder-empty' }, rung.empty ?? 'none'),
         steps.length
           ? dom.el('ul', { class: 'intui-ladder-steps' }, ...steps.map(s => dom.el('li', {}, dom.el('span', { 'aria-hidden': 'true' }, '↑ '), `${labelOf.get(s.from)} → ${labelOf.get(s.to)}: ${s.label}`)))

@@ -59,18 +59,30 @@ pub fn marks_text(marks: &forms::Marks) -> String {
 }
 
 pub fn ladder_text(ladder: &forms::Ladder) -> String {
-    let node_text = |node: &forms::LadderNode| match &node.body {
-        NodeBody::Unknown(why) => format!("{}: unknown, {why}", node.label),
-        NodeBody::Said { count, .. } => format!("{} {count}", node.label),
-        NodeBody::Marks(list) => {
-            let states = state_counts(list, &ladder.states);
-            let states = if states.is_empty() { String::new() } else { format!(" ({states})") };
-            format!("{} {}{states}", node.label, kind_counts(list, &ladder.kinds))
+    let unknown_text = |list: &[forms::UnknownKind]| {
+        list.iter().map(|u| format!("{} unknown, {}", ladder.kinds.get(u.kind.get()).map_or("", |k| k.label.as_str()), u.why)).collect::<Vec<_>>().join("; ")
+    };
+    let node_text = |node: &forms::LadderNode| {
+        let name = node.full.as_deref().unwrap_or(&node.label);
+        match &node.body {
+            NodeBody::Unknown(why) => format!("{name}: unknown, {why}"),
+            NodeBody::Said { count, .. } => {
+                let own = unknown_text(&node.unknown_kinds);
+                format!("{name} {count}{}", if own.is_empty() { String::new() } else { format!(" ({own})") })
+            }
+            NodeBody::Marks(list) => {
+                let states = state_counts(list, &ladder.states);
+                let states = if states.is_empty() { String::new() } else { format!(" ({states})") };
+                let own = unknown_text(&node.unknown_kinds);
+                format!("{name} {}{states}{}", kind_counts(list, &ladder.kinds), if own.is_empty() { String::new() } else { format!(" ({own})") })
+            }
         }
     };
     let rung_text = |rung: &forms::LadderRung| {
+        let note = unknown_text(&rung.unknown_kinds);
+        let tail = if note.is_empty() { String::new() } else { format!(" ({note})") };
         if rung.nodes.is_empty() {
-            return format!("- **{}:** {}", rung.label, rung.empty.as_deref().unwrap_or("none"));
+            return format!("- **{}:** {}{tail}", rung.label, rung.empty.as_deref().unwrap_or("none"));
         }
         let mut groups: Vec<&str> = Vec::new();
         for node in &rung.nodes {
@@ -86,12 +98,15 @@ pub fn ladder_text(ladder: &forms::Ladder) -> String {
                 if group.is_empty() { nodes } else { format!("{group}: {nodes}") }
             })
             .collect();
-        format!("- **{}:** {}", rung.label, segments.join(". "))
+        format!("- **{}:** {}{tail}", rung.label, segments.join(". "))
     };
     let steps: Vec<String> = ladder
         .steps
         .iter()
-        .filter_map(|step| Some(format!("- {} → {}: {}", ladder.node(step.from)?.label, ladder.node(step.to)?.label, step.label)))
+        .filter_map(|step| {
+            let name = |at| ladder.node(at).map(|n| n.full.clone().unwrap_or_else(|| n.label.clone()));
+            Some(format!("- {} → {}: {}", name(step.from)?, name(step.to)?, step.label))
+        })
         .collect();
     let mut lines = vec![key_text(&ladder.kinds)];
     lines.extend(ladder.rungs.iter().rev().map(rung_text));

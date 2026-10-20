@@ -737,6 +737,12 @@
         "empty": {
           "type": "string",
           "minLength": 1
+        },
+        "unknownKinds": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/LadderUnknownKind"
+          }
         }
       },
       "required": [
@@ -753,6 +759,10 @@
           "minLength": 1
         },
         "label": {
+          "type": "string",
+          "minLength": 1
+        },
+        "full": {
           "type": "string",
           "minLength": 1
         },
@@ -774,11 +784,35 @@
         "unknown": {
           "type": "string",
           "minLength": 1
+        },
+        "unknownKinds": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/LadderUnknownKind"
+          }
         }
       },
       "required": [
         "id",
         "label"
+      ],
+      "additionalProperties": false
+    },
+    "LadderUnknownKind": {
+      "type": "object",
+      "properties": {
+        "kind": {
+          "type": "string",
+          "minLength": 1
+        },
+        "why": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "required": [
+        "kind",
+        "why"
       ],
       "additionalProperties": false
     },

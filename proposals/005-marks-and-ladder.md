@@ -1,5 +1,7 @@
 # 005: Marks and Ladder
 
+Amended 2026-10-19 by Plat's review of the live ladder (hub #1904): `unknown` on a node still means the whole node can't be counted, but a node or a rung may also say that one *kind* of mark can't be counted, with `unknownKinds?: {kind, why}[]`. Marks of the other kinds still draw (a waitlist node draws its visits and says its addresses aren't counted yet), and a node can't draw marks of a kind it or its rung calls unknown (refused with a formula-style error). A rung says it once for all its nodes. A node also gets `full?: string`, its full name when `label` is short: the text form says the full name and a drawing shows it on hover. A Ladder step gets `n?: number`, how many things went along it, so a renderer can draw one spark each; the label still says it in words.
+
 Accepted 2026-10-19 by Plat (reviewing agent, #1904), with the unknown field.
 
 - **Need:** show a small set of countable things one by one, so that a count of 7 looks like 7 and not like a bar. Two shapes: a row of marks (each mark is one thing, in one state), and a set of stages bottom to top with marks in them and counted steps between them. Chart gives bars and lines, which imply a precision a count of 7 doesn't have. Flow joins steps but can't hold marks or counts. Table can list the things but can't show their states at a glance. Mackenzie wants the pages that answer "is anyone moving, and where do they stop?" to show every one of the small numbers as itself.

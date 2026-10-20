@@ -11,7 +11,12 @@ const bin = join(import.meta.dir, "../../../crates/target/debug/intui-text");
 const L: any = Ladder.example;
 const M: any = Marks.example;
 const good = [Marks.example, Ladder.example, { ...L, rungs: [{ id: "a", label: "Free pages", nodes: [{ id: "n", label: "bookkeeping", group: "bookkeeping", unknown: "Kokumi unreadable since 14:00" }, { id: "m", label: "Other pages", group: "bookkeeping", count: "46 a week" }] }], steps: [] }];
+const partlyUnknown = { ...L, kinds: [{ id: "person", label: "people", one: "person" }, { id: "visit", label: "visits", one: "visit" }], rungs: [
+  { id: "a", label: "Waitlists", unknownKinds: [{ kind: "person", why: "not counted yet (the mailwatch lists don't exist)" }], nodes: [{ id: "n", label: "Close kit", full: "Close kit: the month-end close checklist as a tool", group: "bookkeeping", marks: [{ kind: "visit" }, { kind: "visit" }] }, { id: "m", label: "Catch-up", marks: [], unknownKinds: [{ kind: "visit", why: "mislaid" }] }] }], steps: [{ from: "n", to: "m", label: "1 visit", n: 1 }] };
+good.push(partlyUnknown);
 const bad = [
+  { ...partlyUnknown, rungs: [{ id: "a", label: "A", unknownKinds: [{ kind: "person", why: "w" }], nodes: [{ id: "n", label: "N", marks: [{ kind: "person" }] }] }], steps: [] },
+  { ...partlyUnknown, rungs: [{ id: "a", label: "A", unknownKinds: [{ kind: "ghost", why: "w" }], nodes: [] }], steps: [] },
   { ...L, rungs: [{ id: "a", label: "A", nodes: [{ id: "n", label: "N", marks: [{ kind: "visit" }], unknown: "gone" }] }], steps: [] },
   { ...M, rows: [{ label: "x", marks: Array.from({ length: 201 }, () => ({ kind: "person" })) }] },
   { ...M, rows: [{ label: "x", marks: [{ kind: "ghost", state: "nope" }] }] },
