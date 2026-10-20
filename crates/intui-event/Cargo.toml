@@ -7,6 +7,10 @@ edition = "2021"
 name = "intui-event"
 path = "src/main.rs"
 
+[[bin]]
+name = "intui-control"
+path = "src/control_main.rs"
+
 [dependencies]
 intui-types = { path = "../intui-types" }
 

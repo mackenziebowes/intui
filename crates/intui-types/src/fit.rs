@@ -10,7 +10,7 @@ use crate::forms::{Choice, Field, FieldInput, Form};
 use crate::node::{Drawn, Kind, Node, Tree};
 
 /// A component an event can name.
-enum Interactive<'t> {
+pub(crate) enum Interactive<'t> {
     Choice(&'t Choice),
     Form(&'t Form),
 }
@@ -25,7 +25,7 @@ impl Interactive<'_> {
 }
 
 impl Tree {
-    fn interactive(&self, id: &str) -> Option<Interactive<'_>> {
+    pub(crate) fn interactive(&self, id: &str) -> Option<Interactive<'_>> {
         let mut pending = vec![self.root()];
         while let Some(drawn) = pending.pop() {
             let Drawn::Known(node) = drawn else { continue };

@@ -59,6 +59,9 @@ Every word the renderer says on its own account, written once: what a control sa
 ## crates/intui-event/src/cli_error.rs
 Everything `intui-event` can fail at, each with the words it says and the exit code it ends with.
 
+## crates/intui-event/src/control_main.rs
+`intui-control`: replays events through the control machine (hub #1956) and prints one line per event, so a check can put the same sequence to core's `stepControl` and to this port and compare.
+
 ## crates/intui-event/src/main.rs
 `intui-event`: reads `{ "tree": ..., "event": ... }` as JSON on stdin and prints `ok`, or why the event can't have come from that tree.
 
@@ -127,6 +130,9 @@ Generates Rust types from core's committed JSON Schemas with typify, so the prot
 
 ## crates/intui-types/src/author.rs
 Who wrote a tree, and the rule that follows from it.
+
+## crates/intui-types/src/control.rs
+A Choice or Form being answered: the Rust side of core's `control.ts` (hub #1956). Read-only, ready, sending, sent or refused; `step` is the only transition, with core's reasons word for word, so a Rust renderer paints the same states a browser does for the same events.
 
 ## crates/intui-types/src/edge.rs
 The edge: the one place JSON from a wire becomes a `Tree`.
@@ -277,6 +283,9 @@ The `show` tool the model calls: its name, a description listing the components 
 
 ## packages/claude-code/src/usage.ts
 The usage log behind `/intui`: one shape-only entry per `show` call, refusal or tool-returned tree, a count of times the person typed over a waiting Choice or Form, and the Markdown report that turns them into trends. It keeps counts and component names, never content, and old entries missing newer fields still summarize.
+
+## packages/core/checks/control-parity.ts
+The control machine, core against the Rust crates (hub #1956): each event sequence is replayed through core's `stepControl` and through the `intui-control` binary, and the lines they print must be byte for byte the same. Run after `cargo build -p intui-event` (in crates/): bun packages/core/checks/control-parity.ts Exits 1 on the first difference. It drives the real binary, so it checks what ships.
 
 ## packages/core/checks/marks-parity.ts
 Marks and Ladder, core against the Rust crates (proposal 005): the text form of each example and the refusal for each bad tree must be byte for byte the same in both. Run after `cargo build -p intui-text`: bun packages/core/checks/marks-parity.ts Exits 1 on the first difference. It drives the real `intui-text` binary, so it checks what ships.
