@@ -10,4 +10,4 @@ mod marks_text;
 mod text;
 mod words;
 
-pub use text::{drawn_text, reading_text, to_text};
+pub use text::{cell_text, drawn_text, reading_text, to_text};

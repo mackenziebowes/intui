@@ -70,6 +70,16 @@ fn markdown_table(headers: &[String], rows: &[Vec<String>]) -> String {
     lines.join("\n")
 }
 
+/// What a table cell says as plain text, the way the text form writes it before escaping for a Markdown row.
+pub fn cell_text(cell: &Cell) -> String {
+    match cell {
+        Cell::Empty => String::new(),
+        Cell::Flag(flag) => flag.to_string(),
+        Cell::Number(number) => number_cell(number.get()),
+        Cell::Text(text) => text.clone(),
+    }
+}
+
 fn table_text(table: &forms::Table) -> String {
     let headers: Vec<String> = table.columns.iter().map(|column| escape_cell(&column.label)).collect();
     let rows: Vec<Vec<String>> = table
