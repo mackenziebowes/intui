@@ -85,5 +85,24 @@ function stripHtml(tokens: Token[]): Token[] {
 export function markdownToHtml(markdown: string): string {
   const tokens = marked.lexer(markdown)
   const clean = Object.assign(stripHtml(tokens), { links: tokens.links })
-  return marked.parser(clean)
+  return labelCells(marked.parser(clean))
+}
+
+/**
+ * Gives each body cell of a table its column's heading as `data-label`, so a narrow screen can draw a row as a card of
+ * labelled lines (the CSS reads the label). Runs over marked's output, where every text is already escaped, so the
+ * heading is safe inside a double-quoted attribute once its tags are cut. The Rust reader (hub `reader/render.rs`) does
+ * the same for drafts.
+ */
+function labelCells(html: string): string {
+  return html.replace(/<table>[\s\S]*?<\/table>/g, table => {
+    const labels = [...table.matchAll(/<th(?:\s[^>]*)?>([\s\S]*?)<\/th>/g)].map(m => (m[1] ?? '').replace(/<[^>]*>/g, '').trim())
+    return table.replace(/<tr>[\s\S]*?<\/tr>/g, row => {
+      let n = 0
+      return row.replace(/<td(?=[\s>])/g, () => {
+        const label = labels[n++]
+        return label ? `<td data-label="${label}"` : '<td'
+      })
+    })
+  })
 }
