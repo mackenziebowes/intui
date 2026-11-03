@@ -20,8 +20,6 @@ export interface LabelProps extends Node {
   tone: Tone;
   /** Whose it is, as a key the producer chose ("keel"). An Areas legend may give the key a colour; with none, the tone alone shows. */
   who?: string;
-  /** This Label is part of its group's lead item, the one the reader should take in first; false when left out. Each renderer decides how a lead looks. */
-  lead?: boolean;
 }
 
 export const Label = defineKind<LabelProps>({
@@ -34,7 +32,6 @@ export const Label = defineKind<LabelProps>({
       text: z.string().min(1).max(40, "a Label is a short tag; put longer text in a Text"),
       tone: tone.default("neutral"),
       who: whoKey.optional(),
-      lead: z.boolean().default(false),
     })
     .meta({ id: "Label" }),
   toText: (props) => (props.who ? `[${props.text}] (${props.who})` : `[${props.text}]`),

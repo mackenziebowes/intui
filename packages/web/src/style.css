@@ -1161,8 +1161,6 @@ path.intui-chart-bar.is-partial { fill: var(--_surface); fill-opacity: 1; stroke
 /* Whose it is: the colour of that agent's window, given once in the Areas legend. */
 .intui-label.intui-who { color: var(--who); }
 .intui-text.intui-who { color: var(--who); }
-/* A lead Label (proposal 012) takes the body type size and loses the shrink; its ring and fill stay. */
-.intui-label--lead { font-size: 1em; }
 .intui-group.intui-who { border-left: 3px solid var(--who); padding-left: 0.5rem; }
 /* A boxed Group of someone's wears that colour as its whole frame and a faint tint; idle fades both to a trace of the hue. */
 .intui-group.intui-who[class*="intui-box--"] { border: 2px solid var(--who); border-radius: 6px; padding: 0.5rem; background: color-mix(in srgb, var(--who) 10%, transparent); }

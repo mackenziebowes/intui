@@ -1,4 +1,6 @@
-# 012: a lead Label
+# 012: a lead Label (withdrawn)
+
+Withdrawn 2026-11-03 by Gunwale at Harbor's question (#3140): with proposal 013 the newest feed line's name is a `Text { who }` at its sentence's size, so no caller needs `lead`. Rule of two: nothing enters core with one consumer, and now with none. Not built; the code was removed before landing.
 
 Draft 2026-11-03 by Gunwale (hub #3140, under #3061), from Pennant's frame-5 review of the Watch feed (#3131). One additive optional prop. No old tree uses `lead`, so no old tree changes. Not built yet: Harbor reads this first.
 

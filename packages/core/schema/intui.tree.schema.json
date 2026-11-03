@@ -218,10 +218,6 @@
           "type": "string",
           "minLength": 1,
           "maxLength": 24
-        },
-        "lead": {
-          "default": false,
-          "type": "boolean"
         }
       },
       "required": [

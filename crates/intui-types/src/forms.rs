@@ -106,8 +106,6 @@ pub struct Label {
     pub tone: Tone,
     /// Whose it is, a key the producer chose; an Areas legend may give it a colour.
     pub who: Option<String>,
-    /// Part of its group's lead item, the one the reader should take in first.
-    pub lead: bool,
 }
 
 #[derive(Clone, Debug)]
