@@ -150,6 +150,9 @@ impl Style for FileStyle {
             FrameRole::Box | FrameRole::Code => FrameLook { fill: self.surface.or(own.fill), stroke: Stroke::new(own.stroke.width, self.line.or(own.stroke.color)), rounding, ..own },
             FrameRole::Control => FrameLook { fill: self.surface.or(own.fill), stroke: Stroke::new(own.stroke.width, self.line_strong.or(own.stroke.color)), rounding, ..own },
             FrameRole::Notice => FrameLook { fill: self.surface.or(own.fill), stroke: Stroke::new(own.stroke.width, self.warning.or(own.stroke.color)), rounding, ..own },
+            FrameRole::Apart => FrameLook { fill: self.surface.or(own.fill), stroke: Stroke::new(own.stroke.width, self.line_strong.or(own.stroke.color)), rounding, ..own },
+            FrameRole::Said => own,
+            FrameRole::Waiting => FrameLook { fill: self.fg.or(own.fill), rounding, ..own },
         }
     }
 

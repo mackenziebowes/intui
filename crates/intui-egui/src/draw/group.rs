@@ -4,8 +4,9 @@
 
 use crate::draw::figure::label_width;
 use crate::scene::Scene;
-use egui::{Align, Layout, Spacing, Ui, Vec2};
-use intui_types::forms::{Group, GroupDirection};
+use egui::{Align, Frame, Layout, Spacing, Ui, Vec2, Visuals};
+use crate::style::FrameRole;
+use intui_types::forms::{Group, GroupBox, GroupDirection};
 use intui_types::{Drawn, Node};
 
 /// The narrowest a component that needs room gets inside a row, in points.
@@ -36,6 +37,53 @@ fn least_width(drawn: &Drawn) -> f32 {
 }
 
 pub(crate) fn draw(scene: &mut Scene, ui: &mut Ui, group: &Group, path: &str) {
+    let role = match group.boxed {
+        None => return draw_children(scene, ui, group, path),
+        Some(GroupBox::Apart) => FrameRole::Apart,
+        Some(GroupBox::Said) => FrameRole::Said,
+        Some(GroupBox::Waiting) => FrameRole::Waiting,
+    };
+    let look = scene.frame(role);
+    let waiting = role == FrameRole::Waiting;
+    // The dark box re-inks everything inside it: the text and tones are read from `Visuals`, so swap those for the box.
+    let outer = scene.visuals.clone();
+    let outside = scene.inverse;
+    if waiting {
+        scene.inverse = Some((look.fill, outer.panel_fill));
+        scene.visuals = inverted(&outer);
+        ui.style_mut().visuals = scene.visuals.clone();
+    }
+    Frame::new().fill(look.fill).stroke(look.stroke).corner_radius(look.rounding).inner_margin(look.padding).show(ui, |ui| {
+        ui.set_width(ui.available_width());
+        draw_children(scene, ui, group, path);
+    });
+    if waiting {
+        ui.style_mut().visuals = outer.clone();
+        scene.visuals = outer;
+        scene.inverse = outside;
+    }
+}
+
+/// The app's visuals as seen from inside a dark box: the ground becomes the ink and the ink the ground, and the tones
+/// that come from `Visuals` are pulled toward the ink so none loses contrast on the dark.
+fn inverted(visuals: &Visuals) -> Visuals {
+    let ground = visuals.text_color();
+    let ink = visuals.panel_fill;
+    let mut inside = visuals.clone();
+    inside.dark_mode = !visuals.dark_mode;
+    inside.override_text_color = Some(ink);
+    inside.panel_fill = ground;
+    inside.faint_bg_color = ground.lerp_to_gamma(ink, 0.12);
+    inside.code_bg_color = ground.lerp_to_gamma(ink, 0.12);
+    inside.warn_fg_color = visuals.warn_fg_color.lerp_to_gamma(ink, 0.6);
+    inside.error_fg_color = visuals.error_fg_color.lerp_to_gamma(ink, 0.6);
+    inside.hyperlink_color = visuals.hyperlink_color.lerp_to_gamma(ink, 0.6);
+    inside.widgets.noninteractive.bg_stroke.color = ground.lerp_to_gamma(ink, 0.3);
+    inside.widgets.inactive.bg_stroke.color = ground.lerp_to_gamma(ink, 0.5);
+    inside
+}
+
+fn draw_children(scene: &mut Scene, ui: &mut Ui, group: &Group, path: &str) {
     let gap = scene.gap();
     match group.direction {
         GroupDirection::Column => {

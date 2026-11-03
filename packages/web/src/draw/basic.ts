@@ -19,7 +19,7 @@ export const group: Drawer<GroupProps> = (props, { dom, child }) => {
   const sized = props.direction === 'row' && props.widths !== undefined
   const divided = props.divider === true
   const kids = props.children.map((node, index) => {
-    const element = child(node)
+    const element = child(node, index)
     if (sized && element instanceof HTMLElement) {
       const width = props.widths![index]
       element.style.setProperty('--intui-w', width === 'rest' ? '0px' : `${width}px`)
@@ -29,7 +29,7 @@ export const group: Drawer<GroupProps> = (props, { dom, child }) => {
     return element
   })
   const parts = divided ? kids.flatMap((element, index) => (index === 0 ? [element] : [dom.el('span', { class: 'intui-divider', 'aria-hidden': true }), element])) : kids
-  const classes = ['intui-group', `intui-group--${props.direction}`, sized ? 'intui-group--sized' : '', divided ? 'intui-group--divided' : '']
+  const classes = ['intui-group', `intui-group--${props.direction}`, sized ? 'intui-group--sized' : '', divided ? 'intui-group--divided' : '', props.box === undefined ? '' : `intui-box--${props.box}`]
   return dom.el('div', { class: classes.filter(Boolean).join(' ') }, ...parts)
 }
 

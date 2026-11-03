@@ -49,6 +49,12 @@ pub enum FrameRole {
     Control,
     /// A note the renderer writes on its own account.
     Notice,
+    /// A group boxed as set apart from what is around it.
+    Apart,
+    /// A group boxed as someone's own words.
+    Said,
+    /// A group boxed as waiting on the reader: the one dark box.
+    Waiting,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq)]
@@ -176,6 +182,9 @@ impl Fallback {
             FrameRole::Code => FrameLook { fill: visuals.code_bg_color, stroke: Stroke::NONE, rounding: 4.0, padding: 8.0 },
             FrameRole::Control => FrameLook { fill: visuals.extreme_bg_color, stroke: visuals.widgets.inactive.bg_stroke, rounding: 3.0, padding: 4.0 },
             FrameRole::Notice => FrameLook { fill: visuals.faint_bg_color, stroke: Stroke::new(1.0, visuals.warn_fg_color), rounding: 4.0, padding: 8.0 },
+            FrameRole::Apart => FrameLook { fill: visuals.panel_fill, stroke: Stroke::new(1.0, visuals.widgets.inactive.bg_stroke.color), rounding: 8.0, padding: 12.0 },
+            FrameRole::Said => FrameLook { fill: visuals.panel_fill.lerp_to_gamma(visuals.text_color(), 0.07), stroke: Stroke::NONE, rounding: 8.0, padding: 12.0 },
+            FrameRole::Waiting => FrameLook { fill: visuals.text_color(), stroke: Stroke::NONE, rounding: 8.0, padding: 12.0 },
         }
     }
 

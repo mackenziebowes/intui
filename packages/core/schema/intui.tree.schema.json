@@ -143,6 +143,14 @@
           "default": false,
           "type": "boolean"
         },
+        "box": {
+          "type": "string",
+          "enum": [
+            "apart",
+            "said",
+            "waiting"
+          ]
+        },
         "children": {
           "minItems": 1,
           "type": "array",

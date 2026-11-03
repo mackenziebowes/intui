@@ -18,15 +18,32 @@ pub(crate) struct Scene<'a> {
     pub controls: &'a mut Controls,
     pub tree: &'a Tree,
     pub events: Vec<Event>,
+    /// Inside a `waiting` box: (the box's ground, the ink drawn on it). The app's palette is for the page's ground, so
+    /// the text and tones read from it are pulled to the ink here and none loses contrast on the dark.
+    pub inverse: Option<(Color32, Color32)>,
 }
 
 impl Scene<'_> {
     pub fn tone(&self, tone: Tone) -> ToneLook {
-        self.style.tone(&self.visuals, tone)
+        let look = self.style.tone(&self.visuals, tone);
+        match self.inverse {
+            None => look,
+            Some((ground, ink)) => ToneLook {
+                color: match tone {
+                    Tone::Neutral => ink,
+                    Tone::Muted => ink.lerp_to_gamma(ground, 0.28),
+                    _ => look.color.lerp_to_gamma(ink, 0.6),
+                },
+            },
+        }
     }
 
     pub fn text(&self, role: TextRole) -> TextLook {
-        self.style.text(&self.visuals, role)
+        let look = self.style.text(&self.visuals, role);
+        match self.inverse {
+            None => look,
+            Some((ground, ink)) => TextLook { color: if role == TextRole::Caption { ink.lerp_to_gamma(ground, 0.28) } else { ink }, ..look },
+        }
     }
 
     pub fn frame(&self, role: FrameRole) -> FrameLook {

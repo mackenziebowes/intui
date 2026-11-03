@@ -25,10 +25,15 @@ fn node_text(node: &Node) -> String {
         Node::Group(group) => {
             let parts: Vec<String> = group.children.iter().map(drawn_text).collect();
             let all_short = parts.iter().all(|part| !part.contains('\n'));
-            if matches!(group.direction, forms::GroupDirection::Row) && all_short {
+            let body = if matches!(group.direction, forms::GroupDirection::Row) && all_short {
                 parts.join(" · ")
             } else {
                 parts.join("\n\n")
+            };
+            if matches!(group.boxed, Some(forms::GroupBox::Waiting)) {
+                format!("{}\n{body}", words::WAITING_ON_YOU)
+            } else {
+                body
             }
         }
         Node::Table(table) => table_text(table),

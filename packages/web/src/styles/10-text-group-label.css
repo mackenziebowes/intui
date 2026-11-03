@@ -179,6 +179,37 @@
   }
 }
 
+/* A box: padding and a rounded corner for any of the three meanings. */
+.intui-group[class*="intui-box--"] {
+  padding: 0.85em 1em;
+  border-radius: calc(var(--_radius) * 1.5);
+}
+
+/* apart: a unit set apart from what is around it, edged. */
+.intui-box--apart {
+  background: var(--_surface);
+  box-shadow: inset 0 0 0 1px var(--_line-strong);
+}
+
+/* said: someone's own words, filled, no edge. */
+.intui-box--said {
+  background: color-mix(in oklab, var(--_fg) 6%, var(--_surface));
+}
+
+/* waiting: waiting on the reader, the one dark box. Everything inside is re-inked so no tone loses contrast. */
+.intui-box--waiting {
+  --_fg: var(--_inverse-ink);
+  --_surface: var(--_inverse-bg);
+  --_muted: color-mix(in oklab, var(--_inverse-ink) 72%, var(--_inverse-bg));
+  --_line: color-mix(in oklab, var(--_inverse-ink) 30%, var(--_inverse-bg));
+  --_line-strong: color-mix(in oklab, var(--_inverse-ink) 50%, var(--_inverse-bg));
+  --_positive: var(--_inverse-positive);
+  --_warning: var(--_inverse-warning);
+  --_critical: var(--_inverse-critical);
+  background: var(--_inverse-bg);
+  color: var(--_inverse-ink);
+}
+
 /* ---- Label ---- */
 
 .intui-label {

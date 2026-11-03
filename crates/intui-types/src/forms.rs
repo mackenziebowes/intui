@@ -13,7 +13,7 @@ pub use crate::mark_forms::{
     Halo, KindIndex, Ladder, LadderNode, LadderRung, LadderStep, Mark, MarkKind, MarkState, Marks, MarksRow, NodeAt, NodeBody, RowBody, StateIndex, UnknownKind,
 };
 pub use crate::generated::tree::{
-    ChartKind, ChartPointPeriod, ChartSeriesRole, ChoiceRepeat, GroupDirection, Size, StatChangeAs, TableColumnAlign, Tone,
+    ChartKind, ChartPointPeriod, ChartSeriesRole, ChoiceRepeat, GroupBox, GroupDirection, Size, StatChangeAs, TableColumnAlign, Tone,
 };
 
 /// A list with at least one item. The first is boxed so a Group can hold a list of the nodes it sits in.
@@ -110,6 +110,8 @@ pub struct Group {
     /// Some only on a row, one per child: the narrowest px that child shrinks to (0 is no floor).
     pub floors: Option<Vec<u16>>,
     pub divider: bool,
+    /// What the group is as a unit: apart, someone's words, or waiting on the reader. None draws no box.
+    pub boxed: Option<GroupBox>,
     pub children: NonEmpty<Drawn>,
 }
 

@@ -29,7 +29,7 @@ use intui_types::{Event, Tree};
 /// Draws `tree` in `ui` and returns the events the person made this frame. A press or submit puts its control in
 /// `Sending`; the app must say how it ended with `settle`. `source` must change whenever the tree does.
 pub fn show<S: Style>(ui: &mut Ui, tree: &Tree, source: &Source, style: &S, controls: &mut Controls) -> Vec<Event> {
-    let mut scene = scene::Scene { style, visuals: ui.visuals().clone(), source, controls, tree, events: Vec::new() };
+    let mut scene = scene::Scene { style, visuals: ui.visuals().clone(), source, controls, tree, events: Vec::new(), inverse: None };
     ui.push_id(source.as_str(), |ui| scene.drawn(ui, tree.root(), "root"));
     scene.events
 }

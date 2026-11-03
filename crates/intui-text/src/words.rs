@@ -35,3 +35,6 @@ pub fn certainty(kind: ReadingKind, number: &str) -> String {
         ReadingKind::Unknown => "unknown".to_string(),
     }
 }
+
+/// The first line of a Group boxed as `waiting`: core's `[waiting on you]`.
+pub const WAITING_ON_YOU: &str = "[waiting on you]";

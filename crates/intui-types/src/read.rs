@@ -142,7 +142,7 @@ fn group(fields: &Fields, children: Vec<Drawn>) -> Result<Group, Drift> {
         None => None,
         Some(_) => Some(fields.list("floors")?.iter().map(|item| whole(item, 4000.0, 0.0).ok_or_else(|| fields.drift("floors"))).collect::<Result<Vec<_>, _>>()?),
     };
-    Ok(Group { direction: fields.word("direction")?, widths, floors, divider: fields.flag("divider")?, children: fields.non_empty("children", children)? })
+    Ok(Group { direction: fields.word("direction")?, widths, floors, divider: fields.flag("divider")?, boxed: fields.maybe_word("box")?, children: fields.non_empty("children", children)? })
 }
 
 fn table(fields: &Fields) -> Result<Table, Drift> {
