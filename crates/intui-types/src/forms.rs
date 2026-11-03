@@ -122,6 +122,8 @@ pub struct Group {
     pub who: Option<String>,
     /// In an area with room to spare, this child sits at the foot, below the rest.
     pub foot: bool,
+    /// Its owner (`who`) is doing nothing now: the frame drawn in the owner's colour fades to a trace of the hue.
+    pub idle: bool,
     pub children: NonEmpty<Drawn>,
 }
 

@@ -22,7 +22,7 @@ pub(crate) struct Drift {
     pub field: String,
 }
 
-/// The props of one object, read by name, with the schema's default for a prop it leaves out.
+/// One object's props, read by name, with the schema default for a prop left out.
 struct Fields<'a> {
     def: &'a str,
     object: &'a JsonObject,
@@ -103,7 +103,7 @@ impl<'a> Fields<'a> {
     }
 }
 
-/// The parsed form of a node of `kind` whose props passed the schema. `children` are its already-read child nodes.
+/// The parsed form of a node of `kind` whose props passed the schema; `children` are already read.
 pub(crate) fn read_node(kind: Kind, object: &JsonObject, children: Vec<Drawn>) -> Result<Node, Drift> {
     let def = kind.name();
     let fields = Fields { def, object };
@@ -144,7 +144,7 @@ fn group(fields: &Fields, children: Vec<Drawn>) -> Result<Group, Drift> {
         None => None,
         Some(_) => Some(fields.list("floors")?.iter().map(|item| whole(item, 4000.0, 0.0).ok_or_else(|| fields.drift("floors"))).collect::<Result<Vec<_>, _>>()?),
     };
-    Ok(Group { direction: fields.word("direction")?, widths, floors, divider: fields.flag("divider")?, boxed: fields.maybe_word("box")?, thread: fields.flag("thread")?, who: fields.maybe_text("who")?, foot: fields.flag("foot")?, children: fields.non_empty("children", children)? })
+    Ok(Group { direction: fields.word("direction")?, widths, floors, divider: fields.flag("divider")?, boxed: fields.maybe_word("box")?, thread: fields.flag("thread")?, who: fields.maybe_text("who")?, foot: fields.flag("foot")?, idle: fields.flag("idle")?, children: fields.non_empty("children", children)? })
 }
 
 fn table(fields: &Fields) -> Result<Table, Drift> {

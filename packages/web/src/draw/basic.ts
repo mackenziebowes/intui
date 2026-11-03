@@ -36,6 +36,7 @@ export const group: Drawer<GroupProps> = (props, { dom, child, uid, onWidth }) =
   const threaded = props.thread === true
   if (threaded) classes.push('intui-group--thread')
   if (props.foot === true) classes.push('intui-group--foot')
+  if (props.idle === true) classes.push('intui-group--idle')
   const element = dom.el('div', { class: classes.filter(Boolean).join(' '), ...(props.who ? { 'data-who': props.who } : {}) }, ...parts)
   if (threaded) followEnd(element, uid('thread'), onWidth)
   return element

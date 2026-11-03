@@ -25,6 +25,8 @@ export interface GroupProps extends Node {
   who?: string;
   /** In an area with room to spare, this child sits at the foot, below the rest (a reply box, a thread). */
   foot?: boolean;
+  /** Its owner (see `who`) is doing nothing now. A renderer fades the frame it draws in the owner's colour to a trace of the hue. Without `who` it changes nothing; absent means acting. */
+  idle?: boolean;
   children: Node[];
 }
 
@@ -46,6 +48,7 @@ export const Group = defineKind<GroupProps>({
       thread: z.boolean().default(false),
       who: whoKey.optional(),
       foot: z.boolean().default(false),
+      idle: z.boolean().default(false),
       children: z.array(node).min(1, "a Group needs at least one child"),
     })
     .superRefine((group, ctx) => {
