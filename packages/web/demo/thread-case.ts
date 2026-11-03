@@ -13,7 +13,7 @@ const message = (n: number): Node => ({
 } as Node)
 
 const messages = Array.from({ length: 14 }, (_, n) => message(n))
-const heading = (markdown: string): Node => ({ type: 'Text', markdown, size: 'heading' })
+const heading = (markdown: string): Node => ({ type: 'Text', markdown, size: 'heading' } as Node)
 const pane = '… 9 earlier turns\n● Bash hub task context 3003\n  ⎿ #3003 Owner header · draft 2 attached 18:04\nTwo header layouts.\n    indented by four spaces\n● Bash land status\n  ⎿ lock free\n✱ Working… (41s)'
 
 export const threadCase: { title: string; note: string; root: Node } = {
