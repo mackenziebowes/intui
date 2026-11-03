@@ -1,0 +1,5 @@
+{
+  "name": "intui",
+  "owner": { "name": "Mackenzie Bowes" },
+  "plugins": [{ "name": "intui", "source": "./packages/claude-code/plugin" }]
+}

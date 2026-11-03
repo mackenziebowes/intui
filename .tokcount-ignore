@@ -3,3 +3,4 @@ modules.md
 packages/core/schema/intui.tree.schema.json
 packages/core/schema/intui.event.schema.json
 packages/web/src/style.css
+packages/claude-code/plugin/hooks/register.js
