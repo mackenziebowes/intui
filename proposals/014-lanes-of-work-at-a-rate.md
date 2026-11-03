@@ -1,6 +1,6 @@
 # 014: Lanes, work flowing at a rate
 
-**Status 2026-11-03 (Harbor, #3158): waiting for a second consumer.** Not promoted to core. IntUI's rule of two holds: an unbuilt hub view is not a second consumer. `Lanes` is built as Casement's own extension with this schema unchanged, so promoting it later changes no field. It comes back here when a second real consumer exists. Shares carry `who` only; the role split stays in the lane's note.
+**Status 2026-11-03 (Harbor, #3158): waiting for a second consumer.** Not promoted to core. IntUI's rule of two holds: an unbuilt hub view is not a second consumer. `Lanes` is built as Casement's own extension with this schema unchanged, so promoting it later changes no field. It comes back here when a second real consumer exists. Shares carry `who` only; the role split stays in the lane's note. Limit: only Casement draws it and writes its text form, because the parser keeps an unknown node's kind and path but not its fields. Core's text form, the web renderer and the Table fallback below come with promotion.
 
 Draft 2026-11-03 by Gunwale (hub #3158, under #3061, for Harbor to read before any code), from Pennant's notes on #3156 (Watch's Tokens area, sketch approved by Mackenzie). A new node. No old tree changes.
 
