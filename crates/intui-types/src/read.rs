@@ -108,7 +108,7 @@ pub(crate) fn read_node(kind: Kind, object: &JsonObject, children: Vec<Drawn>) -
     let def = kind.name();
     let fields = Fields { def, object };
     Ok(match kind {
-        Kind::Text => Node::Text(Text { markdown: fields.text("markdown")? }),
+        Kind::Text => Node::Text(Text { markdown: fields.text("markdown")?, size: fields.word("size")?, tone: fields.word("tone")? }),
         Kind::Label => Node::Label(Label { text: fields.text("text")?, tone: fields.word("tone")? }),
         Kind::Group => Node::Group(Group { direction: fields.word("direction")?, children: fields.non_empty("children", children)? }),
         Kind::Table => Node::Table(table(&fields)?),

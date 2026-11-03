@@ -13,7 +13,7 @@ pub use crate::mark_forms::{
     Halo, KindIndex, Ladder, LadderNode, LadderRung, LadderStep, Mark, MarkKind, MarkState, Marks, MarksRow, NodeAt, NodeBody, RowBody, StateIndex, UnknownKind,
 };
 pub use crate::generated::tree::{
-    ChartKind, ChartPointPeriod, ChartSeriesRole, ChoiceRepeat, GroupDirection, StatChangeAs, TableColumnAlign, Tone,
+    ChartKind, ChartPointPeriod, ChartSeriesRole, ChoiceRepeat, GroupDirection, Size, StatChangeAs, TableColumnAlign, Tone,
 };
 
 /// A list with at least one item. The first is boxed so a Group can hold a list of the nodes it sits in.
@@ -92,6 +92,8 @@ impl<T> AtLeastTwo<T> {
 #[derive(Clone, Debug, PartialEq)]
 pub struct Text {
     pub markdown: String,
+    pub size: Size,
+    pub tone: Tone,
 }
 
 #[derive(Clone, Debug, PartialEq)]

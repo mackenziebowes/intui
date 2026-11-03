@@ -158,6 +158,12 @@
   text-wrap: balance;
 }
 
+/* A Text's size prop, as steps from body (14 px): small 12, heading 19, title 24. */
+.intui-text--small { font-size: 0.857em; }
+.intui-text--heading { font-size: 1.357em; line-height: 1.25; }
+.intui-text--title { font-size: 1.714em; line-height: 1.2; }
+.intui-text-tone { color: var(--_tone); }
+
 /* One step of 1.25 between sizes: 0.8em small, 1em body, 1.25em, 1.5625em; Stat values at 1.95em. */
 .intui-text h1 { font-size: 1.5625em; }
 .intui-text h2 { font-size: 1.25em; }
