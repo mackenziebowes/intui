@@ -1,0 +1,31 @@
+/* ---- Areas and Tabs ---- */
+
+.intui-areas { display: flex; flex-direction: column; min-height: 24rem; border: 1px solid var(--_line); background: var(--_surface); }
+.intui-areas > * { flex: 1 1 auto; min-height: 0; }
+
+.intui-areas-split { display: flex; flex-wrap: wrap; min-width: 0; }
+.intui-areas-split--column { flex-direction: column; flex-wrap: nowrap; }
+.intui-areas-split > * { flex: var(--intui-share, 1) 1 0; min-width: min(17.5rem, 100%); min-height: 0; }
+.intui-areas-split--row > * + * { border-left: 1px solid var(--_line); }
+.intui-areas-split--column > * + * { border-top: 1px solid var(--_line); }
+
+.intui-area { display: flex; flex-direction: column; }
+.intui-area-header { display: flex; align-items: center; gap: 0.5rem; padding: 0.4rem 0.6rem; border-bottom: 1px solid var(--_line); background: color-mix(in oklab, var(--_fg) 4%, var(--_surface)); }
+.intui-area-typewrap { position: relative; }
+.intui-area-type { display: inline-flex; align-items: center; gap: 0.35em; min-height: 2.25rem; padding: 0.15em 0.6em; border: 1px solid var(--_line-strong); border-radius: var(--_radius); background: var(--_surface); color: var(--_fg); font: inherit; font-weight: 600; cursor: pointer; }
+.intui-area-caret { font-size: 0.7em; color: var(--_muted); }
+.intui-area-filter { padding: 0.1em 0.6em; border: 1px dashed var(--_line-strong); border-radius: 999px; color: var(--_muted); font-size: 0.85em; }
+.intui-area-menu { position: absolute; z-index: 5; top: calc(100% + 0.25rem); left: 0; min-width: 16rem; padding: 0.25rem; border: 1px solid var(--_line-strong); border-radius: var(--_radius); background: var(--_surface); box-shadow: 0 6px 18px color-mix(in oklab, var(--_fg) 18%, transparent); }
+.intui-area-menu[hidden] { display: none; }
+.intui-area-item { display: flex; width: 100%; align-items: baseline; justify-content: space-between; gap: 1rem; min-height: 2.25rem; padding: 0.3em 0.6em; border: 0; border-radius: calc(var(--_radius) - 2px); background: none; color: var(--_fg); font: inherit; text-align: left; cursor: pointer; }
+.intui-area-item:hover, .intui-area-item:focus-visible { background: color-mix(in oklab, var(--_fg) 8%, var(--_surface)); }
+.intui-area-item[aria-checked='true'] { background: var(--_inverse-bg); color: var(--_inverse-ink); }
+.intui-area-item-hint { color: var(--_muted); font-size: 0.8em; }
+.intui-area-item[aria-checked='true'] .intui-area-item-hint { color: color-mix(in oklab, var(--_inverse-ink) 72%, var(--_inverse-bg)); }
+.intui-area-body { flex: 1 1 auto; min-height: 0; overflow: auto; padding: 0.75rem; display: flex; flex-direction: column; gap: var(--_gap); }
+.intui-area-waiting { margin: auto; color: var(--_muted); }
+
+.intui-tabs { display: flex; flex-wrap: wrap; gap: 0.25rem; border-bottom: 1px solid var(--_line); }
+.intui-tab { min-height: 2.25rem; padding: 0.3em 0.9em; border: 0; border-bottom: 2px solid transparent; background: none; color: var(--_muted); font: inherit; font-weight: 550; cursor: pointer; }
+.intui-tab:hover { color: var(--_fg); }
+.intui-tab.is-open { border-bottom-color: var(--_fg); color: var(--_fg); }

@@ -302,6 +302,9 @@ A Catalog is a set of component kinds and the schemas for trees built from them,
 ## packages/core/src/component.ts
 What a component kind is: its schema, who may write it, its text form, the children and ids it holds, and a valid example. Every kind has a text form, which is what the model reads back and what any surface that can't draw it falls back to.
 
+## packages/core/src/components/areas.ts
+The Areas component: a region cut into areas, each drawn with a header whose menu switches what the area shows. The producer supplies the kinds it can fill (opaque labels, never named by core) and each area's content; a surface owns the arrangement, the open menu and any drag. An area with no content yet reads "waiting for <kind>".
+
 ## packages/core/src/components/chart.ts
 The Chart component: bars or lines over named x positions, one or more series, and markers. Only code may write it, since it shows numbers; each point is a Reading, so a floor, an estimate or a missing value is told apart from an exact one in the text form as well as the drawing.
 
@@ -331,6 +334,9 @@ The Stat component: one figure with a label, a unit and an optional change. Only
 
 ## packages/core/src/components/table.ts
 The Table component: named columns and rows of cells keyed by column. A row key that names no column is refused with the path and the keys that exist; a missing cell is empty, never 0. Its text form is a Markdown table.
+
+## packages/core/src/components/tabs.ts
+The Tabs component: a bar of named arrangements, one of them open. Pressing a tab sends its id; the surface that owns the arrangements switches to it.
 
 ## packages/core/src/components/text.ts
 The Text component: Markdown prose. Its text form is the Markdown itself, and it may not be empty.
@@ -371,6 +377,9 @@ Small rules every renderer must agree on: which way a column aligns, how a typed
 ## packages/web/build.ts
 Builds the browser files into packages/web/dist: the library, its stylesheets and the demo page.
 
+## packages/web/demo/areas-case.ts
+(no header: code comes before any comment)
+
 ## packages/web/demo/demo.ts
 The demo page: every core component's example at three widths, plus a few harder trees, so a person can check the look in light and dark. `?theme=dark` or `?theme=light` forces a theme; otherwise it follows the system.
 
@@ -382,6 +391,9 @@ Pure geometry for the SVG Chart: where every tick, bar, line point, label and ma
 
 ## packages/web/src/dom.ts
 The browser renderer's building blocks: `Dom` builds HTML and SVG elements in one document, and `DrawContext` is what each drawer gets besides its props (child drawing, the host's event handler, pressed and submitted state, width and text measuring). A drawer is a function from props and context to an element.
+
+## packages/web/src/draw/areas.ts
+The browser drawers for Areas and Tabs. An area is a header (a type button that opens a menu of the producer's kinds, and a filter chip) above its content, or above "waiting for <kind>" when the producer has sent none. Picking a kind or a tab sends a `press` to the host and nothing else: the arrangement the person sees is whatever tree comes back. A row cut wraps to a column when it is narrow. Moving a cut is not drawn here. A share is a whole number, so a part that wraps alone still fills its line.
 
 ## packages/web/src/draw/basic.ts
 The browser drawers for the display components: Text, Group, Label, Stat and Table. A table with many columns becomes one card per row when narrow, and a Stat's reading wears its floor or estimate mark with words a screen reader says.

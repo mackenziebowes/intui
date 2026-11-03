@@ -5,7 +5,9 @@
  * refused with every problem listed.
  */
 import { z } from "zod";
+import type { AreasProps } from "./components/areas";
 import type { ChoiceProps } from "./components/choice";
+import type { TabsProps } from "./components/tabs";
 import type { FormField, FormProps } from "./components/form";
 import { parsed, problemsFrom, refusal, type Parsed } from "./problems";
 
@@ -43,6 +45,9 @@ const schema = z
  */
 export type IntuiEvent = EventData;
 
+/** What a press can land on: a Choice, a Tabs bar, or an Areas region. */
+export type Pressable = ChoiceProps | TabsProps | AreasProps;
+
 export const IntuiEvent = {
   press(source: string, choice: string, option: string): IntuiEvent {
     return { v: 1, source, target: choice, action: "press", value: option };
@@ -64,9 +69,17 @@ export const IntuiEvent = {
   },
 
   /** Why this event can't come from the component it names, or null if it can. */
-  problemWith(event: IntuiEvent, component: ChoiceProps | FormProps | undefined): string | null {
+  problemWith(event: IntuiEvent, component: Pressable | FormProps | undefined): string | null {
     if (!component) return `nothing in it has the id "${event.target}"`;
     if (event.action === "press") {
+      if (component.type === "Tabs") {
+        const tabs = component.tabs.map((tab) => tab.id);
+        return tabs.includes(event.value) ? null : `tabs "${event.target}" has no tab "${event.value}"; its tabs are ${tabs.join(", ")}`;
+      }
+      if (component.type === "Areas") {
+        const picks = component.areas.flatMap((area) => component.kinds.map((kind) => `${area.id}:${kind.id}`));
+        return picks.includes(event.value) ? null : `areas "${event.target}" has no pick "${event.value}"; a pick is <area>:<kind>, for example ${picks[0]}`;
+      }
       if (component.type !== "Choice") return `"${event.target}" is a ${component.type}, which can't be pressed`;
       const ids = component.options.map((option) => option.id);
       return ids.includes(event.value) ? null : `choice "${event.target}" has no option "${event.value}"; its options are ${ids.join(", ")}`;
@@ -84,9 +97,11 @@ export const IntuiEvent = {
   },
 
   /** One plain sentence for the model, e.g. `Pressed "Park" in next-step (from toolu_1).` */
-  describe(event: IntuiEvent, component?: ChoiceProps | FormProps): string {
+  describe(event: IntuiEvent, component?: Pressable | FormProps): string {
     const from = `(from ${event.source})`;
     if (event.action === "press") {
+      if (component?.type === "Tabs") return `Opened tab "${component.tabs.find((t) => t.id === event.value)?.label ?? event.value}" in ${event.target} ${from}.`;
+      if (component?.type === "Areas") return `Switched area ${event.value.split(":")[0]} to ${component.kinds.find((k) => k.id === event.value.split(":")[1])?.label ?? event.value} in ${event.target} ${from}.`;
       const option = component?.type === "Choice" ? component.options.find((o) => o.id === event.value) : undefined;
       return `Pressed "${option?.label ?? event.value}" in ${event.target} ${from}.`;
     }

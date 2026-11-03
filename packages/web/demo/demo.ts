@@ -5,12 +5,14 @@
  */
 import { core, IntuiEvent, Tree, type Node } from '@intui/core'
 import { render } from '../src/index'
+import { areasCase } from './areas-case'
 import { threadCase } from './thread-case'
 
 const WIDTHS = [320, 520, 860]
 
 const extras: { title: string; note: string; root: Node }[] = [
   threadCase,
+  areasCase,
   {
     title: 'Every tone inside every box',
     note: 'A Group boxed as apart, said or waiting (proposal 007). The waiting box is the dark one: each tone must keep its contrast there.',

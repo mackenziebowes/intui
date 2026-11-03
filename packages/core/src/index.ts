@@ -12,6 +12,8 @@ export { parsed, refusal, type Parsed, type Problem, type Refusal } from "./prob
 export { cell, cellText, formatNumber, markdownTable } from "./text";
 export { Tree, VERSION, type ParseOptions, type TreeData } from "./tree";
 
+export { Areas, layoutAreas, type AreaKind, type AreaLayout, type AreaSlot, type AreasProps } from "./components/areas";
+export { Tabs, type TabsProps, type TabsTab } from "./components/tabs";
 export { Chart, SERIES_ROLES, type Annotation, type ChartProps, type Point, type Series, type SeriesRole } from "./components/chart";
 export { Choice, type ChoiceOption, type ChoiceProps } from "./components/choice";
 export { Flow, type FlowLink, type FlowProps, type FlowStep } from "./components/flow";

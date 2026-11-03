@@ -51,6 +51,12 @@
         },
         {
           "$ref": "#/$defs/Form"
+        },
+        {
+          "$ref": "#/$defs/Areas"
+        },
+        {
+          "$ref": "#/$defs/Tabs"
         }
       ]
     },
@@ -1046,6 +1052,185 @@
         "id",
         "label",
         "input"
+      ],
+      "additionalProperties": false
+    },
+    "Areas": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string",
+          "const": "Areas"
+        },
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "kinds": {
+          "minItems": 1,
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/AreaKind"
+          }
+        },
+        "areas": {
+          "minItems": 1,
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/AreaSlot"
+          }
+        },
+        "layout": {
+          "$ref": "#/$defs/__schema0"
+        }
+      },
+      "required": [
+        "type",
+        "id",
+        "kinds",
+        "areas",
+        "layout"
+      ],
+      "additionalProperties": false,
+      "x-intui-writer": "anyone"
+    },
+    "AreaKind": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "label": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 24
+        },
+        "hint": {
+          "type": "string",
+          "maxLength": 40
+        }
+      },
+      "required": [
+        "id",
+        "label"
+      ],
+      "additionalProperties": false
+    },
+    "AreaSlot": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "kind": {
+          "type": "string",
+          "minLength": 1
+        },
+        "filter": {
+          "type": "string",
+          "maxLength": 40
+        },
+        "children": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Node"
+          }
+        }
+      },
+      "required": [
+        "id",
+        "kind"
+      ],
+      "additionalProperties": false
+    },
+    "__schema0": {
+      "anyOf": [
+        {
+          "type": "string",
+          "minLength": 1
+        },
+        {
+          "type": "object",
+          "properties": {
+            "split": {
+              "type": "string",
+              "enum": [
+                "row",
+                "column"
+              ]
+            },
+            "ratio": {
+              "type": "number",
+              "minimum": 0.1,
+              "maximum": 0.9
+            },
+            "a": {
+              "$ref": "#/$defs/__schema0"
+            },
+            "b": {
+              "$ref": "#/$defs/__schema0"
+            }
+          },
+          "required": [
+            "split",
+            "ratio",
+            "a",
+            "b"
+          ],
+          "additionalProperties": false
+        }
+      ]
+    },
+    "Tabs": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string",
+          "const": "Tabs"
+        },
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "tabs": {
+          "minItems": 1,
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/TabsTab"
+          }
+        },
+        "active": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "required": [
+        "type",
+        "id",
+        "tabs",
+        "active"
+      ],
+      "additionalProperties": false,
+      "x-intui-writer": "anyone"
+    },
+    "TabsTab": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "label": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 24
+        }
+      },
+      "required": [
+        "id",
+        "label"
       ],
       "additionalProperties": false
     }

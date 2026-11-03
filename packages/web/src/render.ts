@@ -8,6 +8,7 @@ import { Tree, type FieldValue, type IntuiEvent, type Node } from '@intui/core'
 import { estimateWidth, type Measure } from './chart-layout'
 import { domOf, type Dom, type DrawContext, type Drawer } from './dom'
 import { group, label, stat, table, text } from './draw/basic'
+import { areas, tabs } from './draw/areas'
 import { chart } from './draw/chart'
 import { choice, form } from './draw/controls'
 import { flow } from './draw/flow'
@@ -50,6 +51,8 @@ const DRAWERS: Record<string, Drawer> = {
   Marks: marks as Drawer,
   Ladder: ladder as Drawer,
   Choice: choice as Drawer,
+  Areas: areas as Drawer,
+  Tabs: tabs as Drawer,
   Form: form as Drawer,
 }
 

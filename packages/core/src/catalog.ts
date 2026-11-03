@@ -7,6 +7,7 @@
 import { z } from "zod";
 import type { ComponentKind, Node } from "./component";
 import { Chart } from "./components/chart";
+import { Areas } from "./components/areas";
 import { Choice } from "./components/choice";
 import { Flow } from "./components/flow";
 import { Form } from "./components/form";
@@ -16,6 +17,7 @@ import { Ladder } from "./components/ladder";
 import { Marks } from "./components/marks";
 import { Stat } from "./components/stat";
 import { Table } from "./components/table";
+import { Tabs } from "./components/tabs";
 import { Text } from "./components/text";
 
 /** Who wrote a tree: the model directly, or code from a tool. */
@@ -71,4 +73,4 @@ export const Catalog = {
 } as const;
 
 /** Every component in IntUI core. */
-export const core: Catalog = make([Text, Group, Label, Table, Chart, Stat, Flow, Marks, Ladder, Choice, Form]);
+export const core: Catalog = make([Text, Group, Label, Table, Chart, Stat, Flow, Marks, Ladder, Choice, Form, Areas, Tabs]);
