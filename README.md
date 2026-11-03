@@ -8,14 +8,30 @@ Docs: [intui.mackenziebowes.com](https://intui.mackenziebowes.com)
 
 ## Status
 
-Early. `@intui/core` (schemas, text forms, events) is built. Renderers are next: Claude Code first, then the web.
+Early. The core, the layout math, the web renderer and the Claude Code plugin are built. A Rust port for native apps is in the repo but not packaged. The email renderer is planned.
 
 | Package | What it is | Status |
 |---|---|---|
 | `@intui/core` | Component schemas and meaning. No rendering, no product words. | Built |
-| `@intui/claude-code` | A Claude Code plugin: a `show` tool that draws trees in the transcript. | Next |
-| `@intui/web` | HTML and CSS renderer for modern browsers. | Planned |
+| `@intui/layout` | Renderer-neutral data math: chart scales, flow layering and small helpers every renderer needs. | Built |
+| `@intui/web` | HTML and CSS renderer for modern browsers. | Built |
+| `@intui/claude-code` | A Claude Code plugin: a `show` tool that draws trees in the transcript. | Built: [install it](#draw-trees-in-claude-code) |
+| `crates/` | Rust: tree types, layout, text form and an egui renderer, for native apps. | In the repo, not packaged |
 | `@intui/email` | Static renderer for email. | Planned |
+
+## Draw trees in Claude Code
+
+You need Claude Code 2.1.275 or later (tested on 2.1.316). At the prompt of a terminal session:
+
+```
+/plugin install intui --marketplace mackenziebowes/intui
+```
+
+Answer `y` to add the marketplace, then press Enter to install for your user. From a shell, the same install is `claude plugin install intui --marketplace mackenziebowes/intui`. The plugin is already built in `packages/claude-code/plugin`, so there is nothing to clone or compile.
+
+To see it work, start a new session and ask: "Use the show tool to show me a table of three fruits and their colours." Claude calls `show`, and the table is drawn in the transcript. The same tree is also what the model reads back, as Markdown.
+
+If you change `packages/claude-code/src`, run `bun run build` in `packages/claude-code` and commit the rebuilt `plugin/` folder, because that folder is what people install.
 
 ## A tree
 
