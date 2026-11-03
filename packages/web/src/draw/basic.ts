@@ -3,8 +3,9 @@
  * table with many columns becomes one card per row when narrow, and a Stat's reading wears
  * its floor or estimate mark with words a screen reader says.
  */
+import { recall, remember, scrollTopFor, step } from '../follow'
 import { cellOf, cellText, formatNumber, never, type Reading, type GroupProps, type LabelProps, type StatProps, type TableProps, type TextProps } from '@intui/core'
-import type { Dom, Drawer } from '../dom'
+import type { Dom, DrawContext, Drawer } from '../dom'
 import { alignOf, changeShape, READING_MARK } from '@intui/layout'
 import { markdownToHtml } from '../markdown'
 
@@ -12,10 +13,12 @@ import { markdownToHtml } from '../markdown'
 export const text: Drawer<TextProps> = (props, { dom }) => {
   const size = props.size && props.size !== 'body' ? ` intui-text--${props.size}` : ''
   const tone = props.tone && props.tone !== 'neutral' ? ` intui-text-tone intui-tone-${props.tone}` : ''
+  // Verbatim: spacing and line breaks are part of what it says, and the markdown is shown as written.
+  if (props.verbatim) return dom.el('div', { class: `intui-text intui-text--verbatim${size}${tone}` }, props.markdown)
   return dom.html('div', { class: `intui-text${size}${tone}` }, markdownToHtml(props.markdown))
 }
 
-export const group: Drawer<GroupProps> = (props, { dom, child }) => {
+export const group: Drawer<GroupProps> = (props, { dom, child, uid, onWidth }) => {
   const sized = props.direction === 'row' && props.widths !== undefined
   const divided = props.divider === true
   const kids = props.children.map((node, index) => {
@@ -30,7 +33,29 @@ export const group: Drawer<GroupProps> = (props, { dom, child }) => {
   })
   const parts = divided ? kids.flatMap((element, index) => (index === 0 ? [element] : [dom.el('span', { class: 'intui-divider', 'aria-hidden': true }), element])) : kids
   const classes = ['intui-group', `intui-group--${props.direction}`, sized ? 'intui-group--sized' : '', divided ? 'intui-group--divided' : '', props.box === undefined ? '' : `intui-box--${props.box}`]
-  return dom.el('div', { class: classes.filter(Boolean).join(' ') }, ...parts)
+  const threaded = props.thread === true
+  if (threaded) classes.push('intui-group--thread')
+  const element = dom.el('div', { class: classes.filter(Boolean).join(' ') }, ...parts)
+  if (threaded) followEnd(element, uid('thread'), onWidth)
+  return element
+}
+
+/** A thread starts at the end and stays there until the reader scrolls away; see follow.ts. */
+function followEnd(element: HTMLElement, id: string, onWidth: DrawContext['onWidth']): void {
+  let state = recall(id)
+  let placing = false
+  element.addEventListener('scroll', () => {
+    if (placing) return
+    state = step(state, { kind: 'scrolled', fromEnd: element.scrollHeight - element.clientHeight - element.scrollTop })
+    remember(id, state)
+  })
+  // Runs when the element is on the page and whenever its size changes, so late content keeps the place.
+  onWidth(element, () => {
+    state = step(state, { kind: 'redrawn' })
+    placing = true
+    element.scrollTop = scrollTopFor(state, element.scrollHeight, element.clientHeight)
+    placing = false
+  })
 }
 
 export const label: Drawer<LabelProps> = (props, { dom }) =>

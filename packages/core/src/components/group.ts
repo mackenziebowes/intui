@@ -19,6 +19,8 @@ export interface GroupProps extends Node {
   divider?: boolean;
   /** What the group is as a unit: set apart, someone's own words, or waiting on the reader. Each renderer decides how a box looks. */
   box?: "apart" | "said" | "waiting";
+  /** The children are a thread: in time order, the newest last, and the reader is following the end. A column only. */
+  thread?: boolean;
   children: Node[];
 }
 
@@ -37,9 +39,11 @@ export const Group = defineKind<GroupProps>({
       floors: z.array(z.int().min(0).max(4000)).optional(),
       divider: z.boolean().default(false),
       box: z.enum(["apart", "said", "waiting"]).optional(),
+      thread: z.boolean().default(false),
       children: z.array(node).min(1, "a Group needs at least one child"),
     })
     .superRefine((group, ctx) => {
+      if (group.thread && group.direction !== "column") ctx.addIssue({ code: "custom", path: ["thread"], message: "thread is for a column, where the newest child comes last; this Group is a row" });
       for (const key of ["widths", "floors"] as const) {
         const list = group[key];
         if (list === undefined) continue;

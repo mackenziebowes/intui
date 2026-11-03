@@ -11,6 +11,15 @@ use intui_types::Drawn;
 use std::sync::Arc;
 
 pub(crate) fn draw(scene: &mut Scene, ui: &mut Ui, drawn: &Drawn, text: &Text) {
+    if text.verbatim {
+        // As written: mono, the author's line breaks and runs of spaces kept, wrapped at the width.
+        let mono = scene.text(TextRole::Mono);
+        let galley = galley(ui, &text.markdown, &mono, mono.color, ui.available_width());
+        let (rect, response) = ui.allocate_exact_size(galley.size(), Sense::hover());
+        ui.painter().galley(rect.min, galley, mono.color);
+        scene.name(ui, &response, drawn, WidgetType::Label);
+        return;
+    }
     let blocks = blocks_of(ui, &text.markdown);
     let response = ui
         .scope(|ui| {

@@ -170,6 +170,18 @@
 .intui-text--title { font-size: 1.714em; line-height: 1.2; }
 .intui-text-tone { color: var(--_tone); }
 
+/* A verbatim Text: its spacing and line breaks are part of what it says. Shown as written, in the mono face. */
+.intui-text--verbatim {
+  font-family: var(--_mono);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  font-size: 0.929em;
+  line-height: 1.5;
+}
+.intui-text--verbatim.intui-text--small { font-size: 0.8em; }
+.intui-text--verbatim.intui-text--heading { font-size: 1.25em; }
+.intui-text--verbatim.intui-text--title { font-size: 1.6em; }
+
 /* One step of 1.25 between sizes: 0.8em small, 1em body, 1.25em, 1.5625em; Stat values at 1.95em. */
 .intui-text h1 { font-size: 1.5625em; }
 .intui-text h2 { font-size: 1.25em; }
@@ -266,6 +278,16 @@
 }
 
 .intui-group--column > * { min-width: 0; }
+
+/* A thread: the newest child last, at the foot of the area, and the area scrolls when it is full.
+   The first child's auto margin pushes a short thread down without hiding the top of a long one. */
+.intui-group--thread {
+  height: 100%;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+.intui-group--thread > :first-child { margin-top: auto; }
 .intui-group--row > * { min-width: 0; max-width: 100%; }
 
 /* A row that names widths: a fixed child is its px and shrinks in proportion down to its floor; a `rest` child takes what is left. */

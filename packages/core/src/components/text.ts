@@ -19,6 +19,14 @@ export interface TextProps extends Node {
   size?: Size;
   /** What it means, as on a Label; neutral when left out. */
   tone?: Tone;
+  /** Its spacing and line breaks are part of what it says (a terminal pane, a log line); the markdown is shown as written, not interpreted. */
+  verbatim?: boolean;
+}
+
+/** A fence long enough that no run of backticks in the text can close it. */
+function fenceFor(text: string): string {
+  const longest = Math.max(0, ...(text.match(/`+/g) ?? []).map((run) => run.length));
+  return "`".repeat(Math.max(3, longest + 1));
 }
 
 export const Text = defineKind<TextProps>({
@@ -31,8 +39,13 @@ export const Text = defineKind<TextProps>({
       markdown: z.string().min(1, "Text needs some markdown; leave the Text out if there's nothing to say"),
       size: size.default("body"),
       tone: tone.default("neutral"),
+      verbatim: z.boolean().default(false),
     })
     .meta({ id: "Text" }),
-  toText: (props) => props.markdown,
+  toText: (props) => {
+    if (!props.verbatim) return props.markdown;
+    const fence = fenceFor(props.markdown);
+    return `${fence}\n${props.markdown}\n${fence}`;
+  },
   example: { type: "Text", markdown: "Traffic was **normal** this week." },
 });

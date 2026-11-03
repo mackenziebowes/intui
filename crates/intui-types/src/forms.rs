@@ -94,6 +94,8 @@ pub struct Text {
     pub markdown: String,
     pub size: Size,
     pub tone: Tone,
+    /// Its spacing and line breaks are part of what it says; the markdown is shown as written.
+    pub verbatim: bool,
 }
 
 #[derive(Clone, Debug, PartialEq)]
@@ -112,6 +114,8 @@ pub struct Group {
     pub divider: bool,
     /// What the group is as a unit: apart, someone's words, or waiting on the reader. None draws no box.
     pub boxed: Option<GroupBox>,
+    /// The children are a thread: in time order, the newest last, and the reader follows the end.
+    pub thread: bool,
     pub children: NonEmpty<Drawn>,
 }
 

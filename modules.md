@@ -374,6 +374,9 @@ Builds the browser files into packages/web/dist: the library, its stylesheets an
 ## packages/web/demo/demo.ts
 The demo page: every core component's example at three widths, plus a few harder trees, so a person can check the look in light and dark. `?theme=dark` or `?theme=light` forces a theme; otherwise it follows the system.
 
+## packages/web/demo/thread-case.ts
+The demo's thread case (proposal 008): a short thread, a long one and verbatim text, so a person can check that a thread sits at the foot of its area, starts at its end, and that verbatim text keeps its spacing. Built by code so the messages are not written out twice.
+
 ## packages/web/src/chart-layout.ts
 Pure geometry for the SVG Chart: where every tick, bar, line point, label and marker goes at a given pixel width. The drawer turns it into elements; the look (colours, dashes) is the stylesheet's job, keyed on each series' role.
 
@@ -397,6 +400,9 @@ The browser drawers for Marks and Ladder (proposal 005): one glyph per thing cou
 
 ## packages/web/src/flow-layout.ts
 Pure layout for the web Flow: which way the layers run at a given width, and the connector between two measured boxes. The boxes themselves are laid out by CSS; the drawer measures them and asks `connector` for each arrow.
+
+## packages/web/src/follow.ts
+The follow state of a thread (proposal 008): a reader is either following the end, so what arrives is in view, or holding a place they scrolled to, so what arrives does not move it. One transition, `step`; the thread's drawer only sends events in and reads the state out. The state is kept per thread (by its page-unique id) because a host redraws the tree when a message arrives, and the new element must pick up where the old one was.
 
 ## packages/web/src/form-values.ts
 Turns what is in a Form's controls into the values an event carries, or says what to fix first: empty optional fields are left out, numbers that don't parse are named, checkboxes are always sent. Field ids are kept without a prototype, so a field called `constructor` is an ordinary field.

@@ -72,6 +72,10 @@
         "tone": {
           "default": "neutral",
           "$ref": "#/$defs/Tone"
+        },
+        "verbatim": {
+          "default": false,
+          "type": "boolean"
         }
       },
       "required": [
@@ -150,6 +154,10 @@
             "said",
             "waiting"
           ]
+        },
+        "thread": {
+          "default": false,
+          "type": "boolean"
         },
         "children": {
           "minItems": 1,

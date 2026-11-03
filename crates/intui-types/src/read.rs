@@ -108,7 +108,7 @@ pub(crate) fn read_node(kind: Kind, object: &JsonObject, children: Vec<Drawn>) -
     let def = kind.name();
     let fields = Fields { def, object };
     Ok(match kind {
-        Kind::Text => Node::Text(Text { markdown: fields.text("markdown")?, size: fields.word("size")?, tone: fields.word("tone")? }),
+        Kind::Text => Node::Text(Text { markdown: fields.text("markdown")?, size: fields.word("size")?, tone: fields.word("tone")?, verbatim: fields.flag("verbatim")? }),
         Kind::Label => Node::Label(Label { text: fields.text("text")?, tone: fields.word("tone")? }),
         Kind::Group => Node::Group(group(&fields, children)?),
         Kind::Table => Node::Table(table(&fields)?),
@@ -142,7 +142,7 @@ fn group(fields: &Fields, children: Vec<Drawn>) -> Result<Group, Drift> {
         None => None,
         Some(_) => Some(fields.list("floors")?.iter().map(|item| whole(item, 4000.0, 0.0).ok_or_else(|| fields.drift("floors"))).collect::<Result<Vec<_>, _>>()?),
     };
-    Ok(Group { direction: fields.word("direction")?, widths, floors, divider: fields.flag("divider")?, boxed: fields.maybe_word("box")?, children: fields.non_empty("children", children)? })
+    Ok(Group { direction: fields.word("direction")?, widths, floors, divider: fields.flag("divider")?, boxed: fields.maybe_word("box")?, thread: fields.flag("thread")?, children: fields.non_empty("children", children)? })
 }
 
 fn table(fields: &Fields) -> Result<Table, Drift> {

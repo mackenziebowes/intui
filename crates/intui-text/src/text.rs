@@ -20,6 +20,12 @@ pub fn drawn_text(drawn: &Drawn) -> String {
 
 fn node_text(node: &Node) -> String {
     match node {
+        Node::Text(text) if text.verbatim => {
+            // A fence longer than any run of backticks inside, so the text can't close it.
+            let longest = text.markdown.split(|c| c != '`').map(str::len).max().unwrap_or(0);
+            let fence = "`".repeat(longest.max(2) + 1);
+            format!("{fence}\n{}\n{fence}", text.markdown)
+        }
         Node::Text(text) => text.markdown.clone(),
         Node::Label(label) => format!("[{}]", label.text),
         Node::Group(group) => {
