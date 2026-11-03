@@ -21,7 +21,7 @@ Early. The core, the layout math, the web renderer and the Claude Code plugin ar
 
 ## Draw trees in Claude Code
 
-You need Claude Code 2.1.275 or later (tested on 2.1.316). At the prompt of a terminal session:
+Tested on Claude Code 2.1.316. At the prompt of a terminal session:
 
 ```
 /plugin install intui --marketplace mackenziebowes/intui
