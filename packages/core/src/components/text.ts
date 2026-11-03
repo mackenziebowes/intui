@@ -4,7 +4,7 @@
  */
 import { z } from "zod";
 import { defineKind, type Node } from "../component";
-import { tone, type Tone } from "./label";
+import { tone, whoKey, type Tone } from "./label";
 
 /** How big a Text draws: small 12 px, body 14 px (the default), heading 19 px, title 24 px at a 1x scale. */
 export const SIZES = ["small", "body", "heading", "title"] as const;
@@ -21,6 +21,8 @@ export interface TextProps extends Node {
   tone?: Tone;
   /** Its spacing and line breaks are part of what it says (a terminal pane, a log line); the markdown is shown as written, not interpreted. */
   verbatim?: boolean;
+  /** Whose the words are, as on a Label (a key the producer chose); an Areas legend may give it a colour, and the words wear it. */
+  who?: string;
 }
 
 /** A fence long enough that no run of backticks in the text can close it. */
@@ -40,10 +42,14 @@ export const Text = defineKind<TextProps>({
       size: size.default("body"),
       tone: tone.default("neutral"),
       verbatim: z.boolean().default(false),
+      who: whoKey.optional(),
     })
     .meta({ id: "Text" }),
   toText: (props) => {
-    if (!props.verbatim) return props.markdown;
+    if (!props.verbatim) {
+      // The key says whose; when the words already are that name, saying it twice adds nothing.
+      return props.who && props.markdown.trim().toLowerCase() !== props.who.toLowerCase() ? `${props.markdown} (${props.who})` : props.markdown;
+    }
     const fence = fenceFor(props.markdown);
     return `${fence}\n${props.markdown}\n${fence}`;
   },

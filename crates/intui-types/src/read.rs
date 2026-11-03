@@ -1,8 +1,7 @@
 //! Reading a node that passed every check into its parsed form.
 //!
-//! The checks already ran against the schema, so a failure here means this build's forms
-//! and core's schema disagree about a prop (the schema gained something this code doesn't
-//! read). That is reported as a `Drift` naming the prop, never guessed past.
+//! The checks ran against the schema first, so a failure here means this build and core's
+//! schema disagree about a prop. It is reported as a `Drift` naming the prop.
 
 use crate::forms::*;
 use crate::generated::tree as gen;
@@ -108,8 +107,8 @@ pub(crate) fn read_node(kind: Kind, object: &JsonObject, children: Vec<Drawn>) -
     let def = kind.name();
     let fields = Fields { def, object };
     Ok(match kind {
-        Kind::Text => Node::Text(Text { markdown: fields.text("markdown")?, size: fields.word("size")?, tone: fields.word("tone")?, verbatim: fields.flag("verbatim")? }),
-        Kind::Label => Node::Label(Label { text: fields.text("text")?, tone: fields.word("tone")?, who: fields.maybe_text("who")? }),
+        Kind::Text => Node::Text(Text { markdown: fields.text("markdown")?, size: fields.word("size")?, tone: fields.word("tone")?, verbatim: fields.flag("verbatim")?, who: fields.maybe_text("who")? }),
+        Kind::Label => Node::Label(Label { text: fields.text("text")?, tone: fields.word("tone")?, who: fields.maybe_text("who")?, lead: fields.flag("lead")? }),
         Kind::Group => Node::Group(group(&fields, children)?),
         Kind::Table => Node::Table(table(&fields)?),
         Kind::Chart => Node::Chart(chart(&fields)?),

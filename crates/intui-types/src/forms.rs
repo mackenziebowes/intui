@@ -96,6 +96,8 @@ pub struct Text {
     pub tone: Tone,
     /// Its spacing and line breaks are part of what it says; the markdown is shown as written.
     pub verbatim: bool,
+    /// Whose the words are, a key the producer chose; an Areas legend may give it a colour.
+    pub who: Option<String>,
 }
 
 #[derive(Clone, Debug, PartialEq)]
@@ -104,6 +106,8 @@ pub struct Label {
     pub tone: Tone,
     /// Whose it is, a key the producer chose; an Areas legend may give it a colour.
     pub who: Option<String>,
+    /// Part of its group's lead item, the one the reader should take in first.
+    pub lead: bool,
 }
 
 #[derive(Clone, Debug)]

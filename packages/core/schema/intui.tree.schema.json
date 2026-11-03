@@ -82,6 +82,11 @@
         "verbatim": {
           "default": false,
           "type": "boolean"
+        },
+        "who": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 24
         }
       },
       "required": [
@@ -213,6 +218,10 @@
           "type": "string",
           "minLength": 1,
           "maxLength": 24
+        },
+        "lead": {
+          "default": false,
+          "type": "boolean"
         }
       },
       "required": [

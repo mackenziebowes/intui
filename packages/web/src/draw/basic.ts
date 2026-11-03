@@ -14,8 +14,9 @@ export const text: Drawer<TextProps> = (props, { dom }) => {
   const size = props.size && props.size !== 'body' ? ` intui-text--${props.size}` : ''
   const tone = props.tone && props.tone !== 'neutral' ? ` intui-text-tone intui-tone-${props.tone}` : ''
   // Verbatim: spacing and line breaks are part of what it says, and the markdown is shown as written.
-  if (props.verbatim) return dom.el('div', { class: `intui-text intui-text--verbatim${size}${tone}` }, props.markdown)
-  return dom.html('div', { class: `intui-text${size}${tone}` }, markdownToHtml(props.markdown))
+  const who = props.who ? { 'data-who': props.who } : {}
+  if (props.verbatim) return dom.el('div', { class: `intui-text intui-text--verbatim${size}${tone}`, ...who }, props.markdown)
+  return dom.html('div', { class: `intui-text${size}${tone}`, ...who }, markdownToHtml(props.markdown))
 }
 
 export const group: Drawer<GroupProps> = (props, { dom, child, uid, onWidth }) => {
@@ -61,7 +62,7 @@ function followEnd(element: HTMLElement, id: string, onWidth: DrawContext['onWid
 }
 
 export const label: Drawer<LabelProps> = (props, { dom }) =>
-  dom.el('span', { class: `intui-label intui-tone-${props.tone}`, ...(props.who ? { 'data-who': props.who } : {}) }, props.text)
+  dom.el('span', { class: `intui-label intui-tone-${props.tone}${props.lead ? ' intui-label--lead' : ''}`, ...(props.who ? { 'data-who': props.who } : {}) }, props.text)
 
 const ARROW = { up: 'M5 1 9 8H1Z', down: 'M5 9 1 2H9Z', flat: 'M1 4h8v2H1Z' } as const
 const SPOKEN = { up: 'up', down: 'down', flat: 'unchanged,' } as const

@@ -26,7 +26,10 @@ fn node_text(node: &Node) -> String {
             let fence = "`".repeat(longest.max(2) + 1);
             format!("{fence}\n{}\n{fence}", text.markdown)
         }
-        Node::Text(text) => text.markdown.clone(),
+        Node::Text(text) => match &text.who {
+            Some(who) if !text.markdown.trim().eq_ignore_ascii_case(who) => format!("{} ({who})", text.markdown),
+            _ => text.markdown.clone(),
+        },
         Node::Label(label) => match &label.who {
             Some(who) => format!("[{}] ({who})", label.text),
             None => format!("[{}]", label.text),
