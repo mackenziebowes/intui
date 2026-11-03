@@ -64,6 +64,14 @@
         "markdown": {
           "type": "string",
           "minLength": 1
+        },
+        "size": {
+          "default": "body",
+          "$ref": "#/$defs/Size"
+        },
+        "tone": {
+          "default": "neutral",
+          "$ref": "#/$defs/Tone"
         }
       },
       "required": [
@@ -72,6 +80,25 @@
       ],
       "additionalProperties": false,
       "x-intui-writer": "anyone"
+    },
+    "Size": {
+      "type": "string",
+      "enum": [
+        "small",
+        "body",
+        "heading",
+        "title"
+      ]
+    },
+    "Tone": {
+      "type": "string",
+      "enum": [
+        "neutral",
+        "positive",
+        "warning",
+        "critical",
+        "muted"
+      ]
     },
     "Group": {
       "type": "object",
@@ -126,16 +153,6 @@
       ],
       "additionalProperties": false,
       "x-intui-writer": "anyone"
-    },
-    "Tone": {
-      "type": "string",
-      "enum": [
-        "neutral",
-        "positive",
-        "warning",
-        "critical",
-        "muted"
-      ]
     },
     "Table": {
       "type": "object",

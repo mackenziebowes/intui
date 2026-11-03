@@ -8,7 +8,12 @@ import type { Dom, Drawer } from '../dom'
 import { alignOf, changeShape, READING_MARK } from '@intui/layout'
 import { markdownToHtml } from '../markdown'
 
-export const text: Drawer<TextProps> = (props, { dom }) => dom.html('div', { class: 'intui-text' }, markdownToHtml(props.markdown))
+/** Body and neutral are the plain look and add no class, so a Text that sets neither draws as it always did. */
+export const text: Drawer<TextProps> = (props, { dom }) => {
+  const size = props.size && props.size !== 'body' ? ` intui-text--${props.size}` : ''
+  const tone = props.tone && props.tone !== 'neutral' ? ` intui-text-tone intui-tone-${props.tone}` : ''
+  return dom.html('div', { class: `intui-text${size}${tone}` }, markdownToHtml(props.markdown))
+}
 
 export const group: Drawer<GroupProps> = (props, { dom, child }) =>
   dom.el('div', { class: `intui-group intui-group--${props.direction}` }, ...props.children.map(child))
