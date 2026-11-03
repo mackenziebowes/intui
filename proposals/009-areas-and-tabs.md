@@ -24,6 +24,7 @@ Two additive component kinds: `Areas` and `Tabs`. No old tree contains either, s
 
    1. `layout` places every area exactly once; `ratio` is the first part's share, 0.1 to 0.9. An area whose kind is not in `kinds`, a repeated id, or a layout that misses or repeats an area is refused with the id and the fix.
    2. Events: pressing a tab is `press` on the Tabs id with the tab's id; switching an area is `press` on the Areas id with `<area>:<kind>`.
+   3. A seat that lets the person split or join areas (Casement does, by dragging a corner or from the type menu) tells the producer with the same `press`: a split is `<new area>:<kind>`, the new area being a second one of the kind of the area it was cut from; a join is `<removed area>:` with no kind. The producer answers with a tree that fills the new area, or drops the removed one. The seat keeps the cut and its ratios itself; the producer never sees them.
 5. **Text form:** each area in layout order: `**<kind label>** · <filter>`, then its content, or `waiting for <kind label>`. Tabs: the open one in brackets, `[Talk] · Watch`. TypeScript and Rust write the same text for the same tree.
 6. **Fallback:** a renderer that does not know `Areas` or `Tabs` draws their text form. Moving a cut (drag) is the seat's own; the web render in this ticket draws the areas and tabs and takes menu and tab presses, and does not move cuts.
 7. **Extension today:** none; Casement's talk.json is plain columns.
