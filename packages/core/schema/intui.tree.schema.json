@@ -165,6 +165,15 @@
           "default": false,
           "type": "boolean"
         },
+        "who": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 24
+        },
+        "foot": {
+          "default": false,
+          "type": "boolean"
+        },
         "children": {
           "minItems": 1,
           "type": "array",
@@ -195,6 +204,11 @@
         "tone": {
           "default": "neutral",
           "$ref": "#/$defs/Tone"
+        },
+        "who": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 24
         }
       },
       "required": [
@@ -1082,6 +1096,12 @@
         },
         "layout": {
           "$ref": "#/$defs/__schema0"
+        },
+        "legend": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/AreaLegend"
+          }
         }
       },
       "required": [
@@ -1182,6 +1202,26 @@
           "additionalProperties": false
         }
       ]
+    },
+    "AreaLegend": {
+      "type": "object",
+      "properties": {
+        "who": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 24
+        },
+        "colour": {
+          "type": "string",
+          "minLength": 7,
+          "maxLength": 7
+        }
+      },
+      "required": [
+        "who",
+        "colour"
+      ],
+      "additionalProperties": false
     },
     "Tabs": {
       "type": "object",

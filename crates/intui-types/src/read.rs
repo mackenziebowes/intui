@@ -109,7 +109,7 @@ pub(crate) fn read_node(kind: Kind, object: &JsonObject, children: Vec<Drawn>) -
     let fields = Fields { def, object };
     Ok(match kind {
         Kind::Text => Node::Text(Text { markdown: fields.text("markdown")?, size: fields.word("size")?, tone: fields.word("tone")?, verbatim: fields.flag("verbatim")? }),
-        Kind::Label => Node::Label(Label { text: fields.text("text")?, tone: fields.word("tone")? }),
+        Kind::Label => Node::Label(Label { text: fields.text("text")?, tone: fields.word("tone")?, who: fields.maybe_text("who")? }),
         Kind::Group => Node::Group(group(&fields, children)?),
         Kind::Table => Node::Table(table(&fields)?),
         Kind::Chart => Node::Chart(chart(&fields)?),
@@ -144,7 +144,7 @@ fn group(fields: &Fields, children: Vec<Drawn>) -> Result<Group, Drift> {
         None => None,
         Some(_) => Some(fields.list("floors")?.iter().map(|item| whole(item, 4000.0, 0.0).ok_or_else(|| fields.drift("floors"))).collect::<Result<Vec<_>, _>>()?),
     };
-    Ok(Group { direction: fields.word("direction")?, widths, floors, divider: fields.flag("divider")?, boxed: fields.maybe_word("box")?, thread: fields.flag("thread")?, children: fields.non_empty("children", children)? })
+    Ok(Group { direction: fields.word("direction")?, widths, floors, divider: fields.flag("divider")?, boxed: fields.maybe_word("box")?, thread: fields.flag("thread")?, who: fields.maybe_text("who")?, foot: fields.flag("foot")?, children: fields.non_empty("children", children)? })
 }
 
 fn table(fields: &Fields) -> Result<Table, Drift> {
@@ -269,7 +269,7 @@ fn form(fields: &Fields) -> Result<Form, Drift> {
 
 fn areas(fields: &Fields, children: Vec<Drawn>) -> Result<Areas, Drift> {
     let kinds = fields.each("kinds", |kind| Ok(AreaKind { id: kind.text("id")?, label: kind.text("label")?, hint: kind.maybe_text("hint")? }), "AreaKind")?;
-    // The walk found every area's children in order; each area's own count says where its share ends.
+    // Children arrive in area order; each area's count ends its share.
     let mut rest = children.into_iter();
     let mut slots = Vec::new();
     for item in fields.list("areas")? {
@@ -285,7 +285,9 @@ fn areas(fields: &Fields, children: Vec<Drawn>) -> Result<Areas, Drift> {
         slots.push(AreaSlot { id: slot.text("id")?, kind: slot.text("kind")?, filter: slot.maybe_text("filter")?, children: own });
     }
     let layout = layout(fields.value("layout")?).ok_or_else(|| fields.drift("layout"))?;
-    Ok(Areas { id: fields.text("id")?, kinds: fields.non_empty("kinds", kinds)?, areas: fields.non_empty("areas", slots)?, layout })
+    let entry = |e: &Fields| Ok(AreaLegend { who: e.text("who")?, colour: e.text("colour")? });
+    let legend = if fields.object.contains_key("legend") { fields.each("legend", entry, "AreaLegend")? } else { vec![] };
+    Ok(Areas { id: fields.text("id")?, kinds: fields.non_empty("kinds", kinds)?, areas: fields.non_empty("areas", slots)?, layout, legend })
 }
 
 fn layout(json: &Json) -> Option<AreaLayout> {

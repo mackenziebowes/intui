@@ -52,6 +52,7 @@ function one(props: AreasProps, area: AreaSlot, index: number, ctx: DrawContext)
   const body = area.children?.length
     ? dom.el('div', { class: 'intui-area-body' }, ...area.children.map((node, i) => ctx.child(node, index * 1000 + i)))
     : dom.el('div', { class: 'intui-area-body intui-area-body--waiting' }, dom.el('p', { class: 'intui-area-waiting' }, `waiting for ${label}`))
+  wearLegend(body, props)
   return dom.el('section', { class: 'intui-area', 'aria-label': label }, header, body)
 }
 
@@ -75,4 +76,15 @@ export const tabs: Drawer<TabsProps> = (props, ctx) => {
     return button
   })
   return dom.el('div', { class: 'intui-tabs', role: 'tablist' }, ...buttons)
+}
+
+/** A `who` key the legend gives a colour wears it: the element gets `--who` and the `intui-who` class. A key with no entry keeps its tone. */
+function wearLegend(body: HTMLElement, props: AreasProps): void {
+  const colours = new Map((props.legend ?? []).map(entry => [entry.who, entry.colour]))
+  for (const element of body.querySelectorAll<HTMLElement>('[data-who]')) {
+    const colour = colours.get(element.dataset.who ?? '')
+    if (colour === undefined) continue
+    element.style.setProperty('--who', colour)
+    element.classList.add('intui-who')
+  }
 }

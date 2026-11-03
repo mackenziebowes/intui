@@ -176,6 +176,13 @@ impl<'j> Edge<'j> {
     fn areas_agree(&mut self, object: &JsonObject) {
         let kinds: Vec<&str> = items(object, "kinds").filter_map(|kind| kind.as_object()?.get("id")?.as_str()).collect();
         let mut ids: Vec<&str> = Vec::new();
+        for (index, entry) in items(object, "legend").enumerate() {
+            let colour = entry.as_object().and_then(|e| e.get("colour")).and_then(Json::as_str).unwrap_or("");
+            let hex = colour.len() == 7 && colour.starts_with('#') && colour[1..].chars().all(|c| c.is_ascii_hexdigit());
+            if !hex {
+                self.report_at(&[key("legend"), Seg::Index(index), key("colour")], ProblemKind::Areas(format!("legend colour \"{colour}\" is not a hex colour; write it like #3a7bd5")));
+            }
+        }
         for (index, area) in items(object, "areas").enumerate() {
             let Some(area) = area.as_object() else { continue };
             let id = area.get("id").and_then(Json::as_str).unwrap_or("");

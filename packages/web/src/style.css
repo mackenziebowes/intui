@@ -1155,3 +1155,9 @@ path.intui-chart-bar.intui-role-comparison { fill: var(--_series); }
 path.intui-chart-bar.is-partial { fill: var(--_surface); fill-opacity: 1; stroke: var(--_series); stroke-width: 1.5; stroke-dasharray: none; }
 .intui-chart-dot.is-partial { fill: var(--_surface); stroke: var(--_series); stroke-width: 1.5; }
 .intui-chart-line.is-partial { stroke-dasharray: 4 3; }
+
+/* A foot child sits at the foot of its area, below the rest. */
+.intui-area-body > .intui-group--foot { margin-top: auto; }
+/* Whose it is: the colour of that agent's window, given once in the Areas legend. */
+.intui-label.intui-who { color: var(--who); }
+.intui-group.intui-who { border-left: 3px solid var(--who); padding-left: 0.5rem; }

@@ -35,7 +35,8 @@ export const group: Drawer<GroupProps> = (props, { dom, child, uid, onWidth }) =
   const classes = ['intui-group', `intui-group--${props.direction}`, sized ? 'intui-group--sized' : '', divided ? 'intui-group--divided' : '', props.box === undefined ? '' : `intui-box--${props.box}`]
   const threaded = props.thread === true
   if (threaded) classes.push('intui-group--thread')
-  const element = dom.el('div', { class: classes.filter(Boolean).join(' ') }, ...parts)
+  if (props.foot === true) classes.push('intui-group--foot')
+  const element = dom.el('div', { class: classes.filter(Boolean).join(' '), ...(props.who ? { 'data-who': props.who } : {}) }, ...parts)
   if (threaded) followEnd(element, uid('thread'), onWidth)
   return element
 }
@@ -59,7 +60,7 @@ function followEnd(element: HTMLElement, id: string, onWidth: DrawContext['onWid
 }
 
 export const label: Drawer<LabelProps> = (props, { dom }) =>
-  dom.el('span', { class: `intui-label intui-tone-${props.tone}` }, props.text)
+  dom.el('span', { class: `intui-label intui-tone-${props.tone}`, ...(props.who ? { 'data-who': props.who } : {}) }, props.text)
 
 const ARROW = { up: 'M5 1 9 8H1Z', down: 'M5 9 1 2H9Z', flat: 'M1 4h8v2H1Z' } as const
 const SPOKEN = { up: 'up', down: 'down', flat: 'unchanged,' } as const

@@ -6,6 +6,7 @@
  */
 import { z } from "zod";
 import { defineKind, type Node } from "../component";
+import { whoKey } from "./label";
 import type { TextProps } from "./text";
 
 const nothingYet: TextProps = { type: "Text", markdown: "Nothing yet." };
@@ -39,6 +40,8 @@ export interface AreasProps extends Node {
   kinds: AreaKind[];
   areas: AreaSlot[];
   layout: AreaLayout;
+  /** Given once: the colour each `who` key wears anywhere in this region, as the real colour of that agent's window (#rrggbb). A key with no entry draws in its tone. */
+  legend?: { who: string; colour: string }[];
 }
 
 const layoutSchema: z.ZodType<AreaLayout> = z.lazy(() =>
@@ -68,6 +71,9 @@ export const Areas = defineKind<AreasProps>({
         .array(z.strictObject({ id: z.string().min(1), kind: z.string().min(1), filter: z.string().max(40).optional(), children: z.array(node).optional() }).meta({ id: "AreaSlot" }))
         .min(1, "Areas needs at least one area"),
       layout: layoutSchema,
+      legend: z
+        .array(z.strictObject({ who: whoKey, colour: z.string().min(7).max(7) }).meta({ id: "AreaLegend" }))
+        .optional(),
     })
     .superRefine((areas, ctx) => {
       const kinds = new Set(areas.kinds.map((k) => k.id));
@@ -75,6 +81,9 @@ export const Areas = defineKind<AreasProps>({
       for (const [i, area] of areas.areas.entries()) {
         if (!kinds.has(area.kind)) ctx.addIssue({ code: "custom", path: ["areas", i, "kind"], message: `area "${area.id}" has kind "${area.kind}", which is not in kinds; use one of: ${areas.kinds.map((k) => k.id).join(", ")}` });
         if (ids.indexOf(area.id) !== i) ctx.addIssue({ code: "custom", path: ["areas", i, "id"], message: `two areas are called "${area.id}"; give each its own id` });
+      }
+      for (const [i, entry] of (areas.legend ?? []).entries()) {
+        if (!/^#[0-9a-fA-F]{6}$/.test(entry.colour)) ctx.addIssue({ code: "custom", path: ["legend", i, "colour"], message: `legend colour "${entry.colour}" is not a hex colour; write it like #3a7bd5` });
       }
       const placed = layoutAreas(areas.layout);
       for (const id of placed) if (!ids.includes(id)) ctx.addIssue({ code: "custom", path: ["layout"], message: `layout places "${id}", which is not in areas` });

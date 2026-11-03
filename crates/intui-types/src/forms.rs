@@ -102,6 +102,8 @@ pub struct Text {
 pub struct Label {
     pub text: String,
     pub tone: Tone,
+    /// Whose it is, a key the producer chose; an Areas legend may give it a colour.
+    pub who: Option<String>,
 }
 
 #[derive(Clone, Debug)]
@@ -116,6 +118,10 @@ pub struct Group {
     pub boxed: Option<GroupBox>,
     /// The children are a thread: in time order, the newest last, and the reader follows the end.
     pub thread: bool,
+    /// Whose it is, a key the producer chose; an Areas legend may give it a colour.
+    pub who: Option<String>,
+    /// In an area with room to spare, this child sits at the foot, below the rest.
+    pub foot: bool,
     pub children: NonEmpty<Drawn>,
 }
 
@@ -403,6 +409,14 @@ pub struct Areas {
     pub kinds: NonEmpty<AreaKind>,
     pub areas: NonEmpty<AreaSlot>,
     pub layout: AreaLayout,
+    /// The colour each `who` key wears, as `#rrggbb` (an agent's window colour), given once.
+    pub legend: Vec<AreaLegend>,
+}
+
+#[derive(Clone, Debug, PartialEq)]
+pub struct AreaLegend {
+    pub who: String,
+    pub colour: String,
 }
 
 #[derive(Clone, Debug, PartialEq)]

@@ -27,7 +27,10 @@ fn node_text(node: &Node) -> String {
             format!("{fence}\n{}\n{fence}", text.markdown)
         }
         Node::Text(text) => text.markdown.clone(),
-        Node::Label(label) => format!("[{}]", label.text),
+        Node::Label(label) => match &label.who {
+            Some(who) => format!("[{}] ({who})", label.text),
+            None => format!("[{}]", label.text),
+        },
         Node::Group(group) => {
             let parts: Vec<String> = group.children.iter().map(drawn_text).collect();
             let all_short = parts.iter().all(|part| !part.contains('\n'));

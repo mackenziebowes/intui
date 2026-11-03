@@ -11,10 +11,15 @@ export const TONES = ["neutral", "positive", "warning", "critical", "muted"] as 
 export type Tone = (typeof TONES)[number];
 export const tone = z.enum(TONES).meta({ id: "Tone" });
 
+/** A key naming whose a thing is. Core gives it no meaning; an Areas legend may give it a colour. */
+export const whoKey = z.string().min(1).max(24);
+
 export interface LabelProps extends Node {
   type: "Label";
   text: string;
   tone: Tone;
+  /** Whose it is, as a key the producer chose ("keel"). An Areas legend may give the key a colour; with none, the tone alone shows. */
+  who?: string;
 }
 
 export const Label = defineKind<LabelProps>({
@@ -26,8 +31,9 @@ export const Label = defineKind<LabelProps>({
       type: z.literal("Label"),
       text: z.string().min(1).max(40, "a Label is a short tag; put longer text in a Text"),
       tone: tone.default("neutral"),
+      who: whoKey.optional(),
     })
     .meta({ id: "Label" }),
-  toText: (props) => `[${props.text}]`,
+  toText: (props) => (props.who ? `[${props.text}] (${props.who})` : `[${props.text}]`),
   example: { type: "Label", text: "parked", tone: "muted" },
 });

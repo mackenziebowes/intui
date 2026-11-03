@@ -4,7 +4,7 @@
  */
 import { z } from "zod";
 import { defineKind, type Node } from "../component";
-import type { LabelProps } from "./label";
+import { whoKey, type LabelProps } from "./label";
 import type { TextProps } from "./text";
 
 export interface GroupProps extends Node {
@@ -21,6 +21,10 @@ export interface GroupProps extends Node {
   box?: "apart" | "said" | "waiting";
   /** The children are a thread: in time order, the newest last, and the reader is following the end. A column only. */
   thread?: boolean;
+  /** Whose it is, as a key the producer chose. An Areas legend may give the key a colour. */
+  who?: string;
+  /** In an area with room to spare, this child sits at the foot, below the rest (a reply box, a thread). */
+  foot?: boolean;
   children: Node[];
 }
 
@@ -40,6 +44,8 @@ export const Group = defineKind<GroupProps>({
       divider: z.boolean().default(false),
       box: z.enum(["apart", "said", "waiting"]).optional(),
       thread: z.boolean().default(false),
+      who: whoKey.optional(),
+      foot: z.boolean().default(false),
       children: z.array(node).min(1, "a Group needs at least one child"),
     })
     .superRefine((group, ctx) => {
