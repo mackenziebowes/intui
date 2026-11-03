@@ -119,6 +119,8 @@ pub(crate) fn read_node(kind: Kind, object: &JsonObject, children: Vec<Drawn>) -
         Kind::Ladder => Node::Ladder(marks::ladder(&fields)?),
         Kind::Choice => Node::Choice(choice(&fields)?),
         Kind::Form => Node::Form(form(&fields)?),
+        Kind::Areas => Node::Areas(areas(&fields, children)?),
+        Kind::Tabs => Node::Tabs(tabs(&fields)?),
     })
 }
 
@@ -263,4 +265,44 @@ fn form(fields: &Fields) -> Result<Form, Drift> {
         "FormField",
     )?;
     Ok(Form { id: fields.text("id")?, fields: fields.non_empty("fields", read_fields)?, submit_label: fields.text("submitLabel")? })
+}
+
+fn areas(fields: &Fields, children: Vec<Drawn>) -> Result<Areas, Drift> {
+    let kinds = fields.each("kinds", |kind| Ok(AreaKind { id: kind.text("id")?, label: kind.text("label")?, hint: kind.maybe_text("hint")? }), "AreaKind")?;
+    // The walk found every area's children in order; each area's own count says where its share ends.
+    let mut rest = children.into_iter();
+    let mut slots = Vec::new();
+    for item in fields.list("areas")? {
+        let slot = Fields::of("AreaSlot", item)?;
+        let count = match slot.object.get("children") {
+            None => 0,
+            Some(list) => list.as_array().ok_or_else(|| slot.drift("children"))?.len(),
+        };
+        let own: Vec<Drawn> = rest.by_ref().take(count).collect();
+        if own.len() != count {
+            return Err(slot.drift("children"));
+        }
+        slots.push(AreaSlot { id: slot.text("id")?, kind: slot.text("kind")?, filter: slot.maybe_text("filter")?, children: own });
+    }
+    let layout = layout(fields.value("layout")?).ok_or_else(|| fields.drift("layout"))?;
+    Ok(Areas { id: fields.text("id")?, kinds: fields.non_empty("kinds", kinds)?, areas: fields.non_empty("areas", slots)?, layout })
+}
+
+fn layout(json: &Json) -> Option<AreaLayout> {
+    if let Some(id) = json.as_str() {
+        return Some(AreaLayout::Area(id.to_string()));
+    }
+    let object = json.as_object()?;
+    let direction = match object.get("split")?.as_str()? {
+        "row" => CutDirection::Row,
+        "column" => CutDirection::Column,
+        _ => return None,
+    };
+    let ratio = object.get("ratio")?.as_finite()?;
+    Some(AreaLayout::Cut { direction, ratio, a: Box::new(layout(object.get("a")?)?), b: Box::new(layout(object.get("b")?)?) })
+}
+
+fn tabs(fields: &Fields) -> Result<Tabs, Drift> {
+    let list = fields.each("tabs", |tab| Ok(TabsTab { id: tab.text("id")?, label: tab.text("label")? }), "TabsTab")?;
+    Ok(Tabs { id: fields.text("id")?, tabs: fields.non_empty("tabs", list)?, active: fields.text("active")? })
 }

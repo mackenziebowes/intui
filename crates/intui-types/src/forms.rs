@@ -354,3 +354,66 @@ pub struct Form {
     pub fields: NonEmpty<Field>,
     pub submit_label: String,
 }
+
+/// One thing an area can show: the producer's own words, with no meaning in core.
+#[derive(Clone, Debug, PartialEq)]
+pub struct AreaKind {
+    pub id: String,
+    pub label: String,
+    pub hint: Option<String>,
+}
+
+/// One area: its kind (an id from the Areas' kinds), what it is narrowed to, and what it shows.
+/// No children means the producer has sent nothing yet, and the area reads "waiting for <kind>".
+#[derive(Clone, Debug)]
+pub struct AreaSlot {
+    pub id: String,
+    pub kind: String,
+    pub filter: Option<String>,
+    pub children: Vec<Drawn>,
+}
+
+/// Which way a cut runs: `Row` puts the two parts side by side, `Column` one above the other.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum CutDirection {
+    Row,
+    Column,
+}
+
+/// An area by id, or a cut into two parts. `ratio` is the first part's share, 0.1 to 0.9.
+#[derive(Clone, Debug, PartialEq)]
+pub enum AreaLayout {
+    Area(String),
+    Cut { direction: CutDirection, ratio: f64, a: Box<AreaLayout>, b: Box<AreaLayout> },
+}
+
+impl AreaLayout {
+    /// The area ids in order, the first part before the second.
+    pub fn area_ids(&self) -> Vec<&str> {
+        match self {
+            AreaLayout::Area(id) => vec![id.as_str()],
+            AreaLayout::Cut { a, b, .. } => a.area_ids().into_iter().chain(b.area_ids()).collect(),
+        }
+    }
+}
+
+#[derive(Clone, Debug)]
+pub struct Areas {
+    pub id: String,
+    pub kinds: NonEmpty<AreaKind>,
+    pub areas: NonEmpty<AreaSlot>,
+    pub layout: AreaLayout,
+}
+
+#[derive(Clone, Debug, PartialEq)]
+pub struct TabsTab {
+    pub id: String,
+    pub label: String,
+}
+
+#[derive(Clone, Debug, PartialEq)]
+pub struct Tabs {
+    pub id: String,
+    pub tabs: NonEmpty<TabsTab>,
+    pub active: String,
+}

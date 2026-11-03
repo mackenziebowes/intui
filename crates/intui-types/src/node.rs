@@ -50,6 +50,8 @@ pub enum Node {
     Ladder(forms::Ladder),
     Choice(forms::Choice),
     Form(forms::Form),
+    Areas(forms::Areas),
+    Tabs(forms::Tabs),
 }
 
 /// The kinds core's catalog has, in the order its refusals list them.
@@ -66,10 +68,12 @@ pub enum Kind {
     Ladder,
     Choice,
     Form,
+    Areas,
+    Tabs,
 }
 
 impl Kind {
-    pub const ALL: [Kind; 11] = [
+    pub const ALL: [Kind; 13] = [
         Kind::Text,
         Kind::Group,
         Kind::Label,
@@ -81,6 +85,8 @@ impl Kind {
         Kind::Ladder,
         Kind::Choice,
         Kind::Form,
+        Kind::Areas,
+        Kind::Tabs,
     ];
 
     pub fn name(self) -> &'static str {
@@ -96,6 +102,8 @@ impl Kind {
             Kind::Ladder => "Ladder",
             Kind::Choice => "Choice",
             Kind::Form => "Form",
+            Kind::Areas => "Areas",
+            Kind::Tabs => "Tabs",
         }
     }
 
@@ -124,6 +132,8 @@ impl Kind {
             gen::Node::Ladder(_) => Kind::Ladder,
             gen::Node::Choice(_) => Kind::Choice,
             gen::Node::Form(_) => Kind::Form,
+            gen::Node::Areas(_) => Kind::Areas,
+            gen::Node::Tabs(_) => Kind::Tabs,
         }
     }
 }
@@ -142,6 +152,8 @@ impl Node {
             Node::Ladder(_) => Kind::Ladder,
             Node::Choice(_) => Kind::Choice,
             Node::Form(_) => Kind::Form,
+            Node::Areas(_) => Kind::Areas,
+            Node::Tabs(_) => Kind::Tabs,
         }
     }
 
@@ -149,7 +161,8 @@ impl Node {
     pub fn children(&self) -> Vec<&Drawn> {
         match self {
             Node::Group(group) => group.children.iter().collect(),
-            Node::Text(_) | Node::Label(_) | Node::Table(_) | Node::Chart(_) | Node::Stat(_) | Node::Flow(_) | Node::Marks(_) | Node::Ladder(_) | Node::Choice(_) | Node::Form(_) => Vec::new(),
+            Node::Areas(areas) => areas.areas.iter().flat_map(|area| area.children.iter()).collect(),
+            Node::Text(_) | Node::Label(_) | Node::Table(_) | Node::Chart(_) | Node::Stat(_) | Node::Flow(_) | Node::Marks(_) | Node::Ladder(_) | Node::Choice(_) | Node::Form(_) | Node::Tabs(_) => Vec::new(),
         }
     }
 
@@ -158,6 +171,8 @@ impl Node {
         match self {
             Node::Choice(choice) => vec![choice.id.as_str()],
             Node::Form(form) => vec![form.id.as_str()],
+            Node::Areas(areas) => vec![areas.id.as_str()],
+            Node::Tabs(tabs) => vec![tabs.id.as_str()],
             Node::Text(_) | Node::Group(_) | Node::Label(_) | Node::Table(_) | Node::Chart(_) | Node::Stat(_) | Node::Flow(_) | Node::Marks(_) | Node::Ladder(_) => Vec::new(),
         }
     }

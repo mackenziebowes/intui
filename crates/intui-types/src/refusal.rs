@@ -59,6 +59,8 @@ pub enum ProblemKind {
     RowKeyNotColumn { key: String },
     SelectNeedsOptions,
     Marks(crate::marks_rules::MarksProblem),
+    /// A rule of Areas or Tabs the schema can't hold, said in core's words.
+    Areas(String),
     DuplicateId { id: String, first: String },
     /// A component whose figures must come from code, written by someone who isn't code.
     ShowsNumbers,
@@ -89,6 +91,7 @@ impl ProblemKind {
             | ProblemKind::RowKeyNotColumn { .. }
             | ProblemKind::SelectNeedsOptions
             | ProblemKind::Marks(_)
+            | ProblemKind::Areas(_)
             | ProblemKind::ShowsNumbers
             | ProblemKind::DuplicateId { .. } => false,
         }

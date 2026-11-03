@@ -56,7 +56,30 @@ fn node_text(node: &Node) -> String {
             }
         }
         Node::Form(form) => form_text(form),
+        Node::Areas(areas) => areas_text(areas),
+        Node::Tabs(tabs) => tabs.tabs.iter().map(|tab| if tab.id == tabs.active { format!("[{}]", tab.label) } else { tab.label.clone() }).collect::<Vec<_>>().join(" · "),
     }
+}
+
+/// Each area in layout order: its kind's label and filter, then its content, or that it is waiting for it.
+fn areas_text(areas: &forms::Areas) -> String {
+    let label = |kind: &str| areas.kinds.iter().find(|k| k.id == kind).map_or_else(|| kind.to_string(), |k| k.label.clone());
+    areas
+        .layout
+        .area_ids()
+        .into_iter()
+        .filter_map(|id| areas.areas.iter().find(|area| area.id == id))
+        .map(|area| {
+            let name = label(&area.kind);
+            let head = match non_empty(&area.filter) {
+                Some(filter) => format!("**{name}** · {filter}"),
+                None => format!("**{name}**"),
+            };
+            let body = if area.children.is_empty() { format!("waiting for {name}") } else { area.children.iter().map(drawn_text).collect::<Vec<_>>().join("\n\n") };
+            format!("{head}\n{body}")
+        })
+        .collect::<Vec<_>>()
+        .join("\n\n")
 }
 
 /// JavaScript treats an empty string as absent in `props.title ? ... : ...`.

@@ -378,7 +378,7 @@ Small rules every renderer must agree on: which way a column aligns, how a typed
 Builds the browser files into packages/web/dist: the library, its stylesheets and the demo page.
 
 ## packages/web/demo/areas-case.ts
-(no header: code comes before any comment)
+The demo's Areas and Tabs case (proposal 009): Pennant's Talk arrangement as one tree, with its tab bar, so a person can check the type menu, the tabs and that an area wraps below a narrow width. Generated from the Talk tree in Casement's rig, so the two draw the same words.
 
 ## packages/web/demo/demo.ts
 The demo page: every core component's example at three widths, plus a few harder trees, so a person can check the look in light and dark. `?theme=dark` or `?theme=light` forces a theme; otherwise it follows the system.

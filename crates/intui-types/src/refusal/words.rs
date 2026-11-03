@@ -74,6 +74,7 @@ impl fmt::Display for ProblemKind {
                 "row has a value for \"{key}\", which isn't a column; add a column with key \"{key}\" or remove the value"
             ),
             ProblemKind::Marks(problem) => problem.fmt(f),
+            ProblemKind::Areas(words) => f.write_str(words),
             ProblemKind::SelectNeedsOptions => {
                 write!(f, "a select field needs options; add an options list or use input: \"text\"")
             }

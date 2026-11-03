@@ -1,3 +1,6 @@
+/**
+ * The demo's Areas and Tabs case (proposal 009): Pennant's Talk arrangement as one tree, with its tab bar, so a person can check the type menu, the tabs and that an area wraps below a narrow width. Generated from the Talk tree in Casement's rig, so the two draw the same words.
+ */
 import type { Node } from '@intui/core'
 
 /** Pennant's Talk arrangement as one Areas tree (proposal 009): asks, chat and named cards, with the tab bar above. */

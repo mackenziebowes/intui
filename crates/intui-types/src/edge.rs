@@ -166,7 +166,51 @@ impl<'j> Edge<'j> {
                     self.report_at(&inside, ProblemKind::Marks(problem));
                 }
             }
+            Kind::Areas => self.areas_agree(object),
+            Kind::Tabs => self.active_is_a_tab(object),
             Kind::Text | Kind::Group | Kind::Label | Kind::Chart | Kind::Stat | Kind::Choice => {}
+        }
+    }
+
+    /// Core's `Areas` rules: each area's kind is one of the kinds, area ids are different, and the layout places every area once.
+    fn areas_agree(&mut self, object: &JsonObject) {
+        let kinds: Vec<&str> = items(object, "kinds").filter_map(|kind| kind.as_object()?.get("id")?.as_str()).collect();
+        let mut ids: Vec<&str> = Vec::new();
+        for (index, area) in items(object, "areas").enumerate() {
+            let Some(area) = area.as_object() else { continue };
+            let id = area.get("id").and_then(Json::as_str).unwrap_or("");
+            let kind = area.get("kind").and_then(Json::as_str).unwrap_or("");
+            if !kinds.contains(&kind) {
+                self.report_at(&[key("areas"), Seg::Index(index), key("kind")], ProblemKind::Areas(format!("area \"{id}\" has kind \"{kind}\", which is not in kinds; use one of: {}", kinds.join(", "))));
+            }
+            if ids.contains(&id) {
+                self.report_at(&[key("areas"), Seg::Index(index), key("id")], ProblemKind::Areas(format!("two areas are called \"{id}\"; give each its own id")));
+            } else {
+                ids.push(id);
+            }
+        }
+        let mut placed: Vec<&str> = Vec::new();
+        if let Some(layout) = object.get("layout") {
+            collect_placed(layout, &mut placed);
+        }
+        for id in &placed {
+            if !ids.contains(id) {
+                self.report_at(&[key("layout")], ProblemKind::Areas(format!("layout places \"{id}\", which is not in areas")));
+            }
+        }
+        for id in &ids {
+            let times = placed.iter().filter(|p| *p == id).count();
+            if times != 1 {
+                self.report_at(&[key("layout")], ProblemKind::Areas(format!("area \"{id}\" appears {times} times in layout; every area appears exactly once")));
+            }
+        }
+    }
+
+    fn active_is_a_tab(&mut self, object: &JsonObject) {
+        let tabs: Vec<&str> = items(object, "tabs").filter_map(|tab| tab.as_object()?.get("id")?.as_str()).collect();
+        let active = object.get("active").and_then(Json::as_str).unwrap_or("");
+        if !tabs.contains(&active) {
+            self.report_at(&[key("active")], ProblemKind::Areas(format!("active is \"{active}\", which is not a tab; use one of: {}", tabs.join(", "))));
         }
     }
 
@@ -210,6 +254,21 @@ impl<'j> Edge<'j> {
                 self.report_at(&[key("fields"), Seg::Index(index), key("options")], ProblemKind::SelectNeedsOptions);
             }
         }
+    }
+}
+
+/// The area ids a layout places, the first part before the second.
+fn collect_placed<'a>(layout: &'a Json, into: &mut Vec<&'a str>) {
+    match layout {
+        Json::String(id) => into.push(id.as_str()),
+        Json::Object(object) => {
+            for part in ["a", "b"] {
+                if let Some(part) = object.get(part) {
+                    collect_placed(part, into);
+                }
+            }
+        }
+        _ => {}
     }
 }
 
