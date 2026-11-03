@@ -15,8 +15,23 @@ export const text: Drawer<TextProps> = (props, { dom }) => {
   return dom.html('div', { class: `intui-text${size}${tone}` }, markdownToHtml(props.markdown))
 }
 
-export const group: Drawer<GroupProps> = (props, { dom, child }) =>
-  dom.el('div', { class: `intui-group intui-group--${props.direction}` }, ...props.children.map(child))
+export const group: Drawer<GroupProps> = (props, { dom, child }) => {
+  const sized = props.direction === 'row' && props.widths !== undefined
+  const divided = props.divider === true
+  const kids = props.children.map((node, index) => {
+    const element = child(node)
+    if (sized && element instanceof HTMLElement) {
+      const width = props.widths![index]
+      element.style.setProperty('--intui-w', width === 'rest' ? '0px' : `${width}px`)
+      element.style.setProperty('--intui-grow', width === 'rest' ? '1' : '0')
+      element.style.setProperty('--intui-min', `${props.floors?.[index] ?? 0}px`)
+    }
+    return element
+  })
+  const parts = divided ? kids.flatMap((element, index) => (index === 0 ? [element] : [dom.el('span', { class: 'intui-divider', 'aria-hidden': true }), element])) : kids
+  const classes = ['intui-group', `intui-group--${props.direction}`, sized ? 'intui-group--sized' : '', divided ? 'intui-group--divided' : '']
+  return dom.el('div', { class: classes.filter(Boolean).join(' ') }, ...parts)
+}
 
 export const label: Drawer<LabelProps> = (props, { dom }) =>
   dom.el('span', { class: `intui-label intui-tone-${props.tone}` }, props.text)

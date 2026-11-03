@@ -110,7 +110,7 @@ pub(crate) fn read_node(kind: Kind, object: &JsonObject, children: Vec<Drawn>) -
     Ok(match kind {
         Kind::Text => Node::Text(Text { markdown: fields.text("markdown")?, size: fields.word("size")?, tone: fields.word("tone")? }),
         Kind::Label => Node::Label(Label { text: fields.text("text")?, tone: fields.word("tone")? }),
-        Kind::Group => Node::Group(Group { direction: fields.word("direction")?, children: fields.non_empty("children", children)? }),
+        Kind::Group => Node::Group(group(&fields, children)?),
         Kind::Table => Node::Table(table(&fields)?),
         Kind::Chart => Node::Chart(chart(&fields)?),
         Kind::Stat => Node::Stat(stat(&fields)?),
@@ -120,6 +120,29 @@ pub(crate) fn read_node(kind: Kind, object: &JsonObject, children: Vec<Drawn>) -
         Kind::Choice => Node::Choice(choice(&fields)?),
         Kind::Form => Node::Form(form(&fields)?),
     })
+}
+
+fn group(fields: &Fields, children: Vec<Drawn>) -> Result<Group, Drift> {
+    let whole = |item: &Json, max: f64, min: f64| item.as_finite().filter(|n| n.fract() == 0.0 && *n >= min && *n <= max).map(|n| n as u16);
+    let widths = match fields.object.get("widths") {
+        None => None,
+        Some(_) => Some(
+            fields
+                .list("widths")?
+                .iter()
+                .map(|item| match item.as_str() {
+                    Some("rest") => Ok(Width::Rest),
+                    Some(_) => Err(fields.drift("widths")),
+                    None => whole(item, 4000.0, 1.0).map(Width::Px).ok_or_else(|| fields.drift("widths")),
+                })
+                .collect::<Result<Vec<_>, _>>()?,
+        ),
+    };
+    let floors = match fields.object.get("floors") {
+        None => None,
+        Some(_) => Some(fields.list("floors")?.iter().map(|item| whole(item, 4000.0, 0.0).ok_or_else(|| fields.drift("floors"))).collect::<Result<Vec<_>, _>>()?),
+    };
+    Ok(Group { direction: fields.word("direction")?, widths, floors, divider: fields.flag("divider")?, children: fields.non_empty("children", children)? })
 }
 
 fn table(fields: &Fields) -> Result<Table, Drift> {

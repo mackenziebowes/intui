@@ -262,6 +262,40 @@
 .intui-group--column > * { min-width: 0; }
 .intui-group--row > * { min-width: 0; max-width: 100%; }
 
+/* A row that names widths: a fixed child is its px and shrinks in proportion down to its floor; a `rest` child takes what is left. */
+.intui-group--sized {
+  flex-wrap: nowrap;
+  align-items: stretch;
+}
+
+.intui-group--sized > :not(.intui-divider) {
+  flex: var(--intui-grow, 0) 1 var(--intui-w, auto);
+  min-width: var(--intui-min, 0);
+  max-width: none;
+}
+
+/* A 1 px line in the middle of the gap: its negative margins cancel the gap on both sides, so the children keep their spacing. */
+.intui-divider {
+  flex: 0 0 1px;
+  align-self: stretch;
+  background: var(--_line);
+  margin-inline: calc(-0.625em - 0.5px);
+}
+
+.intui-group--column > .intui-divider {
+  height: 1px;
+  width: auto;
+  flex: 0 0 1px;
+  margin-inline: 0;
+  margin-block: -0.5em;
+}
+
+@container intui (max-width: 30em) {
+  .intui-group--sized { flex-direction: column; }
+  .intui-group--sized > :not(.intui-divider) { flex: 0 0 auto; min-width: 0; }
+  .intui-group--row > .intui-divider { height: 1px; width: auto; flex: 0 0 1px; margin-inline: 0; margin-block: -0.5em; }
+}
+
 /* Big pieces in a row share it instead of shrinking to their content. */
 .intui-group--row > :is(.intui-chart, .intui-flow, .intui-table, .intui-form, .intui-group--column) {
   flex: 1 1 18em;

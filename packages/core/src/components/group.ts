@@ -11,6 +11,12 @@ export interface GroupProps extends Node {
   type: "Group";
   /** How children sit: a row wraps to a column on a narrow surface. */
   direction: "row" | "column";
+  /** Row only, one entry per child: a width in px, or "rest" to share what is left. Unset: equal parts. */
+  widths?: (number | "rest")[];
+  /** Row only, one entry per child: the narrowest px a child shrinks to. 0 means no floor. */
+  floors?: number[];
+  /** A 1 px line in the middle of the gap between children. */
+  divider?: boolean;
   children: Node[];
 }
 
@@ -25,7 +31,18 @@ export const Group = defineKind<GroupProps>({
     z.strictObject({
       type: z.literal("Group"),
       direction: z.enum(["row", "column"]).default("column"),
+      widths: z.array(z.union([z.int().min(1).max(4000), z.literal("rest")])).optional(),
+      floors: z.array(z.int().min(0).max(4000)).optional(),
+      divider: z.boolean().default(false),
       children: z.array(node).min(1, "a Group needs at least one child"),
+    })
+    .superRefine((group, ctx) => {
+      for (const key of ["widths", "floors"] as const) {
+        const list = group[key];
+        if (list === undefined) continue;
+        if (group.direction !== "row") ctx.addIssue({ code: "custom", path: [key], message: `${key} is for a row; this Group is a column` });
+        else if (list.length !== group.children.length) ctx.addIssue({ code: "custom", path: [key], message: `${key} has ${list.length} entries but the Group has ${group.children.length} children; give one per child` });
+      }
     })
     .meta({ id: "Group" }),
   toText: (props, childText) => {

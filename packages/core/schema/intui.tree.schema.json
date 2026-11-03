@@ -115,6 +115,34 @@
             "column"
           ]
         },
+        "widths": {
+          "type": "array",
+          "items": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 4000
+              },
+              {
+                "type": "string",
+                "const": "rest"
+              }
+            ]
+          }
+        },
+        "floors": {
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 4000
+          }
+        },
+        "divider": {
+          "default": false,
+          "type": "boolean"
+        },
         "children": {
           "minItems": 1,
           "type": "array",

@@ -101,6 +101,9 @@ Small decisions renderers share: column alignment, typed numbers, a chart read a
 ## crates/intui-layout/src/main.rs
 `intui-layout`: answers layout questions from JSON, so a check can put the same questions to core's TypeScript and to this port and compare.
 
+## crates/intui-layout/src/row.rs
+Where each child of a row sits when the row names widths: a pure function of the row's width, the widths, the floors and the gap. A row that names no widths takes equal parts, not this function.
+
 ## crates/intui-layout/src/words.rs
 The words layout says on a reader's behalf, written once: what a chart reads aloud as, and the note a mistyped number leaves.
 

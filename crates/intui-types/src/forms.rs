@@ -105,7 +105,19 @@ pub struct Label {
 #[derive(Clone, Debug)]
 pub struct Group {
     pub direction: GroupDirection,
+    /// Some only on a row, one per child.
+    pub widths: Option<Vec<Width>>,
+    /// Some only on a row, one per child: the narrowest px that child shrinks to (0 is no floor).
+    pub floors: Option<Vec<u16>>,
+    pub divider: bool,
     pub children: NonEmpty<Drawn>,
+}
+
+/// How wide a row child is: a fixed px (1 to 4000), or an equal share of what is left.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum Width {
+    Px(u16),
+    Rest,
 }
 
 #[derive(Clone, Debug, PartialEq)]
