@@ -380,6 +380,9 @@ Small rules every renderer must agree on: which way a column aligns, how a typed
 ## packages/web/build.ts
 Builds the browser files into packages/web/dist: the library, its stylesheets and the demo page.
 
+## packages/web/check-style.ts
+Land-time check (#3263): src/style.css must be exactly what build.ts would write from src/styles/. A rule edited only in style.css is deleted by the next build.
+
 ## packages/web/demo/areas-case.ts
 The demo's Areas and Tabs case (proposal 009): Pennant's Talk arrangement as one tree, with its tab bar, so a person can check the type menu, the tabs and that an area wraps below a narrow width. Generated from the Talk tree in Casement's rig, so the two draw the same words.
 
@@ -388,6 +391,9 @@ The demo page: every core component's example at three widths, plus a few harder
 
 ## packages/web/demo/thread-case.ts
 The demo's thread case (proposal 008): a short thread, a long one and verbatim text, so a person can check that a thread sits at the foot of its area, starts at its end, and that verbatim text keeps its spacing. Built by code so the messages are not written out twice.
+
+## packages/web/join-styles.ts
+(no header: code comes before any comment)
 
 ## packages/web/src/chart-layout.ts
 Pure geometry for the SVG Chart: where every tick, bar, line point, label and marker goes at a given pixel width. The drawer turns it into elements; the look (colours, dashes) is the stylesheet's job, keyed on each series' role.
