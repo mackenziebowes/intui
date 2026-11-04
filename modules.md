@@ -173,6 +173,9 @@ The parsed tree: what `parse` hands the rest of the program.
 ## crates/intui-types/src/read.rs
 Reading a node that passed every check into its parsed form.
 
+## crates/intui-types/src/read/form.rs
+Reading a Form into its parsed form: its fields, the lines a text field shows, and the key that sends.
+
 ## crates/intui-types/src/read/marks.rs
 Reading Marks and Ladder into their parsed forms. The edge already checked every kind and state a mark names exists and every step's ends are nodes, so a miss here is drift between this build and core's schema.
 

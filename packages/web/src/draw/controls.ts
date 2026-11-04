@@ -86,18 +86,37 @@ export const choice: Drawer<ChoiceProps> = (props, ctx) => {
   return root
 }
 
+type Control = HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
+
 export const form: Drawer<FormProps> = (props, ctx) => {
   const { dom } = ctx
   const at: ControlAt = { source: ctx.source, control: props }
   const element = dom.el('form', { class: 'intui-form', novalidate: true })
-  const controls = new Map<string, HTMLInputElement | HTMLSelectElement>()
+  const controls = new Map<string, Control>()
   const errors = new Map<string, HTMLElement>()
   const status = dom.el('p', { class: 'intui-status', role: 'status' })
   const submit = dom.el('button', { type: 'submit', class: 'intui-button intui-button--primary' }, props.submitLabel)
   const earlier = ctx.submitted(props.id)
 
-  for (const field of props.fields) element.append(fieldRow(field, ctx, controls, errors))
-  element.append(dom.el('div', { class: 'intui-form-actions' }, submit, status))
+  const composer = props.send !== undefined
+  for (const field of props.fields) element.append(fieldRow(field, ctx, controls, errors, composer))
+  if (composer) {
+    // A message box: the send button sits inside the box's foot, beside the key that sends.
+    const hint = dom.el('span', { class: 'intui-composer-hint' }, props.send === 'ctrl-enter' ? 'Ctrl+Enter' : 'Enter')
+    const box = element.querySelector('.intui-composer')!
+    box.append(dom.el('div', { class: 'intui-composer-foot' }, hint, submit))
+    element.append(status)
+    element.classList.add('intui-form--composer')
+    element.addEventListener('keydown', event => {
+      if (event.key !== 'Enter' || event.isComposing || !(event.target instanceof HTMLTextAreaElement)) return
+      const sends = props.send === 'ctrl-enter' ? event.ctrlKey || event.metaKey : !event.shiftKey && !event.ctrlKey && !event.altKey
+      if (!sends) return
+      event.preventDefault()
+      element.requestSubmit()
+    })
+  } else {
+    element.append(dom.el('div', { class: 'intui-form-actions' }, submit, status))
+  }
 
   const raw = (id: string): RawValue | undefined => {
     const control = controls.get(id)
@@ -157,8 +176,9 @@ export const form: Drawer<FormProps> = (props, ctx) => {
 function fieldRow(
   field: FormField,
   ctx: DrawContext,
-  controls: Map<string, HTMLInputElement | HTMLSelectElement>,
+  controls: Map<string, Control>,
   errors: Map<string, HTMLElement>,
+  composer = false,
 ): HTMLElement {
   const { dom } = ctx
   const id = ctx.uid(`field-${field.id}`)
@@ -173,7 +193,7 @@ function fieldRow(
     controls.set(field.id, input)
     return dom.el('div', { class: 'intui-field intui-field--checkbox' }, dom.el('label', { for: id }, input, dom.el('span', {}, field.label), required), error)
   }
-  let control: HTMLInputElement | HTMLSelectElement
+  let control: Control
   if (field.input === 'select') {
     control = dom.el(
       'select',
@@ -181,6 +201,12 @@ function fieldRow(
       dom.el('option', { value: '' }, field.required ? 'Choose…' : 'None'),
       ...(field.options ?? []).map(option => dom.el('option', { value: option }, option)),
     )
+  } else if (field.input === 'text' && (field.lines !== undefined || composer)) {
+    const area = dom.el('textarea', { ...common, rows: String(field.lines ?? 2), placeholder: composer ? field.label : undefined, 'aria-label': composer ? field.label : undefined })
+    controls.set(field.id, area)
+    // In a message box the label is the placeholder and the send button sits in the box's foot.
+    if (composer) return dom.el('div', { class: 'intui-field' }, dom.el('div', { class: 'intui-composer' }, area), error)
+    return dom.el('div', { class: 'intui-field' }, dom.el('label', { for: id }, field.label, required), area, error)
   } else {
     // Numbers are typed as text and read by parseNumber, so a typo gets a message instead of silently becoming empty.
     control = dom.el('input', { ...common, type: 'text', inputmode: field.input === 'number' ? 'decimal' : undefined, autocomplete: 'off' })
@@ -189,7 +215,7 @@ function fieldRow(
   return dom.el('div', { class: 'intui-field' }, dom.el('label', { for: id }, field.label, required), control, error)
 }
 
-function fill(fields: readonly FormField[], controls: Map<string, HTMLInputElement | HTMLSelectElement>, values: Record<string, FieldValue>) {
+function fill(fields: readonly FormField[], controls: Map<string, Control>, values: Record<string, FieldValue>) {
   for (const field of fields) {
     const control = controls.get(field.id)!
     // `values` comes from the host and may be a plain object: only its own keys count.

@@ -260,10 +260,16 @@ fn form_text(form: &forms::Form) -> String {
                 Some(options) => format!(": {}", options.join(", ")),
             };
             let required = if field.required { format!(", {}", words::REQUIRED) } else { String::new() };
-            format!("- {} ({}{required}{choices})", field.label, field.input.name())
+            let lines = field.lines.map_or(String::new(), |n| format!(", {n} lines"));
+            format!("- {} ({}{lines}{required}{choices})", field.label, field.input.name())
         })
         .collect();
-    format!("{}\n{}\n\n[{}]", words::FORM_HEADING, fields.join("\n"), form.submit_label)
+    let send = match form.send {
+        None => "",
+        Some(forms::FormSend::Enter) => " (Enter)",
+        Some(forms::FormSend::CtrlEnter) => " (Ctrl+Enter)",
+    };
+    format!("{}\n{}\n\n[{}]{send}", words::FORM_HEADING, fields.join("\n"), form.submit_label)
 }
 
 /// core's `readingText`: "216 tokens", "at least 216 tokens", "about 216 tokens", "unknown".

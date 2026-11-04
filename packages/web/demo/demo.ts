@@ -123,6 +123,19 @@ const extras: { title: string; note: string; root: Node }[] = [
     } as Node,
   },
   {
+    title: 'A message box',
+    note: 'A Form with send: the label is the placeholder, Enter sends and Shift+Enter is a new line (proposal 015). The second sends on Ctrl+Enter.',
+    root: {
+      type: 'Group',
+      direction: 'column',
+      children: [
+        { type: 'Form', id: 'to-rowan', fields: [{ id: 'msg', label: 'Write to Rowan', input: 'text' }], submitLabel: 'Send', send: 'enter' },
+        { type: 'Form', id: 'to-all', fields: [{ id: 'msg', label: 'Write to everyone', input: 'text', lines: 4 }], submitLabel: 'Send to 3', send: 'ctrl-enter' },
+        { type: 'Form', id: 'notes', fields: [{ id: 'body', label: 'Notes', input: 'text', lines: 3 }], submitLabel: 'Save' },
+      ],
+    } as Node,
+  },
+  {
     title: 'Markdown from a model',
     note: 'Raw HTML is dropped and unsafe links lose their href; code stays visible.',
     root: {

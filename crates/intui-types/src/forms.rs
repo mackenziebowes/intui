@@ -13,7 +13,7 @@ pub use crate::mark_forms::{
     Halo, KindIndex, Ladder, LadderNode, LadderRung, LadderStep, Mark, MarkKind, MarkState, Marks, MarksRow, NodeAt, NodeBody, RowBody, StateIndex, UnknownKind,
 };
 pub use crate::generated::tree::{
-    ChartKind, ChartPointPeriod, ChartSeriesRole, ChoiceRepeat, GroupBox, GroupDirection, Size, StatChangeAs, TableColumnAlign, Tone,
+    ChartKind, ChartPointPeriod, ChartSeriesRole, ChoiceRepeat, FormSend, GroupBox, GroupDirection, Size, StatChangeAs, TableColumnAlign, Tone,
 };
 
 /// A list with at least one item. The first is boxed so a Group can hold a list of the nodes it sits in.
@@ -355,6 +355,8 @@ pub struct Field {
     pub id: String,
     pub label: String,
     pub input: FieldInput,
+    /// A text field's visible lines (2 to 8); None is one line.
+    pub lines: Option<u8>,
     pub required: bool,
 }
 
@@ -363,6 +365,8 @@ pub struct Form {
     pub id: String,
     pub fields: NonEmpty<Field>,
     pub submit_label: String,
+    /// Some makes the form a message box: the key that sends.
+    pub send: Option<FormSend>,
 }
 
 /// One thing an area can show: the producer's own words, with no meaning in core.

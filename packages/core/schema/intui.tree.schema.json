@@ -1029,6 +1029,13 @@
           "type": "string",
           "minLength": 1,
           "maxLength": 40
+        },
+        "send": {
+          "type": "string",
+          "enum": [
+            "enter",
+            "ctrl-enter"
+          ]
         }
       },
       "required": [
@@ -1065,6 +1072,11 @@
             "type": "string",
             "minLength": 1
           }
+        },
+        "lines": {
+          "type": "integer",
+          "minimum": 2,
+          "maximum": 8
         },
         "required": {
           "default": false,

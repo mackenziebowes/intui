@@ -12,6 +12,7 @@ use crate::schema::schema;
 use std::collections::HashMap;
 use std::str::FromStr;
 
+mod form;
 mod marks;
 
 /// A prop this build could not read from a node the schema accepted.
@@ -117,7 +118,7 @@ pub(crate) fn read_node(kind: Kind, object: &JsonObject, children: Vec<Drawn>) -
         Kind::Marks => Node::Marks(marks::marks(&fields)?),
         Kind::Ladder => Node::Ladder(marks::ladder(&fields)?),
         Kind::Choice => Node::Choice(choice(&fields)?),
-        Kind::Form => Node::Form(form(&fields)?),
+        Kind::Form => Node::Form(form::form(&fields)?),
         Kind::Areas => Node::Areas(areas(&fields, children)?),
         Kind::Tabs => Node::Tabs(tabs(&fields)?),
     })
@@ -242,28 +243,6 @@ fn choice(fields: &Fields) -> Result<Choice, Drift> {
         "ChoiceOption",
     )?;
     Ok(Choice { id: fields.text("id")?, prompt: fields.maybe_text("prompt")?, options: fields.non_empty("options", options)?, repeat: fields.word("repeat")? })
-}
-
-fn form(fields: &Fields) -> Result<Form, Drift> {
-    let read_fields = fields.each(
-        "fields",
-        |field| {
-            let options: Option<Vec<String>> = match field.object.get("options") {
-                None => None,
-                Some(_) => Some(field.list("options")?.iter().map(|option| option.as_str().map(str::to_string).ok_or_else(|| field.drift("options"))).collect::<Result<_, _>>()?),
-            };
-            let offered = options.clone().map_or(Offered::NotListed, Offered::Listed);
-            let input = match field.word::<gen::FormFieldInput>("input")? {
-                gen::FormFieldInput::Text => FieldInput::Text(offered),
-                gen::FormFieldInput::Number => FieldInput::Number(offered),
-                gen::FormFieldInput::Checkbox => FieldInput::Checkbox(offered),
-                gen::FormFieldInput::Select => FieldInput::Select(NonEmpty::from_vec(options.unwrap_or_default()).ok_or_else(|| field.drift("options"))?),
-            };
-            Ok(Field { id: field.text("id")?, label: field.text("label")?, input, required: field.flag("required")? })
-        },
-        "FormField",
-    )?;
-    Ok(Form { id: fields.text("id")?, fields: fields.non_empty("fields", read_fields)?, submit_label: fields.text("submitLabel")? })
 }
 
 fn areas(fields: &Fields, children: Vec<Drawn>) -> Result<Areas, Drift> {
