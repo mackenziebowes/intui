@@ -993,6 +993,7 @@ path.intui-chart-bar.intui-role-comparison { fill: var(--_series); }
 
 .intui-field input:not([type="checkbox"]),
 .intui-field select,
+.intui-field textarea,
 .intui-copy-box {
   width: 100%;
   min-height: 2.25rem;
@@ -1030,6 +1031,24 @@ path.intui-chart-bar.intui-role-comparison { fill: var(--_series); }
   border-color: var(--_accent);
   box-shadow: 0 0 0 3px color-mix(in oklab, var(--_accent) 25%, transparent);
 }
+
+.intui-field textarea { resize: vertical; min-height: 4.5em; }
+.intui-field textarea:focus-visible { outline: none; border-color: var(--_accent); box-shadow: 0 0 0 3px color-mix(in oklab, var(--_accent) 25%, transparent); }
+
+/* A message box (Form with send): the textarea and its foot read as one box; the button is small and the key is named beside it. */
+.intui-form--composer { max-width: none; gap: 0.4em; }
+.intui-composer {
+  display: grid;
+  border: 1px solid var(--_line-strong);
+  border-radius: var(--_radius);
+  background: var(--_surface);
+}
+.intui-composer:focus-within { border-color: var(--_accent); box-shadow: 0 0 0 3px color-mix(in oklab, var(--_accent) 25%, transparent); }
+.intui-composer textarea { border: 0; box-shadow: none; background: transparent; resize: none; min-height: 3.2em; }
+.intui-composer textarea:focus-visible { border: 0; box-shadow: none; }
+.intui-composer-foot { display: flex; justify-content: flex-end; align-items: center; gap: 0.7em; padding: 0 0.5em 0.5em; }
+.intui-composer-hint { font-size: 0.8em; color: var(--_muted); }
+.intui-composer-foot .intui-button { min-height: 0; padding: 0.25em 0.8em; font-size: 0.85em; }
 
 .intui-field [aria-invalid="true"] { border-color: var(--_critical); }
 .intui-field [aria-invalid="true"]:focus-visible { border-color: var(--_critical); box-shadow: 0 0 0 3px color-mix(in oklab, var(--_critical) 22%, transparent); }
