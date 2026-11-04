@@ -1,7 +1,7 @@
+/** What src/style.css must hold: the files in src/styles/ joined in name order, under a header. build.ts writes it; check-style.ts compares it. */
 import { readdir } from 'node:fs/promises'
 import { join } from 'node:path'
 
-/** What src/style.css must hold: the files in src/styles/ joined in name order, under a header. build.ts writes it; check-style.ts compares it. */
 export async function joinedStyles(root: string): Promise<string> {
   const styles = join(root, 'src/styles')
   const parts = (await readdir(styles)).filter(name => name.endsWith('.css')).sort()

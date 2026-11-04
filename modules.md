@@ -393,7 +393,7 @@ The demo page: every core component's example at three widths, plus a few harder
 The demo's thread case (proposal 008): a short thread, a long one and verbatim text, so a person can check that a thread sits at the foot of its area, starts at its end, and that verbatim text keeps its spacing. Built by code so the messages are not written out twice.
 
 ## packages/web/join-styles.ts
-(no header: code comes before any comment)
+What src/style.css must hold: the files in src/styles/ joined in name order, under a header. build.ts writes it; check-style.ts compares it.
 
 ## packages/web/src/chart-layout.ts
 Pure geometry for the SVG Chart: where every tick, bar, line point, label and marker goes at a given pixel width. The drawer turns it into elements; the look (colours, dashes) is the stylesheet's job, keyed on each series' role.
