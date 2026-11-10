@@ -279,6 +279,9 @@
 
 .intui-group--column > * { min-width: 0; }
 
+/* A Label is a tag sized to its text: a column's default stretch would draw it as a full-width bar (#1502). */
+.intui-group--column > .intui-label { align-self: flex-start; }
+
 /* A thread: the newest child last, at the foot of the area, and the area scrolls when it is full.
    The first child's auto margin pushes a short thread down without hiding the top of a long one. */
 .intui-group--thread {
