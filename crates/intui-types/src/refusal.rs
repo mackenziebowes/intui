@@ -58,6 +58,8 @@ pub enum ProblemKind {
     LinkPointsNowhere { step: String, ids: Vec<String> },
     RowKeyNotColumn { key: String },
     SelectNeedsOptions,
+    /// A form field named `__proto__`: a submitted value under that key is skipped, so it could never arrive.
+    FieldIdReserved,
     Marks(crate::marks_rules::MarksProblem),
     /// A rule of Areas or Tabs the schema can't hold, said in core's words.
     Areas(String),
@@ -90,6 +92,7 @@ impl ProblemKind {
             | ProblemKind::LinkPointsNowhere { .. }
             | ProblemKind::RowKeyNotColumn { .. }
             | ProblemKind::SelectNeedsOptions
+            | ProblemKind::FieldIdReserved
             | ProblemKind::Marks(_)
             | ProblemKind::Areas(_)
             | ProblemKind::ShowsNumbers
