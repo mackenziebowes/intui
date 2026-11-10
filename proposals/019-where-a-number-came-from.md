@@ -25,8 +25,8 @@ Draft 2026-11-10 by Intui (hub #1844), from Claude Dashboards (2026-10-08), whic
 5. **Drawn:**
    1. A small caption line under the figure, chart or table: `from <source>, <time>`. The time is written for a person in the renderer's own style (clock time today, a date otherwise) and gives the full instant on hover or in the screen reader label, where the surface has one.
    2. A source too long for the line is cut with an ellipsis, and the whole is available the same way as the instant. Nothing is dropped silently.
-6. **Text form:** one line under the component: `*From /api/visits, as of 2026-11-10 21:58 UTC.*`. With no `asOf`: `*From /api/visits.*`. Absent `from`: the text form is exactly what it is today.
+6. **Text form:** one line under the component: `*From /api/visits, as of 2026-11-10T21:58:55Z.*`, the instant exactly as stored, so a model reading it back gets the string the producer wrote (a renderer may still word it for a person, see 5.1). With no `asOf`: `*From /api/visits.*`. Absent `from`: the text form is exactly what it is today.
 7. **Fallback:** a renderer that doesn't know `from` draws the figure without the caption. The person is no worse off than today, and the text form still says it.
-8. **Open for Harbor:**
-   1. Whether Table should carry `from` now, or only Stat and Chart (the hub's tables are the likeliest first user, so the proposal says now).
-   2. Whether the text form's UTC wording is right for the model that reads it, or should repeat the instant exactly as stored.
+8. **Decided by Harbor (2026-11-10):**
+   1. Table carries `from` now, alongside Stat and Chart: the hub's tables are the likeliest first users.
+   2. The text form repeats the instant exactly as stored, not reworded into UTC prose.
