@@ -260,6 +260,10 @@
         },
         "caption": {
           "type": "string"
+        },
+        "label": {
+          "type": "string",
+          "minLength": 1
         }
       },
       "required": [

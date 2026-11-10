@@ -174,6 +174,8 @@ impl Row {
 #[derive(Clone, Debug, PartialEq)]
 pub struct Table {
     pub caption: Option<String>,
+    /// Names the table to assistive technology without drawing it; the text form omits it.
+    pub label: Option<String>,
     pub columns: NonEmpty<Column>,
     pub rows: Vec<Row>,
 }

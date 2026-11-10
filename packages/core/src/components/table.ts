@@ -1,7 +1,9 @@
 /**
  * The Table component: named columns and rows of cells keyed by column. A row key that
  * names no column is refused with the path and the keys that exist; a missing cell is
- * empty, never 0. Its text form is a Markdown table.
+ * empty, never 0. Its text form is a Markdown table. A `caption` is drawn above the table
+ * and is in the text form; a `label` only names the table to a screen reader (for a page that
+ * already shows a heading above it), so the text form leaves it out.
  */
 import { z } from "zod";
 import { defineKind, type Node } from "../component";
@@ -23,6 +25,7 @@ export interface TableProps extends Node {
   columns: TableColumn[];
   rows: Record<string, CellValue>[];
   caption?: string;
+  label?: string;
 }
 
 export const Table = defineKind<TableProps>({
@@ -46,6 +49,7 @@ export const Table = defineKind<TableProps>({
           .min(1, "a Table needs at least one column"),
         rows: z.array(z.record(z.string(), z.union([z.string(), z.number(), z.boolean(), z.null()]))),
         caption: z.string().optional(),
+        label: z.string().min(1, "a Table label can't be empty; leave it out, or name the table").optional(),
       })
       .superRefine((table, ctx) => {
         const keys = new Set(table.columns.map((column) => column.key));

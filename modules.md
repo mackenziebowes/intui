@@ -336,7 +336,7 @@ The Marks component (proposal 005): rows of small marks, one per thing counted, 
 The Stat component: one figure with a label, a unit and an optional change. Only code may write it. The value and the change are Readings, so a floor, an estimate or an unknown shows as one and never as a bare number.
 
 ## packages/core/src/components/table.ts
-The Table component: named columns and rows of cells keyed by column. A row key that names no column is refused with the path and the keys that exist; a missing cell is empty, never 0. Its text form is a Markdown table.
+The Table component: named columns and rows of cells keyed by column. A row key that names no column is refused with the path and the keys that exist; a missing cell is empty, never 0. Its text form is a Markdown table. A `caption` is drawn above the table and is in the text form; a `label` only names the table to a screen reader (for a page that already shows a heading above it), so the text form leaves it out.
 
 ## packages/core/src/components/tabs.ts
 The Tabs component: a bar of named arrangements, one of them open. Pressing a tab sends its id; the surface that owns the arrangements switches to it.

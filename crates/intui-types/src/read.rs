@@ -175,7 +175,7 @@ fn table(fields: &Fields) -> Result<Table, Drift> {
         }
         rows.push(Row::new(cells));
     }
-    Ok(Table { caption: fields.maybe_text("caption")?, columns: fields.non_empty("columns", columns)?, rows })
+    Ok(Table { caption: fields.maybe_text("caption")?, label: fields.maybe_text("label")?, columns: fields.non_empty("columns", columns)?, rows })
 }
 
 fn chart(fields: &Fields) -> Result<Chart, Drift> {

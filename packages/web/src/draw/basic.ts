@@ -147,7 +147,7 @@ export const table: Drawer<TableProps> = (props, { dom }) => {
   return dom.el(
     'div',
     { class: `intui-table${stackable}` },
-    dom.el('div', { class: 'intui-table-scroll', tabindex: 0, role: 'region', 'aria-label': props.caption ?? 'Table' }, dom.el('table', {}, caption, head, body)),
+    dom.el('div', { class: 'intui-table-scroll', tabindex: 0, role: 'region', 'aria-label': props.caption ?? props.label ?? 'Table' }, dom.el('table', {}, caption, head, body)),
     empty,
   )
 }
