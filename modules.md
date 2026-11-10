@@ -222,7 +222,7 @@ The `demo_chart` tool: a Chart and a Stat built by code from labelled sample dat
 Draws a ChartModel as an SVG document string for the surfaces that can show one (bars or lines, axes, markers). It leaves a gap where a value is missing or unknown instead of joining or zeroing it, and takes every colour from the caller.
 
 ## packages/claude-code/src/draw/chart-text.ts
-Draws a ChartModel in character cells for the terminal: braille lines, block-character bars, an x axis, a legend, and the readings that are floors, estimates or unknown. Returns styled runs of text, never elements, and breaks a line at a missing value rather than drawing across it.
+Draws a ChartModel in character cells for the terminal: braille lines, block-character bars, an x axis, a legend, and the readings that are floors, estimates, unknown or so far. Returns styled runs of text, never elements, and breaks a line at a missing value rather than drawing across it.
 
 ## packages/claude-code/src/draw/chart.tsx
 The Chart drawer for Claude Code: an SVG plot on surfaces that take one, braille and block characters in the terminal, and the chart's text form when there is no room or no number to put on an axis. Whatever it draws, the points that are floors, estimates or unknown are still told apart.
