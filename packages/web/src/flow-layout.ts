@@ -68,6 +68,13 @@ export function wrapLabel(label: string, width: number, measure: Measure = estim
   return lines.length > 0 ? lines : [label]
 }
 
+/** Box padding and border either side of a step's text (0.8em a side at 16px, plus the 1px border). */
+const BOX_CHROME = 28
+
+/** A step box wide enough that its longest unbroken word in the bold label stays whole, never below `floor`. */
+const boxFor = (steps: readonly FlowStep[], floor: number, measure: Measure) =>
+  Math.max(floor, ...steps.flatMap(step => step.label.split(/\s+/)).map(word => Math.ceil(measure(word) * 1.1) + BOX_CHROME))
+
 /**
  * Lays a flow out for `width` pixels: a row when every layer gets BOX_MIN, else a
  * column when every layer's steps fit side by side, else a list. Cycles are broken,
@@ -77,8 +84,10 @@ export function flowPlan(steps: readonly FlowStep[], links: readonly FlowLink[],
   const analysis = analyse(steps, links)
   const gutter = gutterFor(analysis.edges, measure)
   const count = analysis.layers.length
-  const fitsRow = count * BOX_MIN + (count - 1) * gutter <= width
-  const fitsColumn = analysis.layers.every(layer => layer.length * COLUMN_BOX_MIN + (layer.length - 1) * COLUMN_GAP <= width)
+  const rowBox = boxFor(steps, BOX_MIN, measure)
+  const columnBox = boxFor(steps, COLUMN_BOX_MIN, measure)
+  const fitsRow = count * rowBox + (count - 1) * gutter <= width
+  const fitsColumn = analysis.layers.every(layer => layer.length * columnBox + (layer.length - 1) * COLUMN_GAP <= width)
   // A link that skips a layer would run through the boxes between, so a stack becomes a list.
   const skips = analysis.edges.some(edge => analysis.layerOf[edge.to] !== analysis.layerOf[edge.from]! + 1)
   const direction: FlowDirection = fitsRow ? 'row' : fitsColumn && !skips ? 'column' : 'list'
