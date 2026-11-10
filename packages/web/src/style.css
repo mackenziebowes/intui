@@ -492,6 +492,9 @@
 
 .intui-table .is-end { text-align: right; }
 
+/* A short one-word cell is never split at a hyphen or slash. */
+.intui-table td.is-token { white-space: nowrap; }
+
 .intui-table tbody tr:last-child td { border-bottom: 0; }
 
 .intui-empty {
