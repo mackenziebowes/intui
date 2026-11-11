@@ -81,21 +81,31 @@ function breakLabel(label: string, width: number, measure: Measure): string[] {
 }
 
 /**
- * An arrow label as lines no wider than `width`, broken at spaces and then narrowed until the
- * same number of lines are as even as they can be, so the last line is never a lone word.
- * A single word wider than `width` stays whole.
+ * An arrow label as lines no wider than `width`, broken at spaces so the lines come out even and the
+ * last line is never a lone word, unless the label is one word or a word is wider than `width`
+ * (then it is the greedy break, a single wide word staying whole).
  */
 export function wrapLabel(label: string, width: number, measure: Measure = estimateWidth): string[] {
-  const lines = breakLabel(label, width, measure)
-  if (lines.length < 2) return lines
-  let [lo, hi, best] = [0, width, lines]
-  while (hi - lo > 1) {
-    const mid = Math.floor((lo + hi) / 2)
-    const trial = breakLabel(label, mid, measure)
-    if (trial.length === lines.length) [hi, best] = [mid, trial]
-    else lo = mid
+  const words = label.split(/\s+/).filter(Boolean)
+  if (words.length < 2 || words.some(w => measure(w) > width)) return breakLabel(label, width, measure)
+  const len = measure
+  const n = words.length
+  const best: number[] = Array(n + 1).fill(Infinity)
+  const from: number[] = Array(n + 1).fill(0)
+  best[0] = 0
+  for (let j = 1; j <= n; j++) {
+    for (let i = j - 1; i >= 0; i--) {
+      const size = len(words.slice(i, j).join(' '))
+      if (size > width) break
+      const last = j === n
+      // Slack squared evens the lines; a lone word on the last line costs more than any slack; each line costs a little.
+      const cost = (last ? 0 : (width - size) ** 2) + (last && j - i === 1 && n > 1 ? width ** 2 * 100 : 0) + (width * width) / 4
+      if (best[i]! + cost < best[j]!) [best[j], from[j]] = [best[i]! + cost, i]
+    }
   }
-  return best
+  const lines: string[] = []
+  for (let j = n; j > 0; j = from[j]!) lines.unshift(words.slice(from[j]!, j).join(' '))
+  return lines
 }
 
 /**

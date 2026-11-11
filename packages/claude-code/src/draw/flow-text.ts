@@ -36,15 +36,30 @@ export function wrap(text: string, width: number): string[] {
   return lines.length ? lines : ['']
 }
 
-/** A label wrapped at `width` cells, then narrowed so its lines are even and the last is never a lone word. */
+/**
+ * A label wrapped at `width` cells with even lines and never a lone word on the last line, unless
+ * the label is one word or a word is wider than `width` (then the greedy `wrap`).
+ */
 export function wrapEven(text: string, width: number): string[] {
-  const lines = wrap(text, width)
-  if (lines.length < 2) return lines
-  for (let w = Math.max(...lines.map(l => [...l].length)) - 1; w >= 1; w--) {
-    const trial = wrap(text, w)
-    if (trial.length !== lines.length) break
-    lines.splice(0, lines.length, ...trial)
+  const words = text.split(/\s+/).filter(Boolean)
+  const len = (s: string) => [...s].length
+  if (words.length < 2 || words.some(w => len(w) > width)) return wrap(text, width)
+  const n = words.length
+  const best: number[] = Array(n + 1).fill(Infinity)
+  const from: number[] = Array(n + 1).fill(0)
+  best[0] = 0
+  for (let j = 1; j <= n; j++) {
+    for (let i = j - 1; i >= 0; i--) {
+      const size = len(words.slice(i, j).join(' '))
+      if (size > width) break
+      const last = j === n
+      // Slack squared evens the lines; a lone word on the last line costs more than any slack; each line costs a little.
+      const cost = (last ? 0 : (width - size) ** 2) + (last && j - i === 1 && n > 1 ? width ** 2 * 100 : 0) + (width * width) / 4
+      if (best[i]! + cost < best[j]!) [best[j], from[j]] = [best[i]! + cost, i]
+    }
   }
+  const lines: string[] = []
+  for (let j = n; j > 0; j = from[j]!) lines.unshift(words.slice(from[j]!, j).join(' '))
   return lines
 }
 

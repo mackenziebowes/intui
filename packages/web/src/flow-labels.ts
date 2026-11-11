@@ -9,8 +9,13 @@ export type PlacedLabel = { lines: string[]; rect: Rect; x: number; y: number; a
 
 /** Clear space between a label and every line, its own connector and the back lanes alike. */
 const LINE_CLEAR = 8
+/** The text's ink inside its line boxes: a 12px label is about 9px tall in a 14px line, so lines are kept clear of that. */
+const INK_TRIM = 2.5
+const ink = (r: Rect): Rect => ({ left: r.left, width: r.width, top: r.top + INK_TRIM, height: r.height - 2 * INK_TRIM })
 const hits = (a: Rect, b: Rect, pad = 0) => a.left < b.left + b.width + pad && b.left < a.left + a.width + pad && a.top < b.top + b.height + pad && b.top < a.top + a.height + pad
-const inside = (p: Point, r: Rect, pad = 0) => p.x > r.left - pad && p.x < r.left + r.width + pad && p.y > r.top - pad && p.y < r.top + r.height + pad
+/** How far the nearest line point is from a rect, 0 when one is inside it. */
+const clearance = (points: readonly Point[], r: Rect) =>
+  points.reduce((least, p) => Math.min(least, Math.hypot(Math.max(r.left - p.x, 0, p.x - r.left - r.width), Math.max(r.top - p.y, 0, p.y - r.top - r.height))), Infinity)
 
 /**
  * Places each forward label beside its curve, on a free spot found by search, so no label meets
@@ -38,22 +43,24 @@ export function placeLabels(input: {
   const taken = [...input.taken]
   let crowded = 0
   const placed = input.labels.map(label => {
-    const free = (rect: Rect) =>
-      rect.left >= 0 && rect.left + rect.width <= width && !boxes.some(b => hits(rect, b, 3)) && !taken.some(t => hits(rect, t, 3)) && !lines.some(p => inside(p, rect, LINE_CLEAR))
+    const clear = (rect: Rect) => rect.left >= 0 && rect.left + rect.width <= width && !boxes.some(b => hits(rect, b, 3)) && !taken.some(t => hits(rect, t, 3))
     const widths = [...new Set([input.room, Math.min(input.room, 100), Math.min(input.room, 70)])]
     let first: PlacedLabel | undefined
+    // The spot that kept furthest from the lines, for when none keeps `LINE_CLEAR`.
+    let roomiest: { result: PlacedLabel; gap: number } | undefined
     for (const t of [0.5, 0.4, 0.6, 0.3, 0.7, 0.2, 0.8, 0.1, 0.9]) {
       const [p, before, after] = [label.at(t), label.at(Math.max(0, t - 0.02)), label.at(Math.min(1, t + 0.02))]
       const len = Math.hypot(after.x - before.x, after.y - before.y) || 1
       // The curve's normal, pointing right in a column and up in a row, then the other way.
       const n0 = { x: -(after.y - before.y) / len, y: (after.x - before.x) / len }
       const n = (row ? n0.y > 0 : n0.x < 0) ? { x: -n0.x, y: -n0.y } : n0
-      for (const side of [1, -1]) {
+      // Nearest first; if that spot is crowded, stand further off the curve.
+      for (const [side, extra] of [1, -1].flatMap(sd => [0, 6, 14].map(e => [sd, e] as const))) {
         for (const w of widths) {
           const text = wrapLabel(label.text, w, measure)
           const [bw, bh] = [Math.max(...text.map(measure)), text.length * LABEL_LINE_H]
           // Far enough along the normal that the block's near edge is `LABEL_GAP` from the curve.
-          const away = LABEL_GAP + Math.abs(n.x) * (bw / 2) + Math.abs(n.y) * (bh / 2)
+          const away = LABEL_GAP + extra + Math.abs(n.x) * (bw / 2) + Math.abs(n.y) * (bh / 2)
           const centre = { x: p.x + side * n.x * away, y: p.y + side * n.y * away }
           const rect: Rect = { left: centre.x - bw / 2, top: centre.y - bh / 2, width: bw, height: bh }
           const sideways = Math.abs(n.x) > 0.9
@@ -65,16 +72,20 @@ export function placeLabels(input: {
             anchor: sideways ? (side * n.x > 0 ? 'start' : 'end') : 'middle',
           }
           first ??= result
-          if (free(rect)) {
+          if (!clear(rect)) continue
+          const gap = clearance(lines, ink(rect))
+          if (gap >= LINE_CLEAR) {
             taken.push(rect)
             return result
           }
+          if (!roomiest || gap > roomiest.gap) roomiest = { result, gap }
         }
       }
     }
     crowded++
-    taken.push(first!.rect)
-    return first
+    const chosen = roomiest?.result ?? first!
+    taken.push(chosen.rect)
+    return chosen
   })
   return { placed, crowded }
 }
