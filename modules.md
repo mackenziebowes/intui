@@ -239,11 +239,20 @@ The Choice drawer for Claude Code: a row of buttons that sends a press back to t
 ## packages/claude-code/src/draw/drawer.ts
 The shape of a Claude Code drawer and the context it is given: the surface's elements, the width in cells, the tree's interaction state (what was pressed, typed or submitted) and the calls that send a press or a submit back to the agent. `defineDrawer` makes a drawer for one component kind.
 
+## packages/claude-code/src/draw/flow-back.ts
+The back edges of a Flow on the character grid: each route's line cells, arrowhead and label, in lanes below the boxes or to their right.
+
+## packages/claude-code/src/draw/flow-canvas.ts
+The character grid Flow is painted on: cells that hold a glyph and the directions a line runs through them, boxes, line glyphs, labels on blank cells, and the grid read out as runs of one kind.
+
 ## packages/claude-code/src/draw/flow-layout.ts
-Pure layout for the Flow drawer: no elements, only numbers and strings, so the hard parts (layering, cycles, routing, fitting) are worked out without an engine.
+Pure layout for the Flow drawer: no elements, only numbers and strings, so the hard parts (layering, cycles, routing, fitting) are worked out without an engine. Text is in flow-text.ts, the grid in flow-canvas.ts and the back-edge lanes in flow-back.ts.
+
+## packages/claude-code/src/draw/flow-text.ts
+Text pieces of the Flow drawer in character cells: cutting and wrapping text, and the lines inside one step's box.
 
 ## packages/claude-code/src/draw/flow.tsx
-The Flow drawer for Claude Code: steps as boxes joined by arrows, in one row when they fit and stacked with downward arrows when they don't, falling back to each step with its outgoing links when even that doesn't fit. Links that close a cycle are written as a line inside the box, never drawn as an arrow.
+The Flow drawer for Claude Code: steps as boxes joined by arrows, in one row when they fit and stacked with downward arrows when they don't, falling back to each step with its outgoing links when even that doesn't fit. Links that close a cycle are drawn as arrows in lanes (below a row of layers, right of a stack) when `planBack` gives them a lane, and are written as a `↩` line inside the box when not.
 
 ## packages/claude-code/src/draw/form-logic.ts
 The words and rules around a Form's state in Claude Code: which required fields still have no value, the lines that say what a submitted form sent, and the sentence under the submit button when it can't go yet. No elements, only strings.
@@ -417,13 +426,19 @@ The browser Chart drawer: an SVG plot redrawn at the element's width, with a leg
 The browser drawers for the controls, Choice and Form. Each is a surface on core's control machine (`stepControl`, hub #1956): a press or submit goes in as an event, the host's verdict goes in as accepted or refused, and `paint` draws whatever state comes out. The machine decides when a control is used up, busy or read-only; nothing here does.
 
 ## packages/web/src/draw/flow.ts
-The browser Flow drawer: steps as boxes laid out by CSS, with the arrows drawn as SVG from the boxes' measured positions and redrawn when the width changes. The full list of links is kept in the DOM order for screen readers.
+The browser Flow drawer: steps as boxes laid out by CSS, with the arrows drawn as SVG from the boxes' measured positions and redrawn when the width changes. The full list of links, back edges included, is kept in the DOM order for screen readers. Back edges are drawn in lanes beside or below the boxes, with their labels placed clear of every line.
 
 ## packages/web/src/draw/marks.ts
 The browser drawers for Marks and Ladder (proposal 005): one glyph per thing counted, so a count of seven looks like seven. The first kind is drawn filled, the second hollow, the third as a ring; a state's tone colours the glyph. Above THIN marks a field is a count in text and a band instead of glyphs (points are for small numbers). Nothing needs a hover: details are listed under the row. Glyphs may drift a little, and are still under prefers-reduced-motion (style.css).
 
+## packages/web/src/flow-back.ts
+The back edges of a web Flow, placed on the measured boxes: each route's line, running in a lane to the right of the boxes (a column or list) or below them (a row), and its label beyond every lane.
+
+## packages/web/src/flow-labels.ts
+Where the forward labels of a web Flow go: beside their curve, on a free spot found by search, so no label meets a line, a box, another label or the edge of the canvas.
+
 ## packages/web/src/flow-layout.ts
-Pure layout for the web Flow: which way the layers run at a given width, and the connector between two measured boxes. The boxes themselves are laid out by CSS; the drawer measures them and asks `connector` for each arrow.
+Pure layout for the web Flow: which way the layers run at a given width, and the connector between two measured boxes. Back-edge lanes are in flow-back.ts and label placement in flow-labels.ts. The boxes themselves are laid out by CSS; the drawer measures them and asks `connector` for each arrow.
 
 ## packages/web/src/follow.ts
 The follow state of a thread (proposal 008): a reader is either following the end, so what arrives is in view, or holding a place they scrolled to, so what arrives does not move it. One transition, `step`; the thread's drawer only sends events in and reads the state out. The state is kept per thread (by its page-unique id) because a host redraws the tree when a message arrives, and the new element must pick up where the old one was.
