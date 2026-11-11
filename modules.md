@@ -18,7 +18,10 @@ Choice: buttons that send an event. A `once` choice is used up after one answer 
 Label and Stat: a tone drawn as a small tag, and a figure (with its note, the reason in words, under it) whose reading says how sure it is: `≥` before a floor, `~` before an estimate, and a dash with the word "unknown" where no number could be read.
 
 ## crates/intui-egui/src/draw/flow.rs
-Flow: steps as boxes in layers, with arrows between them. The layering comes from `intui-layout` (`analyse`), which also says which links close a loop. Layers run left to right when every one gets room; otherwise the steps stack in one column in layer order. A link an arrow would have to cross boxes for, and every link back, is written in its source box instead, so no arrow ever runs through a step.
+Flow: steps as boxes in layers, with arrows between them. The layering comes from `intui-layout` (`analyse`), which also says which links close a loop. Layers run left to right when every one gets room; otherwise the steps stack in one column in layer order. A link back is an arrow in a lane beside the boxes (below a row, right of a stack) when `plan_back` gives it one, and every label is placed on a free spot at least 8 px from every line. A link an arrow would have to cross boxes for, and a link back with no lane, is written in its source box instead, so no arrow ever runs through a step.
+
+## crates/intui-egui/src/draw/flow/lines.rs
+Flow lines: a line through its corners with each inner corner rounded, as points along it.
 
 ## crates/intui-egui/src/draw/form.rs
 Form: fields the person fills in, checked before anything is sent. A required field left empty, or a number field holding something that isn't a number, sends nothing and says which field and why; a refused submit keeps what the person typed; a sent form shows what it was sent with and can't be sent again.
@@ -94,6 +97,18 @@ Everything `intui-layout` can fail at, each with the words it says and the exit 
 
 ## crates/intui-layout/src/flow_analysis.rs
 Flow layering: which column each step sits in, and which links close a loop.
+
+## crates/intui-layout/src/flow_back.rs
+The back edges of a Flow, ported from `planBack` and `wrapLabel` in `packages/layout` and `packages/web`: which back edges get a lane and which lane, where each meets its box, and how an arrow label breaks into lines. Pure numbers in the drawer's own units.
+
+## crates/intui-layout/src/flow_geometry.rs
+Where the lines and labels of a Flow go, ported from `packages/web/src/{flow-layout,flow-back}.ts`: the curve between two boxes, and the lanes of the back edges with their labels beyond every lane. The forward labels are in `flow_labels`. Pure numbers in the drawer's own units; the text measure is the drawer's.
+
+## crates/intui-layout/src/flow_json.rs
+The `flowDrawings` question of `intui-layout`: a Flow drawn at given box positions, answered as JSON (which back edges get lanes, where their lines and labels go, where the forward labels go), so TypeScript's answer can be compared.
+
+## crates/intui-layout/src/flow_labels.rs
+Where the forward labels of a Flow go, ported from `packages/web/src/flow-labels.ts`: beside their curve, on a free spot found by search, so no label meets a line, a box, another label or the edge of the canvas. Pure numbers in the drawer's own units; the text measure is the drawer's.
 
 ## crates/intui-layout/src/lib.rs
 The data math every IntUI renderer shares, ported from `packages/layout`: chart scales, how a Flow is layered, how typed numbers are read, and the marks a reading wears.
