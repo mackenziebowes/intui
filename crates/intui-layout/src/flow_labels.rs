@@ -2,6 +2,7 @@
 //! spot found by search, so no label meets a line, a box, another label or the edge of the canvas. Pure numbers in the
 //! drawer's own units; the text measure is the drawer's.
 
+use crate::flow_back::wrap_label;
 use crate::flow_geometry::*;
 
 /// A forward label's place: its lines, the rect they fill, and where the first line is drawn from.
