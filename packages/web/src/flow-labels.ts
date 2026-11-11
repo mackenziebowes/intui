@@ -7,6 +7,8 @@ import { LABEL_GAP, LABEL_LINE_H, wrapLabel, type FlowDirection, type Point, typ
 
 export type PlacedLabel = { lines: string[]; rect: Rect; x: number; y: number; anchor: 'start' | 'middle' | 'end' }
 
+/** Clear space between a label and every line, its own connector and the back lanes alike. */
+const LINE_CLEAR = 8
 const hits = (a: Rect, b: Rect, pad = 0) => a.left < b.left + b.width + pad && b.left < a.left + a.width + pad && a.top < b.top + b.height + pad && b.top < a.top + a.height + pad
 const inside = (p: Point, r: Rect, pad = 0) => p.x > r.left - pad && p.x < r.left + r.width + pad && p.y > r.top - pad && p.y < r.top + r.height + pad
 
@@ -37,7 +39,7 @@ export function placeLabels(input: {
   let crowded = 0
   const placed = input.labels.map(label => {
     const free = (rect: Rect) =>
-      rect.left >= 0 && rect.left + rect.width <= width && !boxes.some(b => hits(rect, b, 3)) && !taken.some(t => hits(rect, t, 3)) && !lines.some(p => inside(p, rect, 4))
+      rect.left >= 0 && rect.left + rect.width <= width && !boxes.some(b => hits(rect, b, 3)) && !taken.some(t => hits(rect, t, 3)) && !lines.some(p => inside(p, rect, LINE_CLEAR))
     const widths = [...new Set([input.room, Math.min(input.room, 100), Math.min(input.room, 70)])]
     let first: PlacedLabel | undefined
     for (const t of [0.5, 0.4, 0.6, 0.3, 0.7, 0.2, 0.8, 0.1, 0.9]) {

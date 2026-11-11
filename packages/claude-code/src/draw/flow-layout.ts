@@ -7,7 +7,7 @@ import type { FlowStep } from '@intui/core'
 import { planBack, type Analysis, type BackPlan, type Edge } from '@intui/layout'
 import { backCells, BACK_LABEL_CELLS, layBack, paintBackLabels, type BoxRect } from './flow-back'
 import { canvasOf, drawLines, laySegment, paintBox, paintLabel, put, runsOf, type Run } from './flow-canvas'
-import { boxLines, boxWidth, truncate, wrap, type BoxLine } from './flow-text'
+import { boxLines, boxWidth, truncate, wrapEven, type BoxLine } from './flow-text'
 
 /** Whether the forward edges form one straight line through every step, so it reads as a sequence. */
 export function asSequence(analysis: Analysis, count: number): number[] | undefined {
@@ -181,7 +181,7 @@ export function layoutStack(steps: readonly FlowStep[], analysis: Analysis, orde
     const centre = Math.floor(width / 2)
     const forward = (k: number) => analysis.edges.find(e => e.from === order[k] && e.to === order[k + 1])
     const labelRoom = Math.max(8, width - centre - 3)
-    const gap = order.slice(1).map((_, k) => Math.max(2, forward(k)?.label ? wrap(forward(k)!.label!, labelRoom).length : 0))
+    const gap = order.slice(1).map((_, k) => Math.max(2, forward(k)?.label ? wrapEven(forward(k)!.label!, labelRoom).length : 0))
     const rects: BoxRect[] = new Array(steps.length)
     let row = 0
     order.forEach((i, k) => {
@@ -200,7 +200,7 @@ export function layoutStack(steps: readonly FlowStep[], analysis: Analysis, orde
       const first = rects[order[k]!]!.row + rects[order[k]!]!.height
       for (let g = 0; g < gap[k]!; g++) put(canvas, first + g, centre, g === gap[k]! - 1 ? '↓' : '│', 'arrow')
       const label = forward(k)?.label
-      if (label) wrap(label, labelRoom).forEach((text, g) => labels.push({ row: first + g, col: centre + 2, text }))
+      if (label) wrapEven(label, labelRoom).forEach((text, g) => labels.push({ row: first + g, col: centre + 2, text }))
     })
     for (const label of labels) if (!paintLabel(canvas, label.row, label.col, label.text)) return undefined
     if (!paintBackLabels(canvas, lanes)) return undefined

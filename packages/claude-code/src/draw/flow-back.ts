@@ -4,7 +4,7 @@
  */
 import type { BackPlan, Route } from '@intui/layout'
 import { E, N, paintLabel, S, W, type Canvas } from './flow-canvas'
-import { wrap } from './flow-text'
+import { wrapEven } from './flow-text'
 
 /** Where the back edges of a flow go on a character grid: line cells, arrowheads and labels, and the size they need. */
 export type BackCells = {
@@ -68,7 +68,7 @@ export function backCells(back: BackPlan, rects: readonly BoxRect[], orient: 'ri
   if (!below) {
     let floor = -Infinity
     for (const route of labelled) {
-      const lines = wrap(route.label!, BACK_LABEL_CELLS)
+      const lines = wrapEven(route.label!, BACK_LABEL_CELLS)
       const top = Math.max(Math.round(mid(route)) - Math.floor(lines.length / 2), floor)
       floor = top + lines.length + 1
       lines.forEach((text, k) => out.labels.push({ row: top + k, col: lanesEnd + 2, text }))
@@ -79,7 +79,7 @@ export function backCells(back: BackPlan, rects: readonly BoxRect[], orient: 'ri
   } else {
     const bands: { right: number; height: number }[] = []
     for (const route of labelled) {
-      const lines = wrap(route.label!, BACK_LABEL_CELLS)
+      const lines = wrapEven(route.label!, BACK_LABEL_CELLS)
       const width = Math.max(...lines.map(l => [...l].length))
       const left = Math.max(0, Math.round(mid(route)) - Math.floor(width / 2))
       let b = bands.findIndex(band => band.right + 1 <= left)

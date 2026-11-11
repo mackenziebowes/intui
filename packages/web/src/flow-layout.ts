@@ -69,8 +69,8 @@ export function gutterFor(edges: readonly Edge[], measure: Measure = estimateWid
 /** The width an arrow label may take in a row's gutter. */
 export const labelRoom = (gutter: number) => gutter - LABEL_PAD + 8
 
-/** An arrow label as lines no wider than `width`, broken at spaces; a single word wider than that stays whole. */
-export function wrapLabel(label: string, width: number, measure: Measure = estimateWidth): string[] {
+/** The greedy break of a label at `width`, a single word wider than that staying whole. */
+function breakLabel(label: string, width: number, measure: Measure): string[] {
   const lines: string[] = []
   for (const word of label.split(/\s+/).filter(Boolean)) {
     const last = lines[lines.length - 1]
@@ -78,6 +78,24 @@ export function wrapLabel(label: string, width: number, measure: Measure = estim
     else lines.push(word)
   }
   return lines.length > 0 ? lines : [label]
+}
+
+/**
+ * An arrow label as lines no wider than `width`, broken at spaces and then narrowed until the
+ * same number of lines are as even as they can be, so the last line is never a lone word.
+ * A single word wider than `width` stays whole.
+ */
+export function wrapLabel(label: string, width: number, measure: Measure = estimateWidth): string[] {
+  const lines = breakLabel(label, width, measure)
+  if (lines.length < 2) return lines
+  let [lo, hi, best] = [0, width, lines]
+  while (hi - lo > 1) {
+    const mid = Math.floor((lo + hi) / 2)
+    const trial = breakLabel(label, mid, measure)
+    if (trial.length === lines.length) [hi, best] = [mid, trial]
+    else lo = mid
+  }
+  return best
 }
 
 /**

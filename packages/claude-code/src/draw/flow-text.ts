@@ -36,6 +36,18 @@ export function wrap(text: string, width: number): string[] {
   return lines.length ? lines : ['']
 }
 
+/** A label wrapped at `width` cells, then narrowed so its lines are even and the last is never a lone word. */
+export function wrapEven(text: string, width: number): string[] {
+  const lines = wrap(text, width)
+  if (lines.length < 2) return lines
+  for (let w = Math.max(...lines.map(l => [...l].length)) - 1; w >= 1; w--) {
+    const trial = wrap(text, w)
+    if (trial.length !== lines.length) break
+    lines.splice(0, lines.length, ...trial)
+  }
+  return lines
+}
+
 export type LineKind = 'title' | 'detail' | 'note'
 export type BoxLine = { text: string; kind: LineKind }
 
