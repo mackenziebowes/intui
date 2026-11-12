@@ -138,11 +138,21 @@ pub fn back_geometry(back: &BackPlan, boxes: &[Rect], row: bool, measure: &dyn F
     let along = |b: &Rect| if row { (b.left, b.width) } else { (b.top, b.height) };
     let across = |b: &Rect| if row { (b.top, b.height) } else { (b.left, b.width) };
     let step = |i: StepIndex| &boxes[i.get()];
-    let base = back.routes.iter().flat_map(|r| [r.from, r.to]).map(|i| across(step(i)).0 + across(step(i)).1).fold(f64::NEG_INFINITY, f64::max) + LANE_BASE;
-    let lane_at = |route: &Route| base + route.lane as f64 * LANE_PITCH;
     let point = |a: f64, c: f64| if row { Point { x: a, y: c } } else { Point { x: c, y: a } };
     let slot_at = |i: StepIndex, slot: BackSlot| along(step(i)).0 + along(step(i)).1 * (slot.index as f64 + 1.0) / (slot.of as f64 + 1.0);
     let edge_at = |i: StepIndex| across(step(i)).0 + across(step(i)).1;
+    // Lanes clear every box a route runs past, not only its two ends: a layer between them can be taller than both.
+    let span_end = |route: &Route| {
+        let (a0, a1) = (slot_at(route.from, route.from_slot), slot_at(route.to, route.to_slot));
+        let (lo, hi) = (a0.min(a1), a0.max(a1));
+        boxes
+            .iter()
+            .filter(|b| along(b).0 < hi && along(b).0 + along(b).1 > lo)
+            .map(|b| across(b).0 + across(b).1)
+            .fold(edge_at(route.from).max(edge_at(route.to)), f64::max)
+    };
+    let base = back.routes.iter().map(span_end).fold(f64::NEG_INFINITY, f64::max) + LANE_BASE;
+    let lane_at = |route: &Route| base + route.lane as f64 * LANE_PITCH;
     let lanes_end = base + (back.lanes as f64 - 1.0) * LANE_PITCH;
 
     struct Placed<'a> {

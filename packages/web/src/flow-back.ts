@@ -82,11 +82,18 @@ export function backGeometry(
   // Along the flow is x in a row and y otherwise; across it is the other way round.
   const along = (b: Box) => (horizontal ? { start: b.left, size: b.width } : { start: b.top, size: b.height })
   const across = (b: Box) => (horizontal ? { start: b.top, size: b.height } : { start: b.left, size: b.width })
-  const base = Math.max(...back.routes.flatMap(r => [r.from, r.to]).map(i => across(boxes[i]!).start + across(boxes[i]!).size)) + LANE_BASE
   const laneAt = (route: Route) => base + route.lane * LANE_PITCH
   const point = (a: number, c: number) => (horizontal ? { x: a, y: c } : { x: c, y: a })
   const slotAt = (i: number, slot: Route['fromSlot']) => along(boxes[i]!).start + (along(boxes[i]!).size * (slot.index + 1)) / (slot.of + 1)
   const edgeAt = (i: number) => across(boxes[i]!).start + across(boxes[i]!).size
+  // Lanes clear every box a route runs past, not only its two ends: a layer between them can be taller than both.
+  const spanEnd = (route: Route) => {
+    const [a0, a1] = [slotAt(route.from, route.fromSlot), slotAt(route.to, route.toSlot)]
+    const [lo, hi] = [Math.min(a0, a1), Math.max(a0, a1)]
+    const under = boxes.filter(b => along(b).start < hi && along(b).start + along(b).size > lo)
+    return Math.max(edgeAt(route.from), edgeAt(route.to), ...under.map(b => across(b).start + across(b).size))
+  }
+  const base = Math.max(...back.routes.map(spanEnd)) + LANE_BASE
   const lanesEnd = base + (back.lanes - 1) * LANE_PITCH
 
   const placed = back.routes.map(route => {

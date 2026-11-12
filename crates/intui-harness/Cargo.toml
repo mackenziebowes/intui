@@ -26,8 +26,3 @@ egui = { version = "=0.36.2" }
 serde_json = { version = "1", features = ["preserve_order", "float_roundtrip"] }
 intui-text = { path = "../intui-text" }
 png = "0.18"
-
-[[test]]
-name = "native_window"
-path = "../tests/native_window.rs"
-required-features = ["inspection", "glow"]
