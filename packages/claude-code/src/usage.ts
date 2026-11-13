@@ -35,6 +35,16 @@ export type UsageEntry = {
 /** The person typed their own reply while a Choice or Form was still waiting. Shape only. */
 export type EscapeEntry = { at: string; session: string }
 
+/** A node drawn as text though a drawer exists (too narrow, or the surface can't). `key` is row, path and type, so a redraw counts once. Shape only. */
+export type FallbackEntry = { key: string; at: string; session: string; type: string }
+
+/** Adds the fallbacks of one draw that are not already recorded, keeping the newest MAX_ENTRIES. */
+export function fallbacksRecorded(log: readonly FallbackEntry[], seen: readonly FallbackEntry[]): FallbackEntry[] {
+  const known = new Set(log.map(entry => entry.key))
+  const fresh = seen.filter((entry, i) => !known.has(entry.key) && seen.findIndex(x => x.key === entry.key) === i)
+  return fresh.length ? [...log, ...fresh].slice(-MAX_ENTRIES) : [...log]
+}
+
 /** Unanswered interactive components from each session's latest `show`. */
 export type Pending = Record<string, number>
 
@@ -132,6 +142,8 @@ export function retryPairs(log: readonly UsageEntry[]): { recovered: Set<number>
 
 export type SummaryInput = {
   escapes?: readonly EscapeEntry[]
+  /** Nodes drawn as text because of the width or the surface, seen at draw time. */
+  drawnAsText?: readonly FallbackEntry[]
   /** Session starts per UTC day. */
   starts?: Record<string, number>
   /** Estimated tokens the pinned tool adds to every session. */
@@ -147,6 +159,7 @@ export function summary(all: readonly UsageEntry[], input: SummaryInput = {}): s
   if (log.length === 0) return 'No `show` calls recorded yet.'
   const now = input.now ?? new Date()
   const escapes = input.escapes ?? []
+  const drawnAsText = input.drawnAsText ?? []
   const starts = input.starts ?? {}
   const { recovered, abandoned } = retryPairs(log)
   const shown = log.filter(entry => entry.outcome === 'shown')
@@ -165,7 +178,7 @@ export function summary(all: readonly UsageEntry[], input: SummaryInput = {}): s
       ok: ok.length,
       retried,
       escapes: escapes.filter(escape => dayOf(escape.at) === day).length,
-      fallbacks: sum(ok.map(entry => entry.fallbacks ?? 0)),
+      fallbacks: sum(ok.map(entry => entry.fallbacks ?? 0)) + drawnAsText.filter(f => dayOf(f.at) === day).length,
     }
   })
 
@@ -188,7 +201,7 @@ export function summary(all: readonly UsageEntry[], input: SummaryInput = {}): s
     `| Refused | ${refused} (${percent(refused, log.length)}) |`,
     `| Retries per success | ${ratio(recovered.size, shown.length)} (${abandoned} refused with no later success) |`,
     `| Escape rate | ${escapes.length} typed over ${interactiveShows} shows with a Choice or Form (${interactiveShows ? percent(escapes.length, interactiveShows) : '-'}) |`,
-    `| Fallbacks | ${sum(shown.map(entry => entry.fallbacks ?? 0))} nodes drawn as text because no drawer exists (width-based fallbacks are not observable) |`,
+    `| Fallbacks | ${sum(shown.map(entry => entry.fallbacks ?? 0))} nodes had no drawer, and ${drawnAsText.length} were drawn as text for width or surface${drawnAsText.length ? ` (${[...new Set(drawnAsText.map(f => f.type))].join(', ')})` : ''} |`,
     `| Pinned tool cost | ${input.toolTokens === undefined ? 'unknown' : `about ${input.toolTokens} tokens per session (estimate, ~4 characters per token)`} |`,
     `| Show calls per session | ${startCount ? (log.length / startCount).toFixed(2) : '-'} over ${startCount} recorded session starts |`,
   ]

@@ -16,8 +16,9 @@ export type ChartModel = {
   /**
    * `values` is the number at each x, undefined where there is none: no point, or an
    * unknown one. `kinds` says why, and how sure the rest are: undefined is no point.
+   * `partial` is true where the point's period isn't over (so far; proposal 006).
    */
-  series: { label: string; role: SeriesRole; values: (number | undefined)[]; kinds: (ReadingKind | undefined)[] }[]
+  series: { label: string; role: SeriesRole; values: (number | undefined)[]; kinds: (ReadingKind | undefined)[]; partial: boolean[] }[]
   domain: Domain
   /** Numbered markers; `index` is the category they sit on, absent when no x matches. */
   /** False when no point has a number (all unknown or missing): there is no range to draw an axis for. */
@@ -126,6 +127,7 @@ export function buildModel(props: ChartProps): ChartModel {
       return y === undefined || y.kind === 'unknown' ? undefined : y.value
     }),
     kinds: xs.map(x => s.points.find(point => point.x === x)?.y.kind),
+    partial: xs.map(x => s.points.find(point => point.x === x)?.period === 'partial'),
   }))
   const all = series.flatMap(s => s.values).filter((v): v is number => v !== undefined)
   const markers = props.annotations.map((a, i) => {

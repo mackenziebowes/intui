@@ -33,9 +33,16 @@ pub struct ModelSeries {
     pub role: ChartSeriesRole,
     /// What the series says at each x; `None` where it has no point there.
     pub readings: Vec<Option<Reading>>,
+    /// Whether the point at each x is a period that isn't over (so far; proposal 006).
+    pub partial: Vec<bool>,
 }
 
 impl ModelSeries {
+    /// Whether the point at the x in place `index` is a period that isn't over.
+    pub fn is_partial(&self, index: usize) -> bool {
+        self.partial.get(index).copied().unwrap_or(false)
+    }
+
     /// The number at the x in place `index`; `None` where there is no point or an unknown one.
     pub fn value_at(&self, index: usize) -> Option<f64> {
         self.readings.get(index).copied().flatten().and_then(Reading::value)
@@ -273,6 +280,7 @@ pub fn build_model(chart: &forms::Chart) -> ChartModel {
             label: s.label.clone(),
             role: s.role,
             readings: xs.iter().map(|x| s.points.iter().find(|point| Category::from(&point.x) == *x).map(|point| point.y)).collect(),
+            partial: xs.iter().map(|x| s.points.iter().find(|point| Category::from(&point.x) == *x).is_some_and(|point| matches!(point.period, forms::ChartPointPeriod::Partial))).collect(),
         })
         .collect();
     let all: Vec<f64> = series.iter().flat_map(ModelSeries::values).collect();

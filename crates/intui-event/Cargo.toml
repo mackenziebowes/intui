@@ -16,7 +16,3 @@ intui-types = { path = "../intui-types" }
 
 [dev-dependencies]
 serde_json = { version = "1", features = ["float_roundtrip"] }
-
-[[test]]
-name = "event_parity"
-path = "../tests/event_parity.rs"

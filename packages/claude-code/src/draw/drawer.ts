@@ -22,6 +22,11 @@ export type DrawContext = {
   child: (node: Node, columns?: number) => RenderElement
   /** The node's Markdown text form: every drawer's fallback. */
   text: (node: Node) => string
+  /**
+   * Says this node was drawn as its text form though the surface has a drawer for it (too narrow, or the
+   * surface can't do it). Only collects: the plugin writes the count after drawing, never while drawing.
+   */
+  fellBack: (node: Node) => void
   /** A stable key for an element, unique within the row. */
   key: (...parts: string[]) => string
   /** A Choice or Form's state in core's control machine (hub #1956). */

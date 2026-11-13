@@ -1,16 +1,18 @@
 //! Chart: a line or bar plot drawn on egui's painter at the width it is given. Every position comes from
 //! `intui-layout` (the scale, the axis numbers, which x labels fit, the marker glyphs); this file only turns them into
-//! shapes. A point that is a floor wears a small chevron above it, an estimate is hollow or faded, an unknown one is a
+//! shapes. A point that is a floor wears a small chevron above it, an estimate is hollow or faded, a period that isn't over is hollow with a dashed last segment, an unknown one is a
 //! cross at the foot of its x, and a gap in the data breaks a line. A chart with no number to plot says so.
 
 use crate::scene::{galley, Scene};
 use crate::style::{Dash, FrameRole, SeriesRole, StrokeLook, TextLook, TextRole};
 use crate::words;
 use egui::{Align2, Color32, Pos2, Rect, Sense, Shape, Stroke, Ui, Vec2, WidgetType};
-use intui_layout::{build_model, format_value, marker_glyph, nice_step, place_labels, project, with_unit, Category, ChartModel, Domain, MarkerSite, ModelSeries, Scale};
+use intui_layout::{build_model, format_value, marker_glyph, nice_step, place_labels, project, with_unit, Category, ChartModel, Domain, MarkerSite, Scale};
 use intui_text::numbers::js_to_string;
 use intui_types::forms::{Chart, ChartKind, ChartSeriesRole};
 use intui_types::{Drawn, ReadingKind};
+
+mod series;
 
 const AXIS_GAP: f32 = 10.0;
 
@@ -164,14 +166,14 @@ fn plot(scene: &Scene, ui: &mut Ui, model: &ChartModel) {
 
     let surface = ui.visuals().panel_fill;
     match model.kind {
-        ChartKind::Bar => draw_bars(scene, ui, model, &geometry),
-        ChartKind::Line => draw_lines(scene, ui, model, &geometry, surface),
+        ChartKind::Bar => series::draw_bars(scene, ui, model, &geometry),
+        ChartKind::Line => series::draw_lines(scene, ui, model, &geometry, surface),
     }
     let painter = ui.painter();
     for (series_index, series) in model.series.iter().enumerate() {
         for index in 0..model.xs.len() {
             if series.kind_at(index) == Some(ReadingKind::Unknown) {
-                let x = if geometry.bar { bar_x(&geometry, model, series_index, index) } else { geometry.x_at(index) };
+                let x = if geometry.bar { series::bar_x(&geometry, model, series_index, index) } else { geometry.x_at(index) };
                 let (y0, y1) = (rect.top() + bottom - 8.0, rect.top() + bottom - 2.0);
                 let cross = Stroke::new(1.5, axis.color);
                 painter.line_segment([Pos2::new(x - 4.0, y0), Pos2::new(x + 4.0, y1)], cross);
@@ -195,95 +197,6 @@ fn chart_unit(model: &ChartModel) -> Option<&str> {
     model.unit.as_deref()
 }
 
-fn bar_layout(geometry: &Geometry, model: &ChartModel) -> (f32, f32, f32) {
-    let slot = (geometry.right - geometry.left) / geometry.count as f32;
-    let count = model.series.len() as f32;
-    let group = slot * 0.72;
-    let gap = if group / count > 8.0 { 2.0 } else { 0.0 };
-    let bar_width = (group / count - gap).max(1.0);
-    (group, gap, bar_width)
-}
-
-fn bar_x(geometry: &Geometry, model: &ChartModel, series: usize, index: usize) -> f32 {
-    let (group, gap, bar_width) = bar_layout(geometry, model);
-    geometry.x_at(index) - group / 2.0 + series as f32 * (bar_width + gap) + bar_width / 2.0
-}
-
-fn draw_bars(scene: &Scene, ui: &Ui, model: &ChartModel, geometry: &Geometry) {
-    let (group, gap, bar_width) = bar_layout(geometry, model);
-    let base = geometry.y_at(geometry.domain.lo.max(0.0_f64.min(geometry.domain.hi)));
-    for (series_index, series) in model.series.iter().enumerate() {
-        let look = scene.series(series_role(series.role));
-        let baseline = matches!(series.role, ChartSeriesRole::Baseline);
-        for index in 0..model.xs.len() {
-            let (Some(value), Some(kind)) = (series.value_at(index), series.kind_at(index)) else { continue };
-            let x = geometry.x_at(index) - group / 2.0 + series_index as f32 * (bar_width + gap) + gap / 2.0;
-            let y = geometry.y_at(value);
-            let rect = Rect::from_min_max(Pos2::new(x, y.min(base)), Pos2::new(x + bar_width, y.max(base).max(y.min(base) + 1.0)));
-            let faint = matches!(kind, ReadingKind::Estimate) || baseline;
-            let fill = if faint { faded(look.color, 0.4) } else { look.color };
-            let stroke = if faint { Stroke::new(1.0, look.color) } else { Stroke::NONE };
-            ui.painter().rect(rect, crate::scene::rounding((bar_width / 4.0).min(2.0)), fill, stroke, egui::StrokeKind::Inside);
-            if matches!(kind, ReadingKind::AtLeast) {
-                chevron(ui, Pos2::new(rect.center().x, rect.top()), look.color);
-            }
-        }
-    }
-}
-
-fn chevron(ui: &Ui, at: Pos2, color: Color32) {
-    let stroke = Stroke::new(1.5, color);
-    ui.painter().add(Shape::line(vec![Pos2::new(at.x - 4.0, at.y - 6.0), Pos2::new(at.x, at.y - 10.0), Pos2::new(at.x + 4.0, at.y - 6.0)], stroke));
-}
-
-fn draw_lines(scene: &Scene, ui: &Ui, model: &ChartModel, geometry: &Geometry, surface: Color32) {
-    for series in &model.series {
-        let look = scene.series(series_role(series.role));
-        let primary = matches!(series.role, ChartSeriesRole::Primary);
-        let hollow_all = matches!(series.role, ChartSeriesRole::Baseline);
-        let radius = if primary { 3.5 } else { 2.5 };
-        for run in runs(series, geometry) {
-            if run.len() > 1 {
-                stroke_line(ui, run.iter().map(|point| point.at).collect(), &look);
-            }
-            if model.xs.len() <= 24 || run.len() == 1 {
-                for point in &run {
-                    let hollow = hollow_all || matches!(point.kind, ReadingKind::Estimate);
-                    if hollow {
-                        ui.painter().circle(point.at, radius, surface, Stroke::new(1.5, look.color));
-                    } else {
-                        ui.painter().circle_filled(point.at, radius, look.color);
-                    }
-                    if matches!(point.kind, ReadingKind::AtLeast) {
-                        chevron(ui, Pos2::new(point.at.x, point.at.y - radius + 4.0), look.color);
-                    }
-                }
-            }
-        }
-    }
-}
-
-struct Plotted {
-    at: Pos2,
-    kind: ReadingKind,
-}
-
-/// Consecutive points with a number; a missing or unknown point ends a run.
-fn runs(series: &ModelSeries, geometry: &Geometry) -> Vec<Vec<Plotted>> {
-    let mut runs: Vec<Vec<Plotted>> = vec![Vec::new()];
-    for index in 0..geometry.count {
-        match (series.value_at(index), series.kind_at(index)) {
-            (Some(value), Some(kind)) => runs.last_mut().expect("runs is never empty").push(Plotted { at: Pos2::new(geometry.x_at(index), geometry.y_at(value)), kind }),
-            _ => {
-                if runs.last().is_some_and(|run| !run.is_empty()) {
-                    runs.push(Vec::new());
-                }
-            }
-        }
-    }
-    runs.retain(|run| !run.is_empty());
-    runs
-}
 
 /// Under the pointer, the readings at the nearest x, said with their certainty.
 fn hover(scene: &Scene, response: &egui::Response, model: &ChartModel, geometry: &Geometry, unit: Option<&str>) {
