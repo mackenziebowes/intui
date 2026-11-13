@@ -16,6 +16,7 @@ import { estimatedToolTokens, SHOW_TOOL } from './tool'
 import {
   appended,
   codeEntry,
+  fallbacksRecorded,
   pendingAfterAnswer,
   pendingAfterPrompt,
   pendingAfterShow,
@@ -24,12 +25,14 @@ import {
   startCounted,
   summary,
   type EscapeEntry,
+  type FallbackEntry,
   type Pending,
   type UsageEntry,
 } from './usage'
 
 const LOG = 'usage'
 const ESCAPES = 'escapes'
+const FALLBACKS = 'fallbacks'
 const STARTS = 'starts'
 const PENDING = 'pending'
 
@@ -64,7 +67,10 @@ async function drawForRow($: EngineInterface, e: RenderInput<'ToolUse' | 'ToolRe
     if (!step.ignored) await update($, controls, all => ({ ...all, [at(controlId)]: step.state }))
     return step
   }
-  return drawTree(tree, {
+  // Collected while drawing, written once drawing is done.
+  const fellBack: FallbackEntry[] = []
+  const session = await $.session.id()
+  const drawn = drawTree(tree, {
     surface: e.surface,
     el: $.ui.resolve(e),
     columns: e.viewport?.columns ?? 80,
@@ -87,6 +93,7 @@ async function drawForRow($: EngineInterface, e: RenderInput<'ToolUse' | 'ToolRe
     setField: async (formId, fieldId, value) => {
       await update($, forms, all => ({ ...all, [at(formId)]: { ...all[at(formId)], [fieldId]: value } }))
     },
+    fellBack: (path, type) => fellBack.push({ key: `${source}:${path}:${type}`, at: new Date().toISOString(), session, type }),
     note: id => notesNow[at(id)],
     setNote: async (id, text) => {
       await update($, notes, all => {
@@ -95,6 +102,8 @@ async function drawForRow($: EngineInterface, e: RenderInput<'ToolUse' | 'ToolRe
       })
     },
   })
+  if (fellBack.length) await $.store.set(FALLBACKS, fallbacksRecorded(((await $.store.get(FALLBACKS)) ?? []) as FallbackEntry[], fellBack))
+  return drawn
 }
 
 export const register: Register = on => {
@@ -122,6 +131,7 @@ export const register: Register = on => {
   on('command.run', { command: 'intui' }, async $ => ({
     text: summary(((await $.store.get(LOG)) ?? []) as UsageEntry[], {
       escapes: ((await $.store.get(ESCAPES)) ?? []) as EscapeEntry[],
+      drawnAsText: ((await $.store.get(FALLBACKS)) ?? []) as FallbackEntry[],
       starts: ((await $.store.get(STARTS)) ?? {}) as Record<string, number>,
       toolTokens: estimatedToolTokens(),
     }),
