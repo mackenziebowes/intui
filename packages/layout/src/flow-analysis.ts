@@ -82,3 +82,109 @@ export function analyse(steps: readonly FlowStep[], links: readonly FlowLink[]):
   })
   return { edges: forward, back, layers, layerOf }
 }
+
+/** Where a route meets a box's side: the `index`th of `of` places along that side, so routes never share a point. */
+export type Slot = { index: number; of: number }
+
+/** A back edge drawn as an arrow in a lane. */
+export type Route = {
+  from: number
+  to: number
+  label?: string
+  /** 0 is the lane nearest the boxes. */
+  lane: number
+  fromSlot: Slot
+  toSlot: Slot
+}
+
+export type BackPlan = {
+  /** Back edges drawn as arrows. */
+  routes: Route[]
+  /** Back edges that did not get a lane (not at the edge of their layer, or no room); the drawer writes them as `↩` text. */
+  noted: Edge[]
+  /** Lanes used. */
+  lanes: number
+  /** Pairs of routes whose spans partly overlap, so their lines must cross once. Reported, never hidden. */
+  crossings: number
+}
+
+/** What the drawer can spare for lanes, in its own units (pixels or cells). */
+export type BackRoom = {
+  /** Distance between lanes. */
+  lanePitch: number
+  /** Width a label beside the lanes needs. */
+  labelRoom: number
+  /** Space beyond the boxes that lanes and labels may use. */
+  available: number
+  /** Most lanes drawn; routes past it fall back to notes. */
+  maxLanes?: number
+  /** `layers`: a route needs both ends last in their layer, and its span is in layers. `flat`: every step is its own line, and its span is in lines. */
+  order?: 'layers' | 'flat'
+}
+
+/**
+ * Decides which back edges are drawn as arrows and in which lane. Spans are laid out by interval
+ * colouring, shortest first, so a nested loop sits inside the loop around it. A route that
+ * interleaves another crosses it once; that is counted. Where routes meet a box they take
+ * separate places along its side, ordered so that nested routes do not cross there.
+ */
+export function planBack(analysis: Analysis, room: BackRoom): BackPlan {
+  const flat = room.order === 'flat'
+  const position = new Map(analysis.layers.flat().map((step, k) => [step, k]))
+  const lastInLayer = new Set(analysis.layers.map(layer => layer[layer.length - 1]!))
+  const at = (step: number) => (flat ? position.get(step)! : analysis.layerOf[step]!)
+  const eligible = (edge: Edge) => edge.from !== edge.to && (flat || (lastInLayer.has(edge.from) && lastInLayer.has(edge.to)))
+  const noted: Edge[] = analysis.back.filter(edge => !eligible(edge))
+  const span = (edge: Edge) => [Math.min(at(edge.from), at(edge.to)), Math.max(at(edge.from), at(edge.to))] as const
+  const candidates = analysis.back
+    .filter(eligible)
+    .sort((a, b) => span(a)[1] - span(a)[0] - (span(b)[1] - span(b)[0]) || span(a)[0] - span(b)[0] || a.from - b.from)
+  const laneOf = new Map<Edge, number>()
+  for (const edge of candidates) {
+    const taken = new Set(candidates.filter(o => laneOf.has(o) && overlaps(span(o), span(edge))).map(o => laneOf.get(o)!))
+    let lane = 0
+    while (taken.has(lane)) lane++
+    laneOf.set(edge, lane)
+  }
+  // Lanes cost room; the outermost go first when there is not enough.
+  const allowed = Math.min(room.maxLanes ?? Infinity, Math.floor((room.available - room.labelRoom) / room.lanePitch))
+  const kept = candidates.filter(edge => {
+    const ok = laneOf.get(edge)! < allowed
+    if (!ok) noted.push(edge)
+    return ok
+  })
+  noted.sort((a, b) => analysis.back.indexOf(a) - analysis.back.indexOf(b))
+
+  // Places along each box's side: routes arriving first (outer lane on top), then routes leaving (inner lane first).
+  const routes: Route[] = kept.map(edge => ({
+    from: edge.from,
+    to: edge.to,
+    ...(edge.label ? { label: edge.label } : {}),
+    lane: laneOf.get(edge)!,
+    fromSlot: { index: 0, of: 1 },
+    toSlot: { index: 0, of: 1 },
+  }))
+  const touching = (step: number) => ({
+    arriving: routes.filter(r => r.to === step).sort((a, b) => b.lane - a.lane),
+    leaving: routes.filter(r => r.from === step).sort((a, b) => a.lane - b.lane),
+  })
+  const steps = new Set(routes.flatMap(r => [r.from, r.to]))
+  for (const step of steps) {
+    const { arriving, leaving } = touching(step)
+    const of = arriving.length + leaving.length
+    arriving.forEach((r, k) => (r.toSlot = { index: k, of }))
+    leaving.forEach((r, k) => (r.fromSlot = { index: arriving.length + k, of }))
+  }
+  let crossings = 0
+  for (let i = 0; i < routes.length; i++)
+    for (let j = i + 1; j < routes.length; j++) {
+      const [a, b] = [spanOf(routes[i]!, at), spanOf(routes[j]!, at)]
+      if (overlaps(a, b) && !(within(a, b) || within(b, a))) crossings++
+    }
+  return { routes, noted, lanes: routes.reduce((n, r) => Math.max(n, r.lane + 1), 0), crossings }
+}
+
+type Span = readonly [number, number]
+const spanOf = (r: { from: number; to: number }, at: (step: number) => number): Span => [Math.min(at(r.from), at(r.to)), Math.max(at(r.from), at(r.to))]
+const overlaps = (a: Span, b: Span) => a[0] <= b[1] && b[0] <= a[1]
+const within = (inner: Span, outer: Span) => inner[0] >= outer[0] && inner[1] <= outer[1]

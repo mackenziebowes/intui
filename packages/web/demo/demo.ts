@@ -14,13 +14,33 @@ const extras: { title: string; note: string; root: Node }[] = [
   threadCase,
   areasCase,
   {
+    title: 'A state machine with two loops',
+    note: 'The talk machine from #3919: two links go back (Wrapping up to In a talk, Reported to Waiting). Each is an arrow in its own lane, nested, with its label clear of the lines.',
+    root: {
+      type: 'Flow',
+      steps: [
+        { id: "wait", label: "Waiting for the wake word", detail: "The microphone is open and nothing is kept. A small always-on listener hears only for \"Juniper\"; the model is loaded and idle." },
+        { id: "talk", label: "In a talk", detail: "The microphone streams to the model, which hears and answers in its own audio. He can think aloud, change his mind and speak over it; it stops when he speaks. Nothing goes to any agent yet." },
+        { id: "wrap", label: "Wrapping up", detail: "He says he is done, or 45 seconds pass in silence. The desk says in one breath what it will tell each lead. He can correct it." },
+        { id: "rep", label: "Reported", detail: "One Report per lead goes out, with the outcome in the desk's words and his exact words where they matter. The desk goes back to waiting." },
+      ],
+      links: [
+        { from: "wait", to: "talk", label: "\"Juniper\", or it speaks first" },
+        { from: "talk", to: "wrap", label: "\"that's all\", or silence" },
+        { from: "wrap", to: "rep", label: "he agrees, or 10 seconds pass" },
+        { from: "wrap", to: "talk", label: "he corrects it" },
+        { from: "rep", to: "wait" },
+      ],
+    } as Node,
+  },
+  {
     title: 'Every tone inside every box',
     note: 'A Group boxed as apart, said or waiting (proposal 007). The waiting box is the dark one: each tone must keep its contrast there.',
     root: {"type": "Group", "direction": "column", "children": [{"type": "Group", "direction": "column", "children": [{"type": "Text", "markdown": "**No box**: a line of words, then one label for each tone."}, {"type": "Group", "direction": "row", "children": [{"type": "Label", "text": "neutral", "tone": "neutral"}, {"type": "Label", "text": "positive", "tone": "positive"}, {"type": "Label", "text": "warning", "tone": "warning"}, {"type": "Label", "text": "critical", "tone": "critical"}, {"type": "Label", "text": "muted", "tone": "muted"}]}, {"type": "Stat", "label": "Idle CPU", "value": 0.4, "unit": "%", "tone": "positive", "note": "steady"}]}, {"type": "Group", "direction": "column", "children": [{"type": "Text", "markdown": "**apart**: a line of words, then one label for each tone."}, {"type": "Group", "direction": "row", "children": [{"type": "Label", "text": "neutral", "tone": "neutral"}, {"type": "Label", "text": "positive", "tone": "positive"}, {"type": "Label", "text": "warning", "tone": "warning"}, {"type": "Label", "text": "critical", "tone": "critical"}, {"type": "Label", "text": "muted", "tone": "muted"}]}, {"type": "Stat", "label": "Idle CPU", "value": 0.4, "unit": "%", "tone": "positive", "note": "steady"}], "box": "apart"}, {"type": "Group", "direction": "column", "children": [{"type": "Text", "markdown": "**said**: a line of words, then one label for each tone."}, {"type": "Group", "direction": "row", "children": [{"type": "Label", "text": "neutral", "tone": "neutral"}, {"type": "Label", "text": "positive", "tone": "positive"}, {"type": "Label", "text": "warning", "tone": "warning"}, {"type": "Label", "text": "critical", "tone": "critical"}, {"type": "Label", "text": "muted", "tone": "muted"}]}, {"type": "Stat", "label": "Idle CPU", "value": 0.4, "unit": "%", "tone": "positive", "note": "steady"}], "box": "said"}, {"type": "Group", "direction": "column", "children": [{"type": "Text", "markdown": "**waiting**: a line of words, then one label for each tone."}, {"type": "Group", "direction": "row", "children": [{"type": "Label", "text": "neutral", "tone": "neutral"}, {"type": "Label", "text": "positive", "tone": "positive"}, {"type": "Label", "text": "warning", "tone": "warning"}, {"type": "Label", "text": "critical", "tone": "critical"}, {"type": "Label", "text": "muted", "tone": "muted"}]}, {"type": "Stat", "label": "Idle CPU", "value": 0.4, "unit": "%", "tone": "positive", "note": "steady"}], "box": "waiting"}]} as Node,
   },
   {
     title: 'A branching Flow with labels and a loop',
-    note: 'Layers side by side when they fit, stacked when a layer still fits across, else a list where links that skip a neighbour are written in the box. The loop back is always written, not drawn.',
+    note: 'Layers side by side when they fit, stacked when a layer still fits across, else a list where links that skip a neighbour are written in the box. The loop back from Fix pass is written, not drawn: a lane is for a step at the edge of its layer, and Fix pass is not.',
     root: {
       type: 'Flow',
       steps: [

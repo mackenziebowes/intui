@@ -1,6 +1,6 @@
 /**
  * Draws a ChartModel in character cells for the terminal: braille lines, block-character
- * bars, an x axis, a legend, and the readings that are floors, estimates or unknown.
+ * bars, an x axis, a legend, and the readings that are floors, estimates, unknown or so far.
  * Returns styled runs of text, never elements, and breaks a line at a missing value rather
  * than drawing across it.
  */
@@ -80,6 +80,7 @@ export function plotLine(model: ChartModel, width: number, height = PLOT_ROWS): 
       }
       runs[runs.length - 1]!.push([dotX(i), dotY(v)] as const)
     })
+    const partialX = new Set(series.partial.flatMap((p, i) => (p ? [dotX(i)] : [])))
     let step = 0
     const mark = (x: number, y: number) => {
       if (series.role === 'baseline' && step++ % 8 >= 5) return
@@ -90,7 +91,11 @@ export function plotLine(model: ChartModel, width: number, height = PLOT_ROWS): 
     }
     for (const points of runs) {
       if (points.length === 1) mark(...points[0]!)
-      points.slice(1).forEach(([x, y], i) => lineDots(...points[i]!, x, y).forEach(([px, py]) => mark(px, py)))
+      points.slice(1).forEach(([x, y], i) => {
+        // The segment into a period that isn't over is dotted, not solid.
+        const dots = lineDots(...points[i]!, x, y)
+        dots.forEach(([px, py], d) => (partialX.has(x) && d % 2 === 1 ? undefined : mark(px, py)))
+      })
     }
   }
   const style = (p: number): Style => (p === 3 ? 'primary' : p === 2 ? 'comparison' : 'baseline')
@@ -122,7 +127,8 @@ export function plotBars(model: ChartModel, width: number, height = PLOT_ROWS): 
         const fill = Math.max(0, Math.min(8, levels - (height - 1 - r) * 8))
         if (fill === 0) continue
         for (let k = 0; k < layout.bar; k++) {
-          cells[r]![i * layout.slot + layout.offset + s * layout.bar + k] = { ch: BARS[fill]!, style: series.role }
+          // A bar for a period that isn't over is shaded, not solid.
+          cells[r]![i * layout.slot + layout.offset + s * layout.bar + k] = { ch: series.partial[i] ? '▒' : BARS[fill]!, style: series.role }
         }
       }
     })
@@ -215,7 +221,7 @@ export function markerRows(model: ChartModel): Row[] {
 }
 
 /**
- * What the plot can't show: points that are at least, about or unknown, listed by series and x.
+ * What the plot can't show: points that are at least, about, unknown or so far, listed by series and x.
  * A braille dot or a block can't wear a mark, so the words go under the chart.
  */
 export function readingRows(model: ChartModel): Row[] {
@@ -224,8 +230,10 @@ export function readingRows(model: ChartModel): Row[] {
     ['estimate', '~ about'],
     ['unknown', '— unknown (the line breaks)'],
   ]
-  return lines.flatMap(([kind, head]) => {
+  const rows = lines.flatMap(([kind, head]) => {
     const where = model.series.flatMap(s => s.kinds.flatMap((k, i) => (k === kind ? [`${s.label} ${model.xs[i]}`] : [])))
     return where.length === 0 ? [] : [[{ text: `${head}: ${where.join(', ')}`, style: 'plain' as Style }]]
   })
+  const soFar = model.series.flatMap(s => s.partial.flatMap((p, i) => (p && s.values[i] !== undefined ? [`${s.label} ${model.xs[i]}`] : [])))
+  return soFar.length === 0 ? rows : [...rows, [{ text: `▒ so far (the period isn't over): ${soFar.join(', ')}`, style: 'plain' as Style }]]
 }
