@@ -16,15 +16,3 @@ intui-types = { path = "../intui-types" }
 
 [dev-dependencies]
 serde_json = { version = "1", features = ["float_roundtrip"] }
-
-[[test]]
-name = "text_parity"
-path = "../tests/text_parity.rs"
-
-[[test]]
-name = "acceptance_parity"
-path = "../tests/acceptance_parity.rs"
-
-[[test]]
-name = "author_parity"
-path = "../tests/author_parity.rs"

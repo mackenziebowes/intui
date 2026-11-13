@@ -30,6 +30,8 @@ export type Surroundings = {
   answer: DrawContext['answer']
   field: DrawContext['field']
   setField: DrawContext['setField']
+  /** Hears each node a drawer drew as text. Called while drawing, so it must not write. */
+  fellBack: (path: string, type: string) => void
   note: DrawContext['note']
   setNote: DrawContext['setNote']
 }
@@ -46,6 +48,7 @@ export function drawTree(tree: Tree, around: Surroundings): RenderElement {
       tree,
       child: (child, room = columns) => draw(child, `${path}.${index++}`, room),
       text,
+      fellBack: () => around.fellBack(path, node.type),
       key: (...parts) => [around.source, path, ...parts].join(':'),
       control: around.control,
       answer: around.answer,
