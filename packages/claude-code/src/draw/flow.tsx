@@ -1,26 +1,17 @@
 /**
  * The Flow drawer for Claude Code: steps as boxes joined by arrows, in one row when they
  * fit and stacked with downward arrows when they don't, falling back to each step with its
- * outgoing links when even that doesn't fit. Links that close a cycle are written as a
- * line inside the box, never drawn as an arrow.
+ * outgoing links when even that doesn't fit. Links that close a cycle are drawn as arrows in
+ * lanes (below a row of layers, right of a stack) when `planBack` gives them a lane, and are
+ * written as a `↩` line inside the box when not.
  */
 import type { FlowProps, FlowStep } from '@intui/core'
 import type { RenderElement } from 'claude-code'
 import { analyse } from '@intui/layout'
 import { defineDrawer, type DrawContext } from './drawer'
-import {
-  arrowText,
-  asSequence,
-  backNotes,
-  boxLines,
-  boxWidth,
-  layoutGrid,
-  linkLine,
-  planSequence,
-  truncate,
-  type BoxLine,
-  type CellKind,
-} from './flow-layout'
+import type { CellKind } from './flow-canvas'
+import { arrowText, asSequence, backNotes, layoutGrid, layoutStack, linkLine, planSequence } from './flow-layout'
+import { boxLines, boxWidth, truncate, type BoxLine } from './flow-text'
 import { ACCENT } from './theme'
 
 /**
@@ -52,7 +43,7 @@ function stepBox(ctx: DrawContext, lines: BoxLine[], key: string): RenderElement
 function drawSequence(props: FlowProps, order: number[], ctx: DrawContext): RenderElement {
   const { el, columns } = ctx
   const analysis = analyse(props.steps, props.links)
-  const notes = backNotes(props.steps, analysis)
+  const notes = backNotes(props.steps, analysis.back)
   const steps = order.map(i => props.steps[i]!)
   const arrows = order.slice(1).map((to, k) => analysis.edges.find(e => e.from === order[k] && e.to === to)?.label)
   const plan = planSequence(steps, order.map(i => notes[i]!), arrows, columns)
@@ -113,27 +104,39 @@ function drawList(props: FlowProps, ctx: DrawContext): RenderElement {
   )
 }
 
+/** A character grid as rows of coloured runs. */
+function drawCells(runsByRow: readonly (readonly { text: string; kind: CellKind }[])[], ctx: DrawContext): RenderElement {
+  const { el } = ctx
+  return (
+    <el.Box flexDirection="column">
+      {runsByRow.map((runs, row) => (
+        <el.Box key={ctx.key('row', String(row))} flexDirection="row">
+          {runs.length === 0 ? <el.Text>{' '}</el.Text> : runs.map((run, i) => (
+            <el.Text key={ctx.key('run', String(row), String(i))} {...textProps(run.kind)}>
+              {run.text}
+            </el.Text>
+          ))}
+        </el.Box>
+      ))}
+    </el.Box>
+  )
+}
+
+/**
+ * Where each layout is tried. A flow with loops is drawn on a grid so its back edges can be lanes: below
+ * the boxes when the layers fit side by side, else down the right of a stack. A flow without loops, or
+ * where no lane fits, takes the plain layouts, which write any back edge as a line in its box.
+ */
 export const flow = defineDrawer<FlowProps>({
   type: 'Flow',
   draw: (props, ctx) => {
-    const { el } = ctx
     const analysis = analyse(props.steps, props.links)
     const order = asSequence(analysis, props.steps.length)
-    if (order) return drawSequence(props, order, ctx)
     const grid = layoutGrid(props.steps, analysis, ctx.columns)
-    if (!grid) return drawList(props, ctx)
-    return (
-      <el.Box flexDirection="column">
-        {grid.map((runs, row) => (
-          <el.Box key={ctx.key('row', String(row))} flexDirection="row">
-            {runs.length === 0 ? <el.Text>{' '}</el.Text> : runs.map((run, i) => (
-              <el.Text key={ctx.key('run', String(row), String(i))} {...textProps(run.kind)}>
-                {run.text}
-              </el.Text>
-            ))}
-          </el.Box>
-        ))}
-      </el.Box>
-    )
+    if (grid && grid.routed > 0) return drawCells(grid.runs, ctx)
+    const stack = order ? layoutStack(props.steps, analysis, order, ctx.columns) : undefined
+    if (stack) return drawCells(stack.runs, ctx)
+    if (order) return drawSequence(props, order, ctx)
+    return grid ? drawCells(grid.runs, ctx) : drawList(props, ctx)
   },
 })

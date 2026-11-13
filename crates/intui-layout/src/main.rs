@@ -3,12 +3,14 @@
 //!
 //! Reads one JSON object on stdin whose keys name a question (`niceStep`,
 //! `niceDomain`, `formatValue`, `withUnit`, `placeLabels`, `parseNumber`,
-//! `flows`, `charts`, `changes`) and whose values are lists of cases, and prints
+//! `flows`, `charts`, `changes`, `flowDrawings`) and whose values are lists of cases, and prints
 //! an object with the same keys holding one answer per case.
 
 mod cli_error;
+mod flow_json;
 
 use cli_error::{CaseFault, CliError};
+use flow_json::flow_drawing;
 use intui_layout::*;
 use intui_types::forms::ChartKind;
 use intui_types::{Drawn, Node as TreeNode};
@@ -27,10 +29,11 @@ enum Question {
     Flows,
     Charts,
     Changes,
+    FlowDrawings,
 }
 
 impl Question {
-    const ALL: [Question; 9] = [
+    const ALL: [Question; 10] = [
         Question::NiceStep,
         Question::NiceDomain,
         Question::FormatValue,
@@ -40,6 +43,7 @@ impl Question {
         Question::Flows,
         Question::Charts,
         Question::Changes,
+        Question::FlowDrawings,
     ];
 
     fn name(self) -> &'static str {
@@ -53,6 +57,7 @@ impl Question {
             Question::Flows => "flows",
             Question::Charts => "charts",
             Question::Changes => "changes",
+            Question::FlowDrawings => "flowDrawings",
         }
     }
 
@@ -207,6 +212,7 @@ fn answer(question: Question, case: &Value) -> Result<Value, CaseFault> {
                 "label": chart_label(&model, chart.title.as_deref()),
             })
         }
+        Question::FlowDrawings => flow_drawing(case)?,
         Question::Changes => {
             let stat = match node_of(&json!({ "type": "Stat", "label": "x", "value": 1, "change": case })) {
                 Ok(Some(TreeNode::Stat(stat))) => stat,

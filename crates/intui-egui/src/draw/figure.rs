@@ -1,4 +1,4 @@
-//! Label and Stat: a tone drawn as a small tag, and a figure whose reading says how sure it is: `≥` before a floor,
+//! Label and Stat: a tone drawn as a small tag, and a figure (with its note, the reason in words, under it) whose reading says how sure it is: `≥` before a floor,
 //! `~` before an estimate, and a dash with the word "unknown" where no number could be read.
 
 use crate::scene::{font, galley, rounding, Scene};
@@ -112,6 +112,12 @@ pub(crate) fn stat(scene: &mut Scene, ui: &mut Ui, drawn: &Drawn, stat: &Stat) {
                     let (rect, _) = ui.allocate_exact_size(galley.size(), Sense::hover());
                     ui.painter().galley(rect.min, galley, tone);
                 });
+            }
+            // The reason in words, wrapped so none of it is lost (proposal 006).
+            if let Some(note) = stat.note.as_deref().filter(|note| !note.is_empty()) {
+                let galley = galley(ui, note, &caption, caption.color, ui.available_width());
+                let (rect, _) = ui.allocate_exact_size(galley.size(), Sense::hover());
+                ui.painter().galley(rect.min, galley, caption.color);
             }
         })
         .response;

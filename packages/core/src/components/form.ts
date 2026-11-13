@@ -46,6 +46,10 @@ export const Form = defineKind<FormProps>({
               lines: z.number().int().min(2).max(8).optional(),
               required: z.boolean().default(false),
             })
+            .refine((field) => field.id !== "__proto__", {
+              message: "a field can't be named \"__proto__\": a submitted value under that key is dropped, so it could never arrive; give the field another id",
+              path: ["id"],
+            })
             .refine((field) => field.input !== "select" || (field.options?.length ?? 0) > 0, {
               message: "a select field needs options; add an options list or use input: \"text\"",
               path: ["options"],

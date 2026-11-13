@@ -122,6 +122,10 @@ export const stat: Drawer<StatProps> = (props, { dom }) => {
 /** Tables with this many columns turn into one card per row in a narrow column. */
 const STACK_FROM = 3
 
+/** A cell of one word this short stays whole: a hyphen or slash is a break point, so a table squeezed by a long text column would otherwise split `command-hub` across two lines. */
+const TOKEN_MAX = 28
+const isToken = (text: string) => text.length <= TOKEN_MAX && !/\s/.test(text)
+
 export const table: Drawer<TableProps> = (props, { dom }) => {
   const aligns = props.columns.map(column => alignOf(column, props.rows))
   const cls = (i: number) => (aligns[i] === 'end' ? 'is-end' : undefined)
@@ -137,7 +141,10 @@ export const table: Drawer<TableProps> = (props, { dom }) => {
       dom.el(
         'tr',
         {},
-        ...props.columns.map((column, i) => dom.el('td', { class: cls(i), 'data-label': column.label }, cellText(cellOf(row, column.key)))),
+        ...props.columns.map((column, i) => {
+          const text = cellText(cellOf(row, column.key))
+          return dom.el('td', { class: [cls(i), isToken(text) ? 'is-token' : undefined].filter(Boolean).join(' ') || undefined, 'data-label': column.label }, text)
+        }),
       ),
     ),
   )

@@ -42,6 +42,7 @@ export const form = defineDrawer<FormProps>({
 
     const inputs = fieldElements(ctx)
     if (!inputs) {
+      ctx.fellBack(props)
       return (
         <el.Box flexDirection="column">
           <el.Markdown text={ctx.text(props)} />
