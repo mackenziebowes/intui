@@ -25,6 +25,7 @@ pub enum CaseFault {
     ChartRefused { why: Refusal },
     ChangeRefused { why: Refusal },
     WantsFlowShape,
+    WantsDrawingShape,
     WantsChartNode,
     WantsChangeNode,
 }
@@ -57,6 +58,10 @@ impl fmt::Display for CaseFault {
             CaseFault::ChartRefused { why } => write!(f, "it isn't a Chart:\n{why}"),
             CaseFault::ChangeRefused { why } => write!(f, "it isn't a Stat change:\n{why}"),
             CaseFault::WantsFlowShape => write!(f, "it should be an object with \"steps\" and \"links\""),
+            CaseFault::WantsDrawingShape => write!(
+                f,
+                "it should be an object with \"steps\", \"links\", \"row\" (true or false), \"boxes\" (a list of {{left, top, width, height}}, one per step), \"width\", \"charWidth\", \"room\" ({{lanePitch, labelRoom, available, maxLanes, order}}) and \"labelRoom\""
+            ),
             CaseFault::WantsChartNode => write!(f, "it should be a Chart node as an object"),
             CaseFault::WantsChangeNode => write!(f, "it should be a Stat change as an object"),
         }

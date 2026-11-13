@@ -44,12 +44,15 @@ const hasSvg = (el: ElementTable): el is Extract<ElementTable, { Svg: unknown }>
 
 export const chart = defineDrawer<ChartProps>({
   type: 'Chart',
-  draw: (props, { el, columns, text, surface }) => {
-    const fallback = <el.Markdown text={text(props)} />
-    if (columns < MIN_COLUMNS) return fallback
+  draw: (props, { el, columns, text, surface, fellBack }) => {
+    const fallback = () => {
+      fellBack(props)
+      return <el.Markdown text={text(props)} />
+    }
+    if (columns < MIN_COLUMNS) return fallback()
     const model = buildModel(props)
     // No number to put on an axis: the text form says it, rather than a made-up range.
-    if (!model.readable) return fallback
+    if (!model.readable) return fallback()
     const asRows = (rows: Row[]) =>
       rows.map(row => (
         <el.Box flexDirection="row">
@@ -61,7 +64,7 @@ export const chart = defineDrawer<ChartProps>({
     let plot: unknown
     if (surface === 'terminal' || !hasSvg(el)) {
       const rows = plotRows(model, columns)
-      if (!rows) return fallback
+      if (!rows) return fallback()
       plot = asRows(rows)
     } else {
       const width = Math.min(columns * PIXELS_PER_COLUMN, MAX_SVG_WIDTH)
