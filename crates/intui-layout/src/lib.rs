@@ -7,6 +7,9 @@
 
 mod chart_scale;
 mod flow_analysis;
+mod flow_back;
+mod flow_geometry;
+mod flow_labels;
 mod logic;
 mod row;
 mod words;
@@ -17,4 +20,10 @@ pub use chart_scale::{
     Marker, MarkerSite, ModelSeries, PlacedLabel, Scale,
 };
 pub use flow_analysis::{analyse, resolve_edges, Analysis, Edge, LayerIndex};
+pub use flow_back::{plan_back, wrap_label, BackPlan, BackRoom, BackSlot, Order, Route};
+pub use flow_geometry::{
+    back_geometry, connector, side_extent, Anchor, BackGeometry, Connector, PlacedBackLabel, PlacedRoute, Point, Rect,
+    BACK_LABEL_W, LABEL_GAP, LABEL_LINE_H, LABEL_STACK_GAP, LANE_PITCH,
+};
+pub use flow_labels::{place_flow_labels, LabelRequest, PlacedFlowLabel};
 pub use logic::{align_of, change_shape, chart_label, parse_number, reading_mark, Align, ChangeShape, NumberInput, Pointing, Way};

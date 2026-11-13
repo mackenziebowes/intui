@@ -78,7 +78,7 @@ export function buildSvg(model: ChartModel, width: number, height: number, color
         const y = yAt(v)
         const opacity = series.role === 'primary' ? 1 : series.role === 'comparison' ? 0.55 : 0.6
         const kind = series.kinds[i]
-        const look = kind === 'estimate' ? ` fill-opacity="0.35" stroke="${color(series.role)}" stroke-dasharray="3 2"` : ` fill-opacity="${opacity}"`
+        const look = series.partial[i] ? ` fill-opacity="0.12" stroke="${color(series.role)}" stroke-width="1.5"` : kind === 'estimate' ? ` fill-opacity="0.35" stroke="${color(series.role)}" stroke-dasharray="3 2"` : ` fill-opacity="${opacity}"`
         out.push(`<rect x="${round(x)}" y="${round(Math.min(y, zero))}" width="${round(bar - 1)}" height="${round(Math.max(1, Math.abs(zero - y)))}" fill="${color(series.role)}"${look}/>`)
         if (kind === 'atLeast') out.push(floor(x + (bar - 1) / 2, Math.min(y, zero) - 2, color(series.role)))
       }),
@@ -110,7 +110,7 @@ export function buildSvg(model: ChartModel, width: number, height: number, color
           if (v === undefined) return
           if (n > 24 && (series.values[i - 1] !== undefined || series.values[i + 1] !== undefined)) return
           const kind = series.kinds[i]
-          const fill = kind === 'estimate' ? ` fill="none" stroke="${color(series.role)}"` : ` fill="${color(series.role)}"${opacity.replace('stroke', 'fill')}`
+          const fill = kind === 'estimate' || series.partial[i] ? ` fill="none" stroke="${color(series.role)}"` : ` fill="${color(series.role)}"${opacity.replace('stroke', 'fill')}`
           out.push(`<circle cx="${round(xAt(i))}" cy="${round(yAt(v))}" r="${r}"${fill}/>`)
           if (kind === 'atLeast') out.push(floor(xAt(i), yAt(v) - r - 2, color(series.role)))
         })
