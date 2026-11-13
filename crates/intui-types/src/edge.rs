@@ -160,7 +160,10 @@ impl<'j> Edge<'j> {
         match kind {
             Kind::Table => self.row_keys_are_columns(object),
             Kind::Flow => self.links_point_at_steps(object),
-            Kind::Form => self.selects_have_options(object),
+            Kind::Form => {
+                self.field_ids_arrive(object);
+                self.selects_have_options(object)
+            }
             Kind::Marks | Kind::Ladder => {
                 for (inside, problem) in crate::marks_rules::check(kind, object) {
                     self.report_at(&inside, ProblemKind::Marks(problem));
@@ -248,6 +251,14 @@ impl<'j> Edge<'j> {
                         ProblemKind::LinkPointsNowhere { step: step.to_string(), ids: ids.clone() },
                     );
                 }
+            }
+        }
+    }
+
+    fn field_ids_arrive(&mut self, object: &JsonObject) {
+        for (index, field) in items(object, "fields").enumerate() {
+            if field.as_object().and_then(|field| field.get("id")).and_then(Json::as_str) == Some("__proto__") {
+                self.report_at(&[key("fields"), Seg::Index(index), key("id")], ProblemKind::FieldIdReserved);
             }
         }
     }

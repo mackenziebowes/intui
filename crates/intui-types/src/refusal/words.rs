@@ -78,6 +78,9 @@ impl fmt::Display for ProblemKind {
             ProblemKind::SelectNeedsOptions => {
                 write!(f, "a select field needs options; add an options list or use input: \"text\"")
             }
+            ProblemKind::FieldIdReserved => f.write_str(
+                "a field can't be named \"__proto__\": a submitted value under that key is dropped, so it could never arrive; give the field another id",
+            ),
             ProblemKind::DuplicateId { id, first } => {
                 write!(f, "id \"{id}\" is already used at {first}; give each Choice and Form its own id")
             }

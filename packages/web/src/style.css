@@ -738,6 +738,9 @@ path.intui-chart-bar.intui-role-comparison { fill: var(--_series); }
 .intui-flow-canvas {
   position: relative;
   --intui-flow-gutter: 44px;
+  /* Room for back-edge lanes and their labels; the drawer sets both (flow.ts). */
+  --intui-flow-lane-right: 0px;
+  --intui-flow-lane-bottom: 0px;
 }
 
 .intui-flow-layers,
@@ -748,6 +751,8 @@ path.intui-chart-bar.intui-role-comparison { fill: var(--_series); }
 }
 
 .intui-flow-layers {
+  /* Room for back-edge lanes. It is padding on the layers, not on the canvas the drawer watches: padding there would shrink the width the plan is made for. */
+  padding: 0 var(--intui-flow-lane-right) var(--intui-flow-lane-bottom) 0;
   display: flex;
   position: relative;
   z-index: 1;
@@ -775,7 +780,7 @@ path.intui-chart-bar.intui-role-comparison { fill: var(--_series); }
 .intui-flow-canvas:not([data-direction="row"]) .intui-flow-layers {
   flex-direction: column;
   align-items: stretch;
-  gap: 2.25em;
+  gap: calc(2.25em + var(--intui-flow-extra-gap, 0px));
 }
 
 /* A column only happens when each layer's steps fit side by side (flowPlan checks), so they never wrap. */
@@ -863,6 +868,16 @@ path.intui-chart-bar.intui-role-comparison { fill: var(--_series); }
   stroke-width: 5px;
   stroke-linejoin: round;
 }
+
+.intui-flow-leader {
+  fill: none;
+  stroke: var(--_line-strong);
+  stroke-width: 1;
+  stroke-dasharray: 1 3;
+  stroke-linecap: round;
+}
+
+.intui-flow-edge-label--back { stroke-width: 4px; }
 
 /* ---- Controls (Choice, Form, copy) ---- */
 

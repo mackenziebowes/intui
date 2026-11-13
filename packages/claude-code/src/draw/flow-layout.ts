@@ -1,41 +1,13 @@
 /**
  * Pure layout for the Flow drawer: no elements, only numbers and strings, so the
  * hard parts (layering, cycles, routing, fitting) are worked out without an engine.
+ * Text is in flow-text.ts, the grid in flow-canvas.ts and the back-edge lanes in flow-back.ts.
  */
 import type { FlowStep } from '@intui/core'
-import type { Analysis, Edge } from '@intui/layout'
-
-/** Cuts text to `width` cells, ending in an ellipsis when it was cut. */
-export function truncate(text: string, width: number): string {
-  const chars = [...text]
-  if (chars.length <= width) return text
-  return width <= 1 ? chars.slice(0, Math.max(width, 0)).join('') : `${chars.slice(0, width - 1).join('')}…`
-}
-
-/** Wraps text at spaces into lines of at most `width` cells; a word longer than that is broken. */
-export function wrap(text: string, width: number): string[] {
-  const room = Math.max(1, width)
-  const lines: string[] = []
-  let line = ''
-  for (const word of text.split(/\s+/).filter(Boolean)) {
-    let rest = [...word]
-    while (rest.length > room) {
-      if (line) lines.push(line)
-      line = ''
-      lines.push(rest.slice(0, room).join(''))
-      rest = rest.slice(room)
-    }
-    const piece = rest.join('')
-    if (!line) line = piece
-    else if ([...line].length + 1 + rest.length <= room) line += ` ${piece}`
-    else {
-      lines.push(line)
-      line = piece
-    }
-  }
-  if (line) lines.push(line)
-  return lines.length ? lines : ['']
-}
+import { planBack, type Analysis, type BackPlan, type Edge } from '@intui/layout'
+import { backCells, BACK_LABEL_CELLS, layBack, paintBackLabels, type BoxRect } from './flow-back'
+import { canvasOf, drawLines, laySegment, paintBox, paintLabel, put, runsOf, type Run } from './flow-canvas'
+import { boxLines, boxWidth, truncate, wrapEven, type BoxLine } from './flow-text'
 
 /** Whether the forward edges form one straight line through every step, so it reads as a sequence. */
 export function asSequence(analysis: Analysis, count: number): number[] | undefined {
@@ -45,26 +17,12 @@ export function asSequence(analysis: Analysis, count: number): number[] | undefi
   return straight ? order : undefined
 }
 
-export type LineKind = 'title' | 'detail' | 'note'
-export type BoxLine = { text: string; kind: LineKind }
-
-/** The lines inside one step's box: label, detail, and any link back to an earlier step. */
-export function boxLines(step: FlowStep, notes: readonly string[], cap: number): BoxLine[] {
-  return [
-    ...wrap(step.label, cap).map(text => ({ text, kind: 'title' as const })),
-    ...(step.detail ? wrap(step.detail, cap).map(text => ({ text, kind: 'detail' as const })) : []),
-    ...notes.flatMap(note => wrap(note, cap).map(text => ({ text, kind: 'note' as const }))),
-  ]
-}
-
-/** `↩ Target (label)` lines for the back edges leaving each step. */
-export function backNotes(steps: readonly FlowStep[], analysis: Analysis): string[][] {
+/** `↩ Target (label)` lines for the back edges in `edges` that leave each step: those drawn as text, not in a lane. */
+export function backNotes(steps: readonly FlowStep[], edges: readonly Edge[]): string[][] {
   return steps.map((_, i) =>
-    analysis.back.filter(edge => edge.from === i).map(edge => `↩ ${steps[edge.to]!.label}${edge.label ? ` (${edge.label})` : ''}`),
+    edges.filter(edge => edge.from === i).map(edge => `↩ ${steps[edge.to]!.label}${edge.label ? ` (${edge.label})` : ''}`),
   )
 }
-
-export const boxWidth = (lines: readonly BoxLine[]) => Math.max(...lines.map(line => [...line.text].length)) + 4
 
 /** Widest label allowed on an arrow between boxes in a row. */
 export const ARROW_LABEL_MAX = 14
@@ -92,108 +50,24 @@ export function planSequence(
   return { direction: 'column', cap: Math.max(1, columns - 4) }
 }
 
-export type CellKind = 'blank' | 'border' | LineKind | 'arrow' | 'edge'
-export type Run = { text: string; kind: CellKind }
-
-const N = 1
-const E = 2
-const S = 4
-const W = 8
-const GLYPH: Record<number, string> = {
-  [E]: '─', [W]: '─', [E | W]: '─', [N]: '│', [S]: '│', [N | S]: '│',
-  [E | S]: '╭', [W | S]: '╮', [E | N]: '╰', [W | N]: '╯',
-  [N | S | E]: '├', [N | S | W]: '┤', [E | W | S]: '┬', [E | W | N]: '┴', [N | S | E | W]: '┼',
-}
-
 /** Gutter widths and boxes per cap are tried widest first; the first layout that fits and draws cleanly wins. */
 const GRID_CAPS = [24, 16, 12]
-
-type Cell = { ch: string; kind: CellKind; mask: number; edges: Set<number> }
-
-/**
- * A character grid that boxes, edge lines and labels are painted onto: a plain value that
- * `tryGrid` builds and the functions below paint, one call at a time (hub #1956).
- */
-type Canvas = Cell[][]
-
-function canvasOf(rows: number, cols: number): Canvas {
-  return Array.from({ length: rows }, () =>
-    Array.from({ length: cols }, () => ({ ch: ' ', kind: 'blank' as CellKind, mask: 0, edges: new Set<number>() })),
-  )
-}
-
-function put(canvas: Canvas, row: number, col: number, ch: string, kind: CellKind) {
-  const cell = canvas[row]?.[col]
-  if (cell) Object.assign(cell, { ch, kind })
-}
-
-/** Paints a rounded box whose first line of text sits one row below `top`. */
-function paintBox(canvas: Canvas, top: number, left: number, width: number, lines: readonly BoxLine[]) {
-  const bottom = top + lines.length + 1
-  put(canvas, top, left, '╭', 'border')
-  put(canvas, top, left + width - 1, '╮', 'border')
-  put(canvas, bottom, left, '╰', 'border')
-  put(canvas, bottom, left + width - 1, '╯', 'border')
-  for (let c = 1; c < width - 1; c++) {
-    put(canvas, top, left + c, '─', 'border')
-    put(canvas, bottom, left + c, '─', 'border')
-  }
-  lines.forEach((line, k) => {
-    put(canvas, top + 1 + k, left, '│', 'border')
-    put(canvas, top + 1 + k, left + width - 1, '│', 'border')
-    ;[...line.text].forEach((ch, c) => put(canvas, top + 1 + k, left + 2 + c, ch, line.kind))
-  })
-}
-
-/**
- * Lays one segment of edge `id` along `row` (horizontal) or column `row` (vertical) from `a` to `b`.
- * Fails when it would touch a line of an unrelated edge, so unrelated lines never merge.
- */
-function laySegment(canvas: Canvas, id: number, edges: readonly Edge[], row: number, a: number, b: number, vertical: boolean): boolean {
-  const [lo, hi] = [Math.min(a, b), Math.max(a, b)]
-  for (let k = lo; k <= hi; k++) {
-    const cell = vertical ? canvas[k]?.[row] : canvas[row]?.[k]
-    if (!cell) return false
-    for (const other of cell.edges) {
-      if (other !== id && edges[other]!.from !== edges[id]!.from && edges[other]!.to !== edges[id]!.to) return false
-    }
-    cell.edges.add(id)
-    const [before, after] = vertical ? [N, S] : [W, E]
-    cell.mask |= (k > lo ? before : 0) | (k < hi ? after : 0)
-  }
-  return true
-}
-
-/** Turns the segments laid so far into line glyphs. */
-function drawLines(canvas: Canvas) {
-  for (const row of canvas) for (const cell of row) if (cell.mask) Object.assign(cell, { ch: GLYPH[cell.mask] ?? '─', kind: 'arrow' })
-}
-
-/** Writes text onto blank cells only; false when it would land on anything else. */
-function paintLabel(canvas: Canvas, row: number, col: number, text: string): boolean {
-  for (const [k, ch] of [...text].entries()) {
-    const cell = canvas[row]?.[col + k]
-    if (!cell || cell.kind !== 'blank') return false
-    Object.assign(cell, { ch, kind: 'edge' })
-  }
-  return true
-}
-
-function runsOf(canvas: Canvas): Run[][] {
-  return canvas.map(row => toRuns(row))
-}
+/** Most back edges drawn below a grid. */
+const GRID_LANES = 3
 
 /**
  * Draws a layered flow on a character grid, layers left to right. Returns undefined when it
  * cannot do so cleanly in `columns`: an edge skips a layer, lines would cross, a label would
  * land on a line, or the width runs out. The caller then falls back to a list.
  */
-export function layoutGrid(steps: readonly FlowStep[], analysis: Analysis, columns: number): Run[][] | undefined {
-  const notes = backNotes(steps, analysis)
+export function layoutGrid(steps: readonly FlowStep[], analysis: Analysis, columns: number): { runs: Run[][]; routed: number } | undefined {
   if (analysis.edges.some(edge => analysis.layerOf[edge.to] !== analysis.layerOf[edge.from]! + 1)) return undefined
+  // Back edges run in lanes below the boxes, so they take no width: only rows.
+  const back = planBack(analysis, { lanePitch: 1, labelRoom: 0, available: Infinity, maxLanes: GRID_LANES })
+  const notes = backNotes(steps, back.noted)
   for (const cap of GRID_CAPS) {
-    const grid = tryGrid(steps, analysis, notes, cap, columns)
-    if (grid) return grid
+    const runs = tryGrid(steps, analysis, notes, back, cap, columns)
+    if (runs) return { runs, routed: back.routes.length }
   }
   return undefined
 }
@@ -223,7 +97,7 @@ function placeVertically(analysis: Analysis, height: readonly number[]): number[
   return top.map(t => t - shift)
 }
 
-function tryGrid(steps: readonly FlowStep[], analysis: Analysis, notes: string[][], cap: number, columns: number): Run[][] | undefined {
+function tryGrid(steps: readonly FlowStep[], analysis: Analysis, notes: string[][], back: BackPlan, cap: number, columns: number): Run[][] | undefined {
   const { layers, edges, layerOf } = analysis
   const lines = steps.map((step, i) => boxLines(step, notes[i]!, cap))
   const width = lines.map(boxWidth)
@@ -242,7 +116,10 @@ function tryGrid(steps: readonly FlowStep[], analysis: Analysis, notes: string[]
   if (total > columns) return undefined
 
   const top = placeVertically(analysis, height)
-  const canvas = canvasOf(Math.max(...steps.map((_, i) => top[i]! + height[i]!)), total)
+  const boxRects = steps.map((_, i) => ({ row: top[i]!, col: left[layerOf[i]!]!, width: width[i]!, height: height[i]! }))
+  const lanes = backCells(back, boxRects, 'below')
+  if (lanes.cols > columns) return undefined
+  const canvas = canvasOf(Math.max(lanes.rows, ...steps.map((_, i) => top[i]! + height[i]!)), Math.max(total, lanes.cols))
   layers.forEach((layer, l) => {
     for (const i of layer) paintBox(canvas, top[i]!, left[l]!, width[i]!, lines[i]!)
   })
@@ -266,25 +143,70 @@ function tryGrid(steps: readonly FlowStep[], analysis: Analysis, notes: string[]
     if (!laySegment(canvas, id, edges, yt, trunk, gx + gw - 1, false)) return undefined
     if (edge.label) labels.push(trunkAtTarget ? { row: ys - 1, col: gx + 1, text: edge.label } : { row: yt - 1, col: gx + 3, text: edge.label })
   }
+  layBack(canvas, lanes)
   drawLines(canvas)
   for (const edge of edges) {
     const l = layerOf[edge.from]!
     put(canvas, top[edge.to]! + 1, left[l]! + layerWidth[l]! + gutter[l]! - 1, '→', 'arrow')
   }
+  for (const head of lanes.heads) put(canvas, head.row, head.col, head.ch, 'arrow')
   for (const label of labels) if (!paintLabel(canvas, label.row, label.col, label.text)) return undefined
+  if (!paintBackLabels(canvas, lanes)) return undefined
   return runsOf(canvas)
 }
 
-/** Joins neighbouring cells of one kind into runs, dropping trailing blanks. */
-function toRuns(row: readonly { ch: string; kind: CellKind }[]): Run[] {
-  const runs: Run[] = []
-  for (const cell of row) {
-    const last = runs[runs.length - 1]
-    if (last && last.kind === cell.kind) last.text += cell.ch
-    else runs.push({ text: cell.ch, kind: cell.kind })
+/** Box widths to try for a stack, widest first. */
+const STACK_CAPS = [32, 24, 16]
+/** Most back edges drawn beside a stack. */
+const STACK_LANES = 4
+
+/**
+ * Draws a sequence as one stack of equal boxes with the arrows between them, and its back edges as
+ * lanes down the right. `order` is the steps top to bottom. Returns undefined when no box width leaves room
+ * for the lanes and their labels in `columns`; the caller then writes the back edges as text.
+ */
+export function layoutStack(steps: readonly FlowStep[], analysis: Analysis, order: readonly number[], columns: number): { runs: Run[][]; routed: number } | undefined {
+  for (const cap of STACK_CAPS) {
+    const back = planBack(analysis, { lanePitch: 2, labelRoom: BACK_LABEL_CELLS + 2, available: columns - (cap + 4), maxLanes: STACK_LANES })
+    if (back.routes.length === 0) return undefined
+    const notes = backNotes(steps, back.noted)
+    const touching = (i: number) => back.routes.filter(r => r.from === i || r.to === i).length
+    const lines = steps.map((step, i) => {
+      const base = boxLines(step, notes[i]!, cap)
+      // A box needs a row for each route that meets it.
+      while (base.length < touching(i)) base.push({ text: '', kind: 'detail' })
+      return base
+    })
+    const width = Math.max(...lines.map(boxWidth))
+    const centre = Math.floor(width / 2)
+    const forward = (k: number) => analysis.edges.find(e => e.from === order[k] && e.to === order[k + 1])
+    const labelRoom = Math.max(8, width - centre - 3)
+    const gap = order.slice(1).map((_, k) => Math.max(2, forward(k)?.label ? wrapEven(forward(k)!.label!, labelRoom).length : 0))
+    const rects: BoxRect[] = new Array(steps.length)
+    let row = 0
+    order.forEach((i, k) => {
+      rects[i] = { row, col: 0, width, height: lines[i]!.length + 2 }
+      row += lines[i]!.length + 2 + (gap[k] ?? 0)
+    })
+    const lanes = backCells(back, rects, 'right')
+    if (lanes.cols > columns) continue
+    const canvas = canvasOf(Math.max(row, lanes.rows), Math.max(width, lanes.cols))
+    order.forEach(i => paintBox(canvas, rects[i]!.row, 0, width, lines[i]!))
+    layBack(canvas, lanes)
+    drawLines(canvas)
+    for (const head of lanes.heads) put(canvas, head.row, head.col, head.ch, 'arrow')
+    const labels: { row: number; col: number; text: string }[] = []
+    order.slice(1).forEach((_, k) => {
+      const first = rects[order[k]!]!.row + rects[order[k]!]!.height
+      for (let g = 0; g < gap[k]!; g++) put(canvas, first + g, centre, g === gap[k]! - 1 ? '↓' : '│', 'arrow')
+      const label = forward(k)?.label
+      if (label) wrapEven(label, labelRoom).forEach((text, g) => labels.push({ row: first + g, col: centre + 2, text }))
+    })
+    for (const label of labels) if (!paintLabel(canvas, label.row, label.col, label.text)) return undefined
+    if (!paintBackLabels(canvas, lanes)) return undefined
+    return { runs: runsOf(canvas), routed: back.routes.length }
   }
-  if (runs[runs.length - 1]?.kind === 'blank') runs.pop()
-  return runs
+  return undefined
 }
 
 /** A list line `→ Target (label)` for an edge, cut to fit. */

@@ -13,7 +13,7 @@ var __export = (target, all) => {
     });
 };
 
-// ../../node_modules/.bun/zod@4.6.5/node_modules/zod/v4/core/index.js
+// node_modules/.bun/zod@4.6.5/node_modules/zod/v4/core/index.js
 var exports_core2 = {};
 __export(exports_core2, {
   $ZodAny: () => $ZodAny,
@@ -330,7 +330,7 @@ __export(exports_core2, {
   withParser: () => withParser
 });
 
-// ../../node_modules/.bun/zod@4.6.5/node_modules/zod/v4/core/util.js
+// node_modules/.bun/zod@4.6.5/node_modules/zod/v4/core/util.js
 var exports_util = {};
 __export(exports_util, {
   BIGINT_FORMAT_RANGES: () => BIGINT_FORMAT_RANGES,
@@ -410,7 +410,7 @@ __export(exports_util, {
   unwrapMessage: () => unwrapMessage
 });
 
-// ../../node_modules/.bun/zod@4.6.5/node_modules/zod/v4/core/regexes.js
+// node_modules/.bun/zod@4.6.5/node_modules/zod/v4/core/regexes.js
 var exports_regexes = {};
 __export(exports_regexes, {
   anyString: () => anyString,
@@ -479,7 +479,7 @@ __export(exports_regexes, {
   xid: () => xid
 });
 
-// ../../node_modules/.bun/zod@4.6.5/node_modules/zod/v4/locales/index.js
+// node_modules/.bun/zod@4.6.5/node_modules/zod/v4/locales/index.js
 var exports_locales = {};
 __export(exports_locales, {
   ar: () => ar_default,
@@ -547,13 +547,13 @@ __export(exports_locales, {
   zhTW: () => zh_TW_default
 });
 
-// ../../node_modules/.bun/zod@4.6.5/node_modules/zod/v4/core/json-schema.js
+// node_modules/.bun/zod@4.6.5/node_modules/zod/v4/core/json-schema.js
 var exports_json_schema = {};
 
-// src/register.tsx
+// packages/claude-code/src/register.tsx
 import { atom, read, update } from "claude-code";
 
-// ../../node_modules/.bun/zod@4.6.5/node_modules/zod/v4/core/util.js
+// node_modules/.bun/zod@4.6.5/node_modules/zod/v4/core/util.js
 function assertEqual(val) {
   return val;
 }
@@ -1311,7 +1311,7 @@ function constantCatch(value) {
   return fn;
 }
 
-// ../../node_modules/.bun/zod@4.6.5/node_modules/zod/v4/core/core.js
+// node_modules/.bun/zod@4.6.5/node_modules/zod/v4/core/core.js
 var _a;
 var NEVER = /* @__PURE__ */ Object.freeze({
   status: "aborted"
@@ -1434,7 +1434,7 @@ function config(newConfig) {
     Object.assign(globalConfig, newConfig);
   return globalConfig;
 }
-// ../../node_modules/.bun/zod@4.6.5/node_modules/zod/v4/core/errors.js
+// node_modules/.bun/zod@4.6.5/node_modules/zod/v4/core/errors.js
 function _getMessage() {
   const internals = this._zod;
   internals.message ?? (internals.message = JSON.stringify(internals.def, jsonStringifyReplacer, 2));
@@ -1627,7 +1627,7 @@ function prettifyError(error) {
 `);
 }
 
-// ../../node_modules/.bun/zod@4.6.5/node_modules/zod/v4/core/parse.js
+// node_modules/.bun/zod@4.6.5/node_modules/zod/v4/core/parse.js
 function finalizeParams(callee, params) {
   return { callee: params?.callee ?? callee, Err: params?.Err };
 }
@@ -1786,7 +1786,7 @@ var _safeDecodeAsync = (_Err) => async (schema, value, _ctx) => {
   return _safeParseAsync(_Err)(schema, value, _ctx);
 };
 var safeDecodeAsync = /* @__PURE__ */ _safeDecodeAsync($ZodRealError);
-// ../../node_modules/.bun/zod@4.6.5/node_modules/zod/v4/core/regexes.js
+// node_modules/.bun/zod@4.6.5/node_modules/zod/v4/core/regexes.js
 var cuid = /^[cC][0-9a-z]{6,}$/;
 var cuid2 = /^[0-9a-z]+$/;
 var ulid = /^[0-7][0-9A-HJKMNP-TV-Za-hjkmnp-tv-z]{25}$/;
@@ -1891,7 +1891,7 @@ var sha512_hex = /^[0-9a-fA-F]{128}$/;
 var sha512_base64 = /* @__PURE__ */ fixedBase64(86, "==");
 var sha512_base64url = /* @__PURE__ */ fixedBase64url(86);
 
-// ../../node_modules/.bun/zod@4.6.5/node_modules/zod/v4/core/checks.js
+// node_modules/.bun/zod@4.6.5/node_modules/zod/v4/core/checks.js
 var $ZodCheck = /* @__PURE__ */ $constructor("$ZodCheck", (inst, def) => {
   var _a;
   inst._zod ?? (inst._zod = {});
@@ -2365,7 +2365,7 @@ var $ZodCheckOverwrite = /* @__PURE__ */ $constructor("$ZodCheckOverwrite", (ins
   };
 });
 
-// ../../node_modules/.bun/zod@4.6.5/node_modules/zod/v4/core/doc.js
+// node_modules/.bun/zod@4.6.5/node_modules/zod/v4/core/doc.js
 class Doc {
   constructor(args = [], closed = {}) {
     this.content = [];
@@ -2407,14 +2407,14 @@ ${content.join(`
   }
 }
 
-// ../../node_modules/.bun/zod@4.6.5/node_modules/zod/v4/core/versions.js
+// node_modules/.bun/zod@4.6.5/node_modules/zod/v4/core/versions.js
 var version = {
   major: 4,
   minor: 6,
   patch: 5
 };
 
-// ../../node_modules/.bun/zod@4.6.5/node_modules/zod/v4/core/schemas.js
+// node_modules/.bun/zod@4.6.5/node_modules/zod/v4/core/schemas.js
 var $ZodType = /* @__PURE__ */ $constructor("$ZodType", (inst, def) => {
   var _a;
   inst ?? (inst = {});
@@ -4815,7 +4815,7 @@ function handleRefineResult(result, payload, input, inst) {
     payload.issues.push(issue(_iss));
   }
 }
-// ../../node_modules/.bun/zod@4.6.5/node_modules/zod/v4/core/memoizer.js
+// node_modules/.bun/zod@4.6.5/node_modules/zod/v4/core/memoizer.js
 class $ZodCyclicError extends Error {
   constructor() {
     super(`Cannot parse a reference cycle that closes through a transform`);
@@ -5087,7 +5087,7 @@ function isBackEdge(ctx, value) {
   const backEdges = ctx[STATE]?.backEdges;
   return backEdges !== undefined && isRef(value) && backEdges.has(value);
 }
-// ../../node_modules/.bun/zod@4.6.5/node_modules/zod/v4/locales/ar.js
+// node_modules/.bun/zod@4.6.5/node_modules/zod/v4/locales/ar.js
 var error = () => {
   const Sizable = {
     string: { unit: "حرف", verb: "أن يحوي" },
@@ -5198,7 +5198,7 @@ function ar_default() {
     localeError: error()
   };
 }
-// ../../node_modules/.bun/zod@4.6.5/node_modules/zod/v4/locales/az.js
+// node_modules/.bun/zod@4.6.5/node_modules/zod/v4/locales/az.js
 var error2 = () => {
   const Sizable = {
     string: { unit: "simvol", verb: "olmalıdır" },
@@ -5308,7 +5308,7 @@ function az_default() {
     localeError: error2()
   };
 }
-// ../../node_modules/.bun/zod@4.6.5/node_modules/zod/v4/locales/be.js
+// node_modules/.bun/zod@4.6.5/node_modules/zod/v4/locales/be.js
 function getBelarusianPlural(count, one, few, many) {
   const absCount = Math.abs(count);
   const lastDigit = absCount % 10;
@@ -5476,7 +5476,7 @@ function be_default() {
     localeError: error3()
   };
 }
-// ../../node_modules/.bun/zod@4.6.5/node_modules/zod/v4/locales/bg.js
+// node_modules/.bun/zod@4.6.5/node_modules/zod/v4/locales/bg.js
 var error4 = () => {
   const Sizable = {
     string: { unit: "символа", verb: "да съдържа" },
@@ -5601,7 +5601,7 @@ function bg_default() {
     localeError: error4()
   };
 }
-// ../../node_modules/.bun/zod@4.6.5/node_modules/zod/v4/locales/bn.js
+// node_modules/.bun/zod@4.6.5/node_modules/zod/v4/locales/bn.js
 var error5 = () => {
   const Sizable = {
     string: { unit: "অক্ষর", verb: "থাকতে হবে" },
@@ -5714,7 +5714,7 @@ function bn_default() {
     localeError: error5()
   };
 }
-// ../../node_modules/.bun/zod@4.6.5/node_modules/zod/v4/locales/ca.js
+// node_modules/.bun/zod@4.6.5/node_modules/zod/v4/locales/ca.js
 var error6 = () => {
   const Sizable = {
     string: { unit: "caràcters", verb: "contenir" },
@@ -5826,7 +5826,7 @@ function ca_default() {
     localeError: error6()
   };
 }
-// ../../node_modules/.bun/zod@4.6.5/node_modules/zod/v4/locales/ckb.js
+// node_modules/.bun/zod@4.6.5/node_modules/zod/v4/locales/ckb.js
 var error7 = () => {
   const Sizable = {
     string: { unit: "پیت", verb: "بێت" },
@@ -5958,7 +5958,7 @@ function ckb_default() {
     localeError: error7()
   };
 }
-// ../../node_modules/.bun/zod@4.6.5/node_modules/zod/v4/locales/cs.js
+// node_modules/.bun/zod@4.6.5/node_modules/zod/v4/locales/cs.js
 var error8 = () => {
   const Sizable = {
     string: { unit: "znaků", verb: "mít" },
@@ -6074,7 +6074,7 @@ function cs_default() {
     localeError: error8()
   };
 }
-// ../../node_modules/.bun/zod@4.6.5/node_modules/zod/v4/locales/da.js
+// node_modules/.bun/zod@4.6.5/node_modules/zod/v4/locales/da.js
 var error9 = () => {
   const Sizable = {
     string: { unit: "tegn", verb: "havde" },
@@ -6194,7 +6194,7 @@ function da_default() {
     localeError: error9()
   };
 }
-// ../../node_modules/.bun/zod@4.6.5/node_modules/zod/v4/locales/de.js
+// node_modules/.bun/zod@4.6.5/node_modules/zod/v4/locales/de.js
 var error10 = () => {
   const Sizable = {
     string: { unit: "Zeichen", verb: "zu haben" },
@@ -6307,7 +6307,7 @@ function de_default() {
     localeError: error10()
   };
 }
-// ../../node_modules/.bun/zod@4.6.5/node_modules/zod/v4/locales/el.js
+// node_modules/.bun/zod@4.6.5/node_modules/zod/v4/locales/el.js
 var error11 = () => {
   const Sizable = {
     string: { unit: "χαρακτήρες", verb: "να έχει" },
@@ -6419,7 +6419,7 @@ function el_default() {
     localeError: error11()
   };
 }
-// ../../node_modules/.bun/zod@4.6.5/node_modules/zod/v4/locales/en.js
+// node_modules/.bun/zod@4.6.5/node_modules/zod/v4/locales/en.js
 var error12 = () => {
   const Sizable = {
     string: { unit: "characters", verb: "to have" },
@@ -6541,7 +6541,7 @@ function en_default() {
     localeError: error12()
   };
 }
-// ../../node_modules/.bun/zod@4.6.5/node_modules/zod/v4/locales/eo.js
+// node_modules/.bun/zod@4.6.5/node_modules/zod/v4/locales/eo.js
 var error13 = () => {
   const Sizable = {
     string: { unit: "karaktrojn", verb: "havi" },
@@ -6655,7 +6655,7 @@ function eo_default() {
     localeError: error13()
   };
 }
-// ../../node_modules/.bun/zod@4.6.5/node_modules/zod/v4/locales/es.js
+// node_modules/.bun/zod@4.6.5/node_modules/zod/v4/locales/es.js
 var error14 = () => {
   const Sizable = {
     string: { unit: "caracteres", verb: "tener" },
@@ -6791,7 +6791,7 @@ function es_default() {
     localeError: error14()
   };
 }
-// ../../node_modules/.bun/zod@4.6.5/node_modules/zod/v4/locales/fa.js
+// node_modules/.bun/zod@4.6.5/node_modules/zod/v4/locales/fa.js
 var error15 = () => {
   const Sizable = {
     string: { unit: "کاراکتر", verb: "داشته باشد" },
@@ -6910,7 +6910,7 @@ function fa_default() {
     localeError: error15()
   };
 }
-// ../../node_modules/.bun/zod@4.6.5/node_modules/zod/v4/locales/fi.js
+// node_modules/.bun/zod@4.6.5/node_modules/zod/v4/locales/fi.js
 var error16 = () => {
   const Sizable = {
     string: { unit: "merkkiä", subject: "merkkijonon" },
@@ -7027,7 +7027,7 @@ function fi_default() {
     localeError: error16()
   };
 }
-// ../../node_modules/.bun/zod@4.6.5/node_modules/zod/v4/locales/fr.js
+// node_modules/.bun/zod@4.6.5/node_modules/zod/v4/locales/fr.js
 var error17 = () => {
   const Sizable = {
     string: { unit: "caractères", verb: "avoir" },
@@ -7156,7 +7156,7 @@ function fr_default() {
     localeError: error17()
   };
 }
-// ../../node_modules/.bun/zod@4.6.5/node_modules/zod/v4/locales/fr-CA.js
+// node_modules/.bun/zod@4.6.5/node_modules/zod/v4/locales/fr-CA.js
 var error18 = () => {
   const Sizable = {
     string: { unit: "caractères", verb: "avoir" },
@@ -7268,7 +7268,7 @@ function fr_CA_default() {
     localeError: error18()
   };
 }
-// ../../node_modules/.bun/zod@4.6.5/node_modules/zod/v4/locales/gu.js
+// node_modules/.bun/zod@4.6.5/node_modules/zod/v4/locales/gu.js
 var error19 = () => {
   const Sizable = {
     string: { unit: "અક્ષર", verb: "હોવા જોઈએ" },
@@ -7381,7 +7381,7 @@ function gu_default() {
     localeError: error19()
   };
 }
-// ../../node_modules/.bun/zod@4.6.5/node_modules/zod/v4/locales/he.js
+// node_modules/.bun/zod@4.6.5/node_modules/zod/v4/locales/he.js
 var error20 = () => {
   const TypeNames = {
     string: { label: "מחרוזת", gender: "f" },
@@ -7581,7 +7581,7 @@ function he_default() {
     localeError: error20()
   };
 }
-// ../../node_modules/.bun/zod@4.6.5/node_modules/zod/v4/locales/hi.js
+// node_modules/.bun/zod@4.6.5/node_modules/zod/v4/locales/hi.js
 var error21 = () => {
   const Sizable = {
     string: { unit: "अक्षर", verb: "रखने के लिए" },
@@ -7692,7 +7692,7 @@ function hi_default() {
     localeError: error21()
   };
 }
-// ../../node_modules/.bun/zod@4.6.5/node_modules/zod/v4/locales/hr.js
+// node_modules/.bun/zod@4.6.5/node_modules/zod/v4/locales/hr.js
 var error22 = () => {
   const Sizable = {
     string: { unit: "znakova", verb: "imati" },
@@ -7818,7 +7818,7 @@ function hr_default() {
     localeError: error22()
   };
 }
-// ../../node_modules/.bun/zod@4.6.5/node_modules/zod/v4/locales/hu.js
+// node_modules/.bun/zod@4.6.5/node_modules/zod/v4/locales/hu.js
 var error23 = () => {
   const Sizable = {
     string: { unit: "karakter", verb: "legyen" },
@@ -7931,7 +7931,7 @@ function hu_default() {
     localeError: error23()
   };
 }
-// ../../node_modules/.bun/zod@4.6.5/node_modules/zod/v4/locales/hy.js
+// node_modules/.bun/zod@4.6.5/node_modules/zod/v4/locales/hy.js
 function getArmenianPlural(count, one, many) {
   return Math.abs(count) === 1 ? one : many;
 }
@@ -8089,7 +8089,7 @@ function hy_default() {
     localeError: error24()
   };
 }
-// ../../node_modules/.bun/zod@4.6.5/node_modules/zod/v4/locales/id.js
+// node_modules/.bun/zod@4.6.5/node_modules/zod/v4/locales/id.js
 var error25 = () => {
   const Sizable = {
     string: { unit: "karakter", verb: "memiliki" },
@@ -8200,7 +8200,7 @@ function id_default() {
     localeError: error25()
   };
 }
-// ../../node_modules/.bun/zod@4.6.5/node_modules/zod/v4/locales/is.js
+// node_modules/.bun/zod@4.6.5/node_modules/zod/v4/locales/is.js
 var error26 = () => {
   const Sizable = {
     string: { unit: "stafi", verb: "að hafa" },
@@ -8314,7 +8314,7 @@ function is_default() {
     localeError: error26()
   };
 }
-// ../../node_modules/.bun/zod@4.6.5/node_modules/zod/v4/locales/it.js
+// node_modules/.bun/zod@4.6.5/node_modules/zod/v4/locales/it.js
 var error27 = () => {
   const Sizable = {
     string: { unit: "caratteri", verb: "avere" },
@@ -8427,7 +8427,7 @@ function it_default() {
     localeError: error27()
   };
 }
-// ../../node_modules/.bun/zod@4.6.5/node_modules/zod/v4/locales/ja.js
+// node_modules/.bun/zod@4.6.5/node_modules/zod/v4/locales/ja.js
 var error28 = () => {
   const Sizable = {
     string: { unit: "文字", verb: "である" },
@@ -8539,7 +8539,7 @@ function ja_default() {
     localeError: error28()
   };
 }
-// ../../node_modules/.bun/zod@4.6.5/node_modules/zod/v4/locales/ka.js
+// node_modules/.bun/zod@4.6.5/node_modules/zod/v4/locales/ka.js
 var error29 = () => {
   const Sizable = {
     string: { unit: "სიმბოლო", verb: "უნდა შეიცავდეს" },
@@ -8656,7 +8656,7 @@ function ka_default() {
     localeError: error29()
   };
 }
-// ../../node_modules/.bun/zod@4.6.5/node_modules/zod/v4/locales/km.js
+// node_modules/.bun/zod@4.6.5/node_modules/zod/v4/locales/km.js
 var error30 = () => {
   const Sizable = {
     string: { unit: "តួអក្សរ", verb: "គួរមាន" },
@@ -8772,11 +8772,11 @@ function km_default() {
   };
 }
 
-// ../../node_modules/.bun/zod@4.6.5/node_modules/zod/v4/locales/kh.js
+// node_modules/.bun/zod@4.6.5/node_modules/zod/v4/locales/kh.js
 function kh_default() {
   return km_default();
 }
-// ../../node_modules/.bun/zod@4.6.5/node_modules/zod/v4/locales/kn.js
+// node_modules/.bun/zod@4.6.5/node_modules/zod/v4/locales/kn.js
 var error31 = () => {
   const Sizable = {
     string: { unit: "ಅಕ್ಷರಗಳು", verb: "ಹೊಂದಲು" },
@@ -8889,7 +8889,7 @@ function kn_default() {
     localeError: error31()
   };
 }
-// ../../node_modules/.bun/zod@4.6.5/node_modules/zod/v4/locales/ko.js
+// node_modules/.bun/zod@4.6.5/node_modules/zod/v4/locales/ko.js
 var error32 = () => {
   const Sizable = {
     string: { unit: "문자", verb: "to have" },
@@ -9005,7 +9005,7 @@ function ko_default() {
     localeError: error32()
   };
 }
-// ../../node_modules/.bun/zod@4.6.5/node_modules/zod/v4/locales/lt.js
+// node_modules/.bun/zod@4.6.5/node_modules/zod/v4/locales/lt.js
 var capitalizeFirstCharacter = (text) => {
   return text.charAt(0).toUpperCase() + text.slice(1);
 };
@@ -9212,7 +9212,7 @@ function lt_default() {
     localeError: error33()
   };
 }
-// ../../node_modules/.bun/zod@4.6.5/node_modules/zod/v4/locales/mk.js
+// node_modules/.bun/zod@4.6.5/node_modules/zod/v4/locales/mk.js
 var error34 = () => {
   const Sizable = {
     string: { unit: "знаци", verb: "да имаат" },
@@ -9326,7 +9326,7 @@ function mk_default() {
     localeError: error34()
   };
 }
-// ../../node_modules/.bun/zod@4.6.5/node_modules/zod/v4/locales/ms.js
+// node_modules/.bun/zod@4.6.5/node_modules/zod/v4/locales/ms.js
 var error35 = () => {
   const Sizable = {
     string: { unit: "aksara", verb: "mempunyai" },
@@ -9438,7 +9438,7 @@ function ms_default() {
     localeError: error35()
   };
 }
-// ../../node_modules/.bun/zod@4.6.5/node_modules/zod/v4/locales/ne.js
+// node_modules/.bun/zod@4.6.5/node_modules/zod/v4/locales/ne.js
 var error36 = () => {
   const Sizable = {
     string: { unit: "अक्षर", verb: "हुनुपर्छ" },
@@ -9549,7 +9549,7 @@ function ne_default() {
     localeError: error36()
   };
 }
-// ../../node_modules/.bun/zod@4.6.5/node_modules/zod/v4/locales/nl.js
+// node_modules/.bun/zod@4.6.5/node_modules/zod/v4/locales/nl.js
 var error37 = () => {
   const Sizable = {
     string: { unit: "tekens", verb: "heeft" },
@@ -9664,7 +9664,7 @@ function nl_default() {
     localeError: error37()
   };
 }
-// ../../node_modules/.bun/zod@4.6.5/node_modules/zod/v4/locales/nn.js
+// node_modules/.bun/zod@4.6.5/node_modules/zod/v4/locales/nn.js
 var error38 = () => {
   const Sizable = {
     string: { unit: "teikn", verb: "å ha" },
@@ -9777,7 +9777,7 @@ function nn_default() {
     localeError: error38()
   };
 }
-// ../../node_modules/.bun/zod@4.6.5/node_modules/zod/v4/locales/no.js
+// node_modules/.bun/zod@4.6.5/node_modules/zod/v4/locales/no.js
 var error39 = () => {
   const Sizable = {
     string: { unit: "tegn", verb: "å ha" },
@@ -9890,7 +9890,7 @@ function no_default() {
     localeError: error39()
   };
 }
-// ../../node_modules/.bun/zod@4.6.5/node_modules/zod/v4/locales/ota.js
+// node_modules/.bun/zod@4.6.5/node_modules/zod/v4/locales/ota.js
 var error40 = () => {
   const Sizable = {
     string: { unit: "harf", verb: "olmalıdır" },
@@ -10004,7 +10004,7 @@ function ota_default() {
     localeError: error40()
   };
 }
-// ../../node_modules/.bun/zod@4.6.5/node_modules/zod/v4/locales/ps.js
+// node_modules/.bun/zod@4.6.5/node_modules/zod/v4/locales/ps.js
 var error41 = () => {
   const Sizable = {
     string: { unit: "توکي", verb: "ولري" },
@@ -10123,7 +10123,7 @@ function ps_default() {
     localeError: error41()
   };
 }
-// ../../node_modules/.bun/zod@4.6.5/node_modules/zod/v4/locales/pl.js
+// node_modules/.bun/zod@4.6.5/node_modules/zod/v4/locales/pl.js
 var error42 = () => {
   const Sizable = {
     string: { unit: "znaków", verb: "mieć" },
@@ -10237,7 +10237,7 @@ function pl_default() {
     localeError: error42()
   };
 }
-// ../../node_modules/.bun/zod@4.6.5/node_modules/zod/v4/locales/pt.js
+// node_modules/.bun/zod@4.6.5/node_modules/zod/v4/locales/pt.js
 var error43 = () => {
   const Sizable = {
     string: { unit: "caracteres" },
@@ -10379,7 +10379,7 @@ function pt_default() {
     localeError: error43()
   };
 }
-// ../../node_modules/.bun/zod@4.6.5/node_modules/zod/v4/locales/pt-BR.js
+// node_modules/.bun/zod@4.6.5/node_modules/zod/v4/locales/pt-BR.js
 var error44 = () => {
   const Sizable = {
     string: { unit: "caracteres" },
@@ -10522,7 +10522,7 @@ function pt_BR_default() {
     localeError: error44()
   };
 }
-// ../../node_modules/.bun/zod@4.6.5/node_modules/zod/v4/locales/ro.js
+// node_modules/.bun/zod@4.6.5/node_modules/zod/v4/locales/ro.js
 var error45 = () => {
   const Sizable = {
     string: { unit: "caractere", verb: "să aibă" },
@@ -10644,7 +10644,7 @@ function ro_default() {
     localeError: error45()
   };
 }
-// ../../node_modules/.bun/zod@4.6.5/node_modules/zod/v4/locales/ru.js
+// node_modules/.bun/zod@4.6.5/node_modules/zod/v4/locales/ru.js
 function getRussianPlural(count, one, few, many) {
   const absCount = Math.abs(count);
   const lastDigit = absCount % 10;
@@ -10812,7 +10812,7 @@ function ru_default() {
     localeError: error46()
   };
 }
-// ../../node_modules/.bun/zod@4.6.5/node_modules/zod/v4/locales/sk.js
+// node_modules/.bun/zod@4.6.5/node_modules/zod/v4/locales/sk.js
 var error47 = () => {
   const Sizable = {
     string: { unit: "znakov", verb: "mať" },
@@ -10928,7 +10928,7 @@ function sk_default() {
     localeError: error47()
   };
 }
-// ../../node_modules/.bun/zod@4.6.5/node_modules/zod/v4/locales/sl.js
+// node_modules/.bun/zod@4.6.5/node_modules/zod/v4/locales/sl.js
 var error48 = () => {
   const Sizable = {
     string: { unit: "znakov", verb: "imeti" },
@@ -11042,7 +11042,7 @@ function sl_default() {
     localeError: error48()
   };
 }
-// ../../node_modules/.bun/zod@4.6.5/node_modules/zod/v4/locales/sv.js
+// node_modules/.bun/zod@4.6.5/node_modules/zod/v4/locales/sv.js
 var error49 = () => {
   const Sizable = {
     string: { unit: "tecken", verb: "att ha" },
@@ -11157,7 +11157,7 @@ function sv_default() {
     localeError: error49()
   };
 }
-// ../../node_modules/.bun/zod@4.6.5/node_modules/zod/v4/locales/ta.js
+// node_modules/.bun/zod@4.6.5/node_modules/zod/v4/locales/ta.js
 var error50 = () => {
   const Sizable = {
     string: { unit: "எழுத்துக்கள்", verb: "கொண்டிருக்க வேண்டும்" },
@@ -11272,7 +11272,7 @@ function ta_default() {
     localeError: error50()
   };
 }
-// ../../node_modules/.bun/zod@4.6.5/node_modules/zod/v4/locales/tg.js
+// node_modules/.bun/zod@4.6.5/node_modules/zod/v4/locales/tg.js
 var error51 = () => {
   const Sizable = {
     string: { unit: "аломат", verb: "дошта бошад" },
@@ -11388,7 +11388,7 @@ function tg_default() {
     localeError: error51()
   };
 }
-// ../../node_modules/.bun/zod@4.6.5/node_modules/zod/v4/locales/th.js
+// node_modules/.bun/zod@4.6.5/node_modules/zod/v4/locales/th.js
 var error52 = () => {
   const Sizable = {
     string: { unit: "ตัวอักษร", verb: "ควรมี" },
@@ -11503,7 +11503,7 @@ function th_default() {
     localeError: error52()
   };
 }
-// ../../node_modules/.bun/zod@4.6.5/node_modules/zod/v4/locales/tk.js
+// node_modules/.bun/zod@4.6.5/node_modules/zod/v4/locales/tk.js
 var error53 = () => {
   const Sizable = {
     string: { unit: "simwol", verb: "bolmaly" },
@@ -11610,7 +11610,7 @@ function tk_default() {
     localeError: error53()
   };
 }
-// ../../node_modules/.bun/zod@4.6.5/node_modules/zod/v4/locales/tr.js
+// node_modules/.bun/zod@4.6.5/node_modules/zod/v4/locales/tr.js
 var error54 = () => {
   const Sizable = {
     string: { unit: "karakter", verb: "olmalı" },
@@ -11720,7 +11720,7 @@ function tr_default() {
     localeError: error54()
   };
 }
-// ../../node_modules/.bun/zod@4.6.5/node_modules/zod/v4/locales/uk.js
+// node_modules/.bun/zod@4.6.5/node_modules/zod/v4/locales/uk.js
 var error55 = () => {
   const Sizable = {
     string: { unit: "символів", verb: "матиме" },
@@ -11834,11 +11834,11 @@ function uk_default() {
   };
 }
 
-// ../../node_modules/.bun/zod@4.6.5/node_modules/zod/v4/locales/ua.js
+// node_modules/.bun/zod@4.6.5/node_modules/zod/v4/locales/ua.js
 function ua_default() {
   return uk_default();
 }
-// ../../node_modules/.bun/zod@4.6.5/node_modules/zod/v4/locales/ur.js
+// node_modules/.bun/zod@4.6.5/node_modules/zod/v4/locales/ur.js
 var error56 = () => {
   const Sizable = {
     string: { unit: "حروف", verb: "ہونا" },
@@ -11953,7 +11953,7 @@ function ur_default() {
     localeError: error56()
   };
 }
-// ../../node_modules/.bun/zod@4.6.5/node_modules/zod/v4/locales/uz.js
+// node_modules/.bun/zod@4.6.5/node_modules/zod/v4/locales/uz.js
 var error57 = () => {
   const Sizable = {
     string: { unit: "belgi", verb: "bo‘lishi kerak" },
@@ -12066,7 +12066,7 @@ function uz_default() {
     localeError: error57()
   };
 }
-// ../../node_modules/.bun/zod@4.6.5/node_modules/zod/v4/locales/vi.js
+// node_modules/.bun/zod@4.6.5/node_modules/zod/v4/locales/vi.js
 var error58 = () => {
   const Sizable = {
     string: { unit: "ký tự", verb: "có" },
@@ -12179,7 +12179,7 @@ function vi_default() {
     localeError: error58()
   };
 }
-// ../../node_modules/.bun/zod@4.6.5/node_modules/zod/v4/locales/zh-CN.js
+// node_modules/.bun/zod@4.6.5/node_modules/zod/v4/locales/zh-CN.js
 var error59 = () => {
   const Sizable = {
     string: { unit: "字符", verb: "包含" },
@@ -12293,7 +12293,7 @@ function zh_CN_default() {
     localeError: error59()
   };
 }
-// ../../node_modules/.bun/zod@4.6.5/node_modules/zod/v4/locales/zh-TW.js
+// node_modules/.bun/zod@4.6.5/node_modules/zod/v4/locales/zh-TW.js
 var error60 = () => {
   const Sizable = {
     string: { unit: "字元", verb: "擁有" },
@@ -12405,7 +12405,7 @@ function zh_TW_default() {
     localeError: error60()
   };
 }
-// ../../node_modules/.bun/zod@4.6.5/node_modules/zod/v4/locales/yo.js
+// node_modules/.bun/zod@4.6.5/node_modules/zod/v4/locales/yo.js
 var error61 = () => {
   const Sizable = {
     string: { unit: "àmi", verb: "ní" },
@@ -12517,7 +12517,7 @@ function yo_default() {
     localeError: error61()
   };
 }
-// ../../node_modules/.bun/zod@4.6.5/node_modules/zod/v4/core/registries.js
+// node_modules/.bun/zod@4.6.5/node_modules/zod/v4/core/registries.js
 var _a2;
 var $output = /* @__PURE__ */ Symbol("ZodOutput");
 var $input = /* @__PURE__ */ Symbol("ZodInput");
@@ -12567,7 +12567,7 @@ function registry() {
 }
 (_a2 = globalThis).__zod_globalRegistry ?? (_a2.__zod_globalRegistry = registry());
 var globalRegistry = globalThis.__zod_globalRegistry;
-// ../../node_modules/.bun/zod@4.6.5/node_modules/zod/v4/core/compile.js
+// node_modules/.bun/zod@4.6.5/node_modules/zod/v4/core/compile.js
 var INVALID = Symbol.for("zod.compile.invalid");
 var FALLBACK_FLAG = Symbol.for("zod.compile.fallback");
 
@@ -14165,7 +14165,7 @@ function generateTransformCheck(doc, ctx, schema, accessor) {
   }
   return accessor;
 }
-// ../../node_modules/.bun/zod@4.6.5/node_modules/zod/v4/core/api.js
+// node_modules/.bun/zod@4.6.5/node_modules/zod/v4/core/api.js
 function snapshotChecks(def) {
   if (def.checks)
     def.checks = [...def.checks];
@@ -15102,7 +15102,7 @@ function _stringFormat(Class, format, fnOrRegex, _params = {}) {
   const inst = new Class(def);
   return inst;
 }
-// ../../node_modules/.bun/zod@4.6.5/node_modules/zod/v4/core/to-json-schema.js
+// node_modules/.bun/zod@4.6.5/node_modules/zod/v4/core/to-json-schema.js
 function assignProps(target, ...sources) {
   for (const source of sources) {
     for (const key of Reflect.ownKeys(source)) {
@@ -15625,7 +15625,7 @@ var createStandardJSONSchemaMethod = (schema, io, processors = {}) => (params) =
   extractDefs(ctx, schema);
   return finalize(ctx, schema);
 };
-// ../../node_modules/.bun/zod@4.6.5/node_modules/zod/v4/core/json-schema-processors.js
+// node_modules/.bun/zod@4.6.5/node_modules/zod/v4/core/json-schema-processors.js
 var narrowMin = (agg, key, value) => {
   if (agg[key] === undefined || value > agg[key])
     agg[key] = value;
@@ -16368,7 +16368,7 @@ function toJSONSchema(input, params) {
   extractDefs(ctx, input);
   return finalize(ctx, input);
 }
-// ../../node_modules/.bun/zod@4.6.5/node_modules/zod/v4/core/json-schema-generator.js
+// node_modules/.bun/zod@4.6.5/node_modules/zod/v4/core/json-schema-generator.js
 class JSONSchemaGenerator {
   get metadataRegistry() {
     return this.ctx.metadataRegistry;
@@ -16429,7 +16429,7 @@ class JSONSchemaGenerator {
     return plainResult;
   }
 }
-// ../../node_modules/.bun/zod@4.6.5/node_modules/zod/v4/classic/errors.js
+// node_modules/.bun/zod@4.6.5/node_modules/zod/v4/classic/errors.js
 var _installedErrorProtos = /* @__PURE__ */ new WeakSet([Object.prototype, Error.prototype]);
 function _lazyMethod(proto, key, make) {
   Object.defineProperty(proto, key, {
@@ -16474,7 +16474,7 @@ var ZodRealError = /* @__PURE__ */ $constructor("ZodError", initializer2, undefi
   Parent: Error
 });
 
-// ../../node_modules/.bun/zod@4.6.5/node_modules/zod/v4/classic/parse.js
+// node_modules/.bun/zod@4.6.5/node_modules/zod/v4/classic/parse.js
 var parse3 = /* @__PURE__ */ _parse(ZodRealError);
 var parseAsync2 = /* @__PURE__ */ _parseAsync(ZodRealError);
 var safeParse2 = /* @__PURE__ */ _safeParse(ZodRealError);
@@ -16488,7 +16488,7 @@ var safeDecode2 = /* @__PURE__ */ _safeDecode(ZodRealError);
 var safeEncodeAsync2 = /* @__PURE__ */ _safeEncodeAsync(ZodRealError);
 var safeDecodeAsync2 = /* @__PURE__ */ _safeDecodeAsync(ZodRealError);
 
-// ../../node_modules/.bun/zod@4.6.5/node_modules/zod/v4/classic/schemas.js
+// node_modules/.bun/zod@4.6.5/node_modules/zod/v4/classic/schemas.js
 function _ensureDefaultLocale() {
   if (!globalConfig.localeError)
     config(en_default());
@@ -17408,12 +17408,12 @@ function refine(fn, _params = {}) {
 function superRefine(fn, params) {
   return _superRefine(fn, params);
 }
-// ../core/src/component.ts
+// packages/core/src/component.ts
 function defineKind(kind) {
   return { children: () => [], ids: () => [], ...kind };
 }
 
-// ../core/src/text.ts
+// packages/core/src/text.ts
 var numbers = new Intl.NumberFormat("en", { maximumFractionDigits: 2 });
 function formatNumber(value, unit) {
   const formatted = numbers.format(value);
@@ -17438,7 +17438,7 @@ function markdownTable(headers, rows) {
 `);
 }
 
-// ../core/src/reading.ts
+// packages/core/src/reading.ts
 var READING_KINDS = ["exact", "atLeast", "estimate", "unknown"];
 var made_ = new WeakSet;
 function made(reading) {
@@ -17573,7 +17573,7 @@ var reading = wireReading.transform((input, ctx) => {
 });
 var readingSchema = () => reading;
 
-// ../core/src/components/chart.ts
+// packages/core/src/components/chart.ts
 var SERIES_ROLES = ["primary", "baseline", "comparison"];
 var POINT_PERIODS = ["complete", "partial"];
 var Chart = defineKind({
@@ -17631,7 +17631,98 @@ function headerOf(series) {
   return cell(series.role === "primary" ? series.label : `${series.label} (${series.role})`);
 }
 
-// ../core/src/components/choice.ts
+// packages/core/src/components/label.ts
+var TONES = ["neutral", "positive", "warning", "critical", "muted"];
+var tone = _enum2(TONES).meta({ id: "Tone" });
+var whoKey = string2().min(1).max(24);
+var Label = defineKind({
+  type: "Label",
+  summary: "A short tag with a tone, such as a status.",
+  writer: "anyone",
+  schema: () => strictObject({
+    type: literal("Label"),
+    text: string2().min(1).max(40, "a Label is a short tag; put longer text in a Text"),
+    tone: tone.default("neutral"),
+    who: whoKey.optional()
+  }).meta({ id: "Label" }),
+  toText: (props) => props.who ? `[${props.text}] (${props.who})` : `[${props.text}]`,
+  example: { type: "Label", text: "parked", tone: "muted" }
+});
+
+// packages/core/src/components/areas.ts
+var nothingYet = { type: "Text", markdown: "Nothing yet." };
+var layoutSchema = lazy(() => union([
+  string2().min(1),
+  strictObject({ split: _enum2(["row", "column"]), ratio: number2().min(0.1).max(0.9), a: layoutSchema, b: layoutSchema })
+]));
+function layoutAreas(layout) {
+  return typeof layout === "string" ? [layout] : [...layoutAreas(layout.a), ...layoutAreas(layout.b)];
+}
+var Areas = defineKind({
+  type: "Areas",
+  summary: "A region cut into areas. Each area's header menu switches what it shows.",
+  writer: "anyone",
+  schema: (node) => strictObject({
+    type: literal("Areas"),
+    id: string2().min(1),
+    kinds: array(strictObject({ id: string2().min(1), label: string2().min(1).max(24), hint: string2().max(40).optional() }).meta({ id: "AreaKind" })).min(1, "Areas needs at least one kind"),
+    areas: array(strictObject({ id: string2().min(1), kind: string2().min(1), filter: string2().max(40).optional(), children: array(node).optional() }).meta({ id: "AreaSlot" })).min(1, "Areas needs at least one area"),
+    layout: layoutSchema,
+    legend: array(strictObject({ who: whoKey, colour: string2().min(7).max(7) }).meta({ id: "AreaLegend" })).optional()
+  }).superRefine((areas, ctx) => {
+    const kinds = new Set(areas.kinds.map((k) => k.id));
+    const ids = areas.areas.map((a) => a.id);
+    for (const [i, area] of areas.areas.entries()) {
+      if (!kinds.has(area.kind))
+        ctx.addIssue({ code: "custom", path: ["areas", i, "kind"], message: `area "${area.id}" has kind "${area.kind}", which is not in kinds; use one of: ${areas.kinds.map((k) => k.id).join(", ")}` });
+      if (ids.indexOf(area.id) !== i)
+        ctx.addIssue({ code: "custom", path: ["areas", i, "id"], message: `two areas are called "${area.id}"; give each its own id` });
+    }
+    for (const [i, entry] of (areas.legend ?? []).entries()) {
+      if (!/^#[0-9a-fA-F]{6}$/.test(entry.colour))
+        ctx.addIssue({ code: "custom", path: ["legend", i, "colour"], message: `legend colour "${entry.colour}" is not a hex colour; write it like #3a7bd5` });
+    }
+    const placed = layoutAreas(areas.layout);
+    for (const id of placed)
+      if (!ids.includes(id))
+        ctx.addIssue({ code: "custom", path: ["layout"], message: `layout places "${id}", which is not in areas` });
+    for (const id of ids) {
+      const times = placed.filter((p) => p === id).length;
+      if (times !== 1)
+        ctx.addIssue({ code: "custom", path: ["layout"], message: `area "${id}" appears ${times} times in layout; every area appears exactly once` });
+    }
+  }).meta({ id: "Areas" }),
+  toText: (props, childText) => {
+    const label = (kind) => props.kinds.find((k) => k.id === kind)?.label ?? kind;
+    return layoutAreas(props.layout).map((id) => props.areas.find((a) => a.id === id)).filter((area) => area !== undefined).map((area) => {
+      const head = `**${label(area.kind)}**${area.filter ? ` · ${area.filter}` : ""}`;
+      const body = area.children?.length ? area.children.map(childText).join(`
+
+`) : `waiting for ${label(area.kind)}`;
+      return `${head}
+${body}`;
+    }).join(`
+
+`);
+  },
+  children: (props) => props.areas.flatMap((area) => area.children ?? []),
+  ids: (props) => [props.id],
+  example: {
+    type: "Areas",
+    id: "main",
+    kinds: [
+      { id: "notes", label: "Notes", hint: "what was said" },
+      { id: "todo", label: "To do", hint: "what waits" }
+    ],
+    areas: [
+      { id: "left", kind: "todo", filter: "all" },
+      { id: "right", kind: "notes", children: [nothingYet] }
+    ],
+    layout: { split: "row", ratio: 0.4, a: "left", b: "right" }
+  }
+});
+
+// packages/core/src/components/choice.ts
 var Choice = defineKind({
   type: "Choice",
   summary: "Buttons. Pressing one sends an event back to the agent.",
@@ -17662,7 +17753,7 @@ ${buttons}` : buttons;
   }
 });
 
-// ../core/src/components/flow.ts
+// packages/core/src/components/flow.ts
 var Flow = defineKind({
   type: "Flow",
   summary: "Steps joined by arrows: a process, a pipeline, how parts of a system connect.",
@@ -17706,7 +17797,7 @@ var Flow = defineKind({
   }
 });
 
-// ../core/src/components/form.ts
+// packages/core/src/components/form.ts
 var Form = defineKind({
   type: "Form",
   summary: "A few inputs and a submit button. Submitting sends the values back to the agent.",
@@ -17719,23 +17810,30 @@ var Form = defineKind({
       label: string2().min(1),
       input: _enum2(["text", "number", "select", "checkbox"]),
       options: array(string2().min(1)).optional(),
+      lines: number2().int().min(2).max(8).optional(),
       required: boolean2().default(false)
     }).refine((field) => field.input !== "select" || (field.options?.length ?? 0) > 0, {
       message: 'a select field needs options; add an options list or use input: "text"',
       path: ["options"]
+    }).refine((field) => field.lines === undefined || field.input === "text", {
+      message: 'lines is for a text field; remove it or use input: "text"',
+      path: ["lines"]
     }).meta({ id: "FormField" })).min(1, "a Form needs at least one field"),
-    submitLabel: string2().min(1).max(40).default("Submit")
+    submitLabel: string2().min(1).max(40).default("Submit"),
+    send: _enum2(["enter", "ctrl-enter"]).optional()
   }).meta({ id: "Form" }),
   toText: (props) => {
     const fields = props.fields.map((field) => {
       const choices = field.options ? `: ${field.options.join(", ")}` : "";
-      return `- ${field.label} (${field.input}${field.required ? ", required" : ""}${choices})`;
+      const lines = field.lines ? `, ${field.lines} lines` : "";
+      return `- ${field.label} (${field.input}${lines}${field.required ? ", required" : ""}${choices})`;
     });
+    const send = props.send === "ctrl-enter" ? " (Ctrl+Enter)" : props.send === "enter" ? " (Enter)" : "";
     return `Form:
 ${fields.join(`
 `)}
 
-[${props.submitLabel}]`;
+[${props.submitLabel}]${send}`;
   },
   ids: (props) => [props.id],
   example: {
@@ -17749,7 +17847,7 @@ ${fields.join(`
   }
 });
 
-// ../core/src/components/group.ts
+// packages/core/src/components/group.ts
 var heading = { type: "Text", markdown: "**Ideas inbox**" };
 var count = { type: "Label", text: "3 open", tone: "neutral" };
 var Group = defineKind({
@@ -17759,37 +17857,43 @@ var Group = defineKind({
   schema: (node) => strictObject({
     type: literal("Group"),
     direction: _enum2(["row", "column"]).default("column"),
+    widths: array(union([int().min(1).max(4000), literal("rest")])).optional(),
+    floors: array(int().min(0).max(4000)).optional(),
+    divider: boolean2().default(false),
+    box: _enum2(["apart", "said", "waiting"]).optional(),
+    thread: boolean2().default(false),
+    who: whoKey.optional(),
+    foot: boolean2().default(false),
+    idle: boolean2().default(false),
     children: array(node).min(1, "a Group needs at least one child")
+  }).superRefine((group, ctx) => {
+    if (group.thread && group.direction !== "column")
+      ctx.addIssue({ code: "custom", path: ["thread"], message: "thread is for a column, where the newest child comes last; this Group is a row" });
+    for (const key of ["widths", "floors"]) {
+      const list = group[key];
+      if (list === undefined)
+        continue;
+      if (group.direction !== "row")
+        ctx.addIssue({ code: "custom", path: [key], message: `${key} is for a row; this Group is a column` });
+      else if (list.length !== group.children.length)
+        ctx.addIssue({ code: "custom", path: [key], message: `${key} has ${list.length} entries but the Group has ${group.children.length} children; give one per child` });
+    }
   }).meta({ id: "Group" }),
   toText: (props, childText) => {
     const parts = props.children.map(childText);
     const allShort = parts.every((part) => !part.includes(`
 `));
-    return props.direction === "row" && allShort ? parts.join(" · ") : parts.join(`
+    const body = props.direction === "row" && allShort ? parts.join(" · ") : parts.join(`
 
 `);
+    return props.box === "waiting" ? `[waiting on you]
+${body}` : body;
   },
   children: (props) => props.children,
   example: { type: "Group", direction: "row", children: [heading, count] }
 });
 
-// ../core/src/components/label.ts
-var TONES = ["neutral", "positive", "warning", "critical", "muted"];
-var tone = _enum2(TONES).meta({ id: "Tone" });
-var Label = defineKind({
-  type: "Label",
-  summary: "A short tag with a tone, such as a status.",
-  writer: "anyone",
-  schema: () => strictObject({
-    type: literal("Label"),
-    text: string2().min(1).max(40, "a Label is a short tag; put longer text in a Text"),
-    tone: tone.default("neutral")
-  }).meta({ id: "Label" }),
-  toText: (props) => `[${props.text}]`,
-  example: { type: "Label", text: "parked", tone: "muted" }
-});
-
-// ../core/src/components/marks.ts
+// packages/core/src/components/marks.ts
 var MAX_MARKS = 200;
 var markKindSchema = strictObject({ id: string2().min(1), label: string2().min(1), one: string2().min(1).optional() }).meta({ id: "MarkDeclaredKind" });
 var markStateSchema = strictObject({ id: string2().min(1), label: string2().min(1), tone: tone.default("neutral") }).meta({ id: "MarkDeclaredState" });
@@ -17899,7 +18003,7 @@ var Marks = defineKind({
   }
 });
 
-// ../core/src/components/ladder.ts
+// packages/core/src/components/ladder.ts
 var unknownKindSchema = strictObject({ kind: string2().min(1), why: string2().min(1) }).meta({ id: "LadderUnknownKind" });
 var Ladder = defineKind({
   type: "Ladder",
@@ -18002,7 +18106,7 @@ var Ladder = defineKind({
   }
 });
 
-// ../core/src/components/stat.ts
+// packages/core/src/components/stat.ts
 var Stat = defineKind({
   type: "Stat",
   summary: "One number with a label, and optionally its change.",
@@ -18033,7 +18137,7 @@ function changeText(change) {
   return readingText(change.value, { unit: change.as === "percent" ? "%" : undefined, signed: true });
 }
 
-// ../core/src/components/table.ts
+// packages/core/src/components/table.ts
 var cellOf = (row, key) => Object.hasOwn(row, key) ? row[key] : undefined;
 var Table = defineKind({
   type: "Table",
@@ -18081,20 +18185,57 @@ ${table}` : table;
   }
 });
 
-// ../core/src/components/text.ts
+// packages/core/src/components/tabs.ts
+var Tabs = defineKind({
+  type: "Tabs",
+  summary: "A bar of named arrangements, one open. Pressing a tab sends its id.",
+  writer: "anyone",
+  schema: () => strictObject({
+    type: literal("Tabs"),
+    id: string2().min(1),
+    tabs: array(strictObject({ id: string2().min(1), label: string2().min(1).max(24) }).meta({ id: "TabsTab" })).min(1, "Tabs needs at least one tab"),
+    active: string2().min(1)
+  }).superRefine((tabs, ctx) => {
+    if (!tabs.tabs.some((t) => t.id === tabs.active))
+      ctx.addIssue({ code: "custom", path: ["active"], message: `active is "${tabs.active}", which is not a tab; use one of: ${tabs.tabs.map((t) => t.id).join(", ")}` });
+  }).meta({ id: "Tabs" }),
+  toText: (props) => props.tabs.map((tab) => tab.id === props.active ? `[${tab.label}]` : tab.label).join(" · "),
+  ids: (props) => [props.id],
+  example: { type: "Tabs", id: "views", tabs: [{ id: "talk", label: "Talk" }, { id: "watch", label: "Watch" }], active: "talk" }
+});
+
+// packages/core/src/components/text.ts
+var SIZES = ["small", "body", "heading", "title"];
+var size = _enum2(SIZES).meta({ id: "Size" });
+function fenceFor(text) {
+  const longest = Math.max(0, ...(text.match(/`+/g) ?? []).map((run) => run.length));
+  return "`".repeat(Math.max(3, longest + 1));
+}
 var Text = defineKind({
   type: "Text",
   summary: "Markdown text. The default, and what every other component falls back to.",
   writer: "anyone",
   schema: () => strictObject({
     type: literal("Text"),
-    markdown: string2().min(1, "Text needs some markdown; leave the Text out if there's nothing to say")
+    markdown: string2().min(1, "Text needs some markdown; leave the Text out if there's nothing to say"),
+    size: size.default("body"),
+    tone: tone.default("neutral"),
+    verbatim: boolean2().default(false),
+    who: whoKey.optional()
   }).meta({ id: "Text" }),
-  toText: (props) => props.markdown,
+  toText: (props) => {
+    if (!props.verbatim) {
+      return props.who && props.markdown.trim().toLowerCase() !== props.who.toLowerCase() ? `${props.markdown} (${props.who})` : props.markdown;
+    }
+    const fence = fenceFor(props.markdown);
+    return `${fence}
+${props.markdown}
+${fence}`;
+  },
   example: { type: "Text", markdown: "Traffic was **normal** this week." }
 });
 
-// ../core/src/catalog.ts
+// packages/core/src/catalog.ts
 function make(kinds) {
   const node = lazy(() => discriminatedUnion("type", kinds.map((kind) => kind.schema(node)))).meta({ id: "Node" });
   return { kinds, byType: new Map(kinds.map((kind) => [kind.type, kind])), node };
@@ -18121,8 +18262,8 @@ var Catalog = {
 `);
   }
 };
-var core2 = make([Text, Group, Label, Table, Chart, Stat, Flow, Marks, Ladder, Choice, Form]);
-// ../core/src/problems.ts
+var core2 = make([Text, Group, Label, Table, Chart, Stat, Flow, Marks, Ladder, Choice, Form, Areas, Tabs]);
+// packages/core/src/problems.ts
 function refusal2(summary, problems = []) {
   const message = problems.length === 0 ? summary : `${summary}
 ${problems.map((p) => `- ${p.path}: ${p.message}`).join(`
@@ -18173,7 +18314,7 @@ function isRecord(value) {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 
-// ../core/src/event.ts
+// packages/core/src/event.ts
 var fieldValue = union([string2(), number2(), boolean2()]).meta({ id: "FieldValue" });
 var schema = discriminatedUnion("action", [
   strictObject({ v: literal(1), source: string2().min(1), target: string2().min(1), action: literal("press"), value: string2().min(1) }).meta({ id: "PressEvent" }),
@@ -18203,6 +18344,14 @@ var IntuiEvent = {
     if (!component)
       return `nothing in it has the id "${event.target}"`;
     if (event.action === "press") {
+      if (component.type === "Tabs") {
+        const tabs = component.tabs.map((tab) => tab.id);
+        return tabs.includes(event.value) ? null : `tabs "${event.target}" has no tab "${event.value}"; its tabs are ${tabs.join(", ")}`;
+      }
+      if (component.type === "Areas") {
+        const picks = component.areas.flatMap((area) => component.kinds.map((kind) => `${area.id}:${kind.id}`));
+        return picks.includes(event.value) ? null : `areas "${event.target}" has no pick "${event.value}"; a pick is <area>:<kind>, for example ${picks[0]}`;
+      }
       if (component.type !== "Choice")
         return `"${event.target}" is a ${component.type}, which can't be pressed`;
       const ids = component.options.map((option) => option.id);
@@ -18225,6 +18374,10 @@ var IntuiEvent = {
   describe(event, component) {
     const from = `(from ${event.source})`;
     if (event.action === "press") {
+      if (component?.type === "Tabs")
+        return `Opened tab "${component.tabs.find((t) => t.id === event.value)?.label ?? event.value}" in ${event.target} ${from}.`;
+      if (component?.type === "Areas")
+        return `Switched area ${event.value.split(":")[0]} to ${component.kinds.find((k) => k.id === event.value.split(":")[1])?.label ?? event.value} in ${event.target} ${from}.`;
       const option = component?.type === "Choice" ? component.options.find((o) => o.id === event.value) : undefined;
       return `Pressed "${option?.label ?? event.value}" in ${event.target} ${from}.`;
     }
@@ -18242,7 +18395,7 @@ function valueProblem(field, value) {
   }
   return null;
 }
-// ../core/src/control.ts
+// packages/core/src/control.ts
 var WHY_LENGTH = 160;
 function whyOf(error) {
   return (error instanceof Error ? error.message : String(error)).split(`
@@ -18296,7 +18449,7 @@ function ignore(state, why) {
 function never3(value) {
   throw new Error(`unhandled control case ${JSON.stringify(value)}`);
 }
-// ../core/src/tree.ts
+// packages/core/src/tree.ts
 var VERSION = 1;
 function walk(tree, catalog = core2) {
   const visit = (node, path) => [
@@ -18374,12 +18527,12 @@ function parseEnvelope(input) {
   }
   return parsed(input);
 }
-// src/draw/drawer.ts
+// packages/claude-code/src/draw/drawer.ts
 function defineDrawer(drawer) {
   return drawer;
 }
 
-// ../layout/src/chart-scale.ts
+// packages/layout/src/chart-scale.ts
 var clean = (n) => Number(n.toPrecision(12));
 function niceStep(raw) {
   if (!(raw > 0))
@@ -18471,7 +18624,8 @@ function buildModel(props) {
       const y = s.points.find((point) => point.x === x)?.y;
       return y === undefined || y.kind === "unknown" ? undefined : y.value;
     }),
-    kinds: xs.map((x) => s.points.find((point) => point.x === x)?.y.kind)
+    kinds: xs.map((x) => s.points.find((point) => point.x === x)?.y.kind),
+    partial: xs.map((x) => s.points.find((point) => point.x === x)?.period === "partial")
   }));
   const all = series.flatMap((s) => s.values).filter((v) => v !== undefined);
   const markers = props.annotations.map((a, i) => {
@@ -18489,7 +18643,7 @@ function buildModel(props) {
   };
 }
 var markerGlyph = (n) => n <= 9 ? String(n) : "*";
-// ../layout/src/flow-analysis.ts
+// packages/layout/src/flow-analysis.ts
 function resolveEdges(steps, links) {
   if (links.length === 0)
     return steps.slice(1).map((_, i) => ({ from: i, to: i + 1 }));
@@ -18561,7 +18715,63 @@ function analyse(steps, links) {
   });
   return { edges: forward, back, layers, layerOf };
 }
-// ../layout/src/logic.ts
+function planBack(analysis, room) {
+  const flat = room.order === "flat";
+  const position = new Map(analysis.layers.flat().map((step, k) => [step, k]));
+  const lastInLayer = new Set(analysis.layers.map((layer) => layer[layer.length - 1]));
+  const at = (step) => flat ? position.get(step) : analysis.layerOf[step];
+  const eligible = (edge) => edge.from !== edge.to && (flat || lastInLayer.has(edge.from) && lastInLayer.has(edge.to));
+  const noted = analysis.back.filter((edge) => !eligible(edge));
+  const span = (edge) => [Math.min(at(edge.from), at(edge.to)), Math.max(at(edge.from), at(edge.to))];
+  const candidates = analysis.back.filter(eligible).sort((a, b) => span(a)[1] - span(a)[0] - (span(b)[1] - span(b)[0]) || span(a)[0] - span(b)[0] || a.from - b.from);
+  const laneOf = new Map;
+  for (const edge of candidates) {
+    const taken = new Set(candidates.filter((o) => laneOf.has(o) && overlaps(span(o), span(edge))).map((o) => laneOf.get(o)));
+    let lane = 0;
+    while (taken.has(lane))
+      lane++;
+    laneOf.set(edge, lane);
+  }
+  const allowed = Math.min(room.maxLanes ?? Infinity, Math.floor((room.available - room.labelRoom) / room.lanePitch));
+  const kept = candidates.filter((edge) => {
+    const ok = laneOf.get(edge) < allowed;
+    if (!ok)
+      noted.push(edge);
+    return ok;
+  });
+  noted.sort((a, b) => analysis.back.indexOf(a) - analysis.back.indexOf(b));
+  const routes = kept.map((edge) => ({
+    from: edge.from,
+    to: edge.to,
+    ...edge.label ? { label: edge.label } : {},
+    lane: laneOf.get(edge),
+    fromSlot: { index: 0, of: 1 },
+    toSlot: { index: 0, of: 1 }
+  }));
+  const touching = (step) => ({
+    arriving: routes.filter((r) => r.to === step).sort((a, b) => b.lane - a.lane),
+    leaving: routes.filter((r) => r.from === step).sort((a, b) => a.lane - b.lane)
+  });
+  const steps = new Set(routes.flatMap((r) => [r.from, r.to]));
+  for (const step of steps) {
+    const { arriving, leaving } = touching(step);
+    const of = arriving.length + leaving.length;
+    arriving.forEach((r, k) => r.toSlot = { index: k, of });
+    leaving.forEach((r, k) => r.fromSlot = { index: arriving.length + k, of });
+  }
+  let crossings = 0;
+  for (let i = 0;i < routes.length; i++)
+    for (let j = i + 1;j < routes.length; j++) {
+      const [a, b] = [spanOf(routes[i], at), spanOf(routes[j], at)];
+      if (overlaps(a, b) && !(within(a, b) || within(b, a)))
+        crossings++;
+    }
+  return { routes, noted, lanes: routes.reduce((n, r) => Math.max(n, r.lane + 1), 0), crossings };
+}
+var spanOf = (r, at) => [Math.min(at(r.from), at(r.to)), Math.max(at(r.from), at(r.to))];
+var overlaps = (a, b) => a[0] <= b[1] && b[0] <= a[1];
+var within = (inner, outer) => inner[0] >= outer[0] && inner[1] <= outer[1];
+// packages/layout/src/logic.ts
 function alignOf(column, rows) {
   if (column.align)
     return column.align;
@@ -18608,7 +18818,7 @@ function changeShape(change) {
       return never2(r);
   }
 }
-// src/draw/chart-svg.ts
+// packages/claude-code/src/draw/chart-svg.ts
 var CHAR_WIDTH = 6.5;
 var FONT = 11;
 var round = (n) => Number(n.toFixed(1));
@@ -18664,7 +18874,7 @@ function buildSvg(model, width, height, colors) {
       const y = yAt(v);
       const opacity = series.role === "primary" ? 1 : series.role === "comparison" ? 0.55 : 0.6;
       const kind = series.kinds[i];
-      const look = kind === "estimate" ? ` fill-opacity="0.35" stroke="${color(series.role)}" stroke-dasharray="3 2"` : ` fill-opacity="${opacity}"`;
+      const look = series.partial[i] ? ` fill-opacity="0.12" stroke="${color(series.role)}" stroke-width="1.5"` : kind === "estimate" ? ` fill-opacity="0.35" stroke="${color(series.role)}" stroke-dasharray="3 2"` : ` fill-opacity="${opacity}"`;
       out.push(`<rect x="${round(x)}" y="${round(Math.min(y, zero))}" width="${round(bar - 1)}" height="${round(Math.max(1, Math.abs(zero - y)))}" fill="${color(series.role)}"${look}/>`);
       if (kind === "atLeast")
         out.push(floor(x + (bar - 1) / 2, Math.min(y, zero) - 2, color(series.role)));
@@ -18698,7 +18908,7 @@ function buildSvg(model, width, height, colors) {
           if (n > 24 && (series.values[i - 1] !== undefined || series.values[i + 1] !== undefined))
             return;
           const kind = series.kinds[i];
-          const fill = kind === "estimate" ? ` fill="none" stroke="${color(series.role)}"` : ` fill="${color(series.role)}"${opacity.replace("stroke", "fill")}`;
+          const fill = kind === "estimate" || series.partial[i] ? ` fill="none" stroke="${color(series.role)}"` : ` fill="${color(series.role)}"${opacity.replace("stroke", "fill")}`;
           out.push(`<circle cx="${round(xAt(i))}" cy="${round(yAt(v))}" r="${r}"${fill}/>`);
           if (kind === "atLeast")
             out.push(floor(xAt(i), yAt(v) - r - 2, color(series.role)));
@@ -18715,7 +18925,7 @@ function buildSvg(model, width, height, colors) {
   return out.join("");
 }
 
-// src/draw/chart-text.ts
+// packages/claude-code/src/draw/chart-text.ts
 var PLOT_ROWS = 8;
 var BLANK = { ch: " ", style: "plain" };
 var PRIORITY = { primary: 3, comparison: 2, baseline: 1 };
@@ -18778,6 +18988,7 @@ function plotLine(model, width, height = PLOT_ROWS) {
       }
       runs[runs.length - 1].push([dotX(i), dotY(v)]);
     });
+    const partialX = new Set(series.partial.flatMap((p, i) => p ? [dotX(i)] : []));
     let step = 0;
     const mark = (x, y) => {
       if (series.role === "baseline" && step++ % 8 >= 5)
@@ -18790,7 +19001,10 @@ function plotLine(model, width, height = PLOT_ROWS) {
     for (const points of runs) {
       if (points.length === 1)
         mark(...points[0]);
-      points.slice(1).forEach(([x, y], i) => lineDots(...points[i], x, y).forEach(([px, py]) => mark(px, py)));
+      points.slice(1).forEach(([x, y], i) => {
+        const dots = lineDots(...points[i], x, y);
+        dots.forEach(([px, py], d) => partialX.has(x) && d % 2 === 1 ? undefined : mark(px, py));
+      });
     }
   }
   const style = (p) => p === 3 ? "primary" : p === 2 ? "comparison" : "baseline";
@@ -18821,7 +19035,7 @@ function plotBars(model, width, height = PLOT_ROWS) {
         if (fill === 0)
           continue;
         for (let k = 0;k < layout.bar; k++) {
-          cells[r][i * layout.slot + layout.offset + s * layout.bar + k] = { ch: BARS[fill], style: series.role };
+          cells[r][i * layout.slot + layout.offset + s * layout.bar + k] = { ch: series.partial[i] ? "▒" : BARS[fill], style: series.role };
         }
       }
     });
@@ -18915,13 +19129,15 @@ function readingRows(model) {
     ["estimate", "~ about"],
     ["unknown", "— unknown (the line breaks)"]
   ];
-  return lines.flatMap(([kind, head]) => {
+  const rows = lines.flatMap(([kind, head]) => {
     const where = model.series.flatMap((s) => s.kinds.flatMap((k, i) => k === kind ? [`${s.label} ${model.xs[i]}`] : []));
     return where.length === 0 ? [] : [[{ text: `${head}: ${where.join(", ")}`, style: "plain" }]];
   });
+  const soFar = model.series.flatMap((s) => s.partial.flatMap((p, i) => p && s.values[i] !== undefined ? [`${s.label} ${model.xs[i]}`] : []));
+  return soFar.length === 0 ? rows : [...rows, [{ text: `▒ so far (the period isn't over): ${soFar.join(", ")}`, style: "plain" }]];
 }
 
-// src/draw/theme.ts
+// packages/claude-code/src/draw/theme.ts
 var TONE_COLOR = {
   neutral: undefined,
   positive: "green",
@@ -18937,7 +19153,7 @@ var SVG = {
   warning: "#c98a00"
 };
 
-// src/draw/chart.tsx
+// packages/claude-code/src/draw/chart.tsx
 var MIN_COLUMNS = 30;
 var PIXELS_PER_COLUMN = 8;
 var MAX_SVG_WIDTH = 720;
@@ -18995,7 +19211,7 @@ var chart = defineDrawer({
   }
 });
 
-// src/draw/choice-view.ts
+// packages/claude-code/src/draw/choice-view.ts
 function choiceView(props, state) {
   if (state.kind === "refused")
     return { kind: "open", refused: state.why };
@@ -19006,7 +19222,7 @@ function choiceView(props, state) {
 }
 var variantOf = (emphasis) => emphasis === "primary" ? "primary" : undefined;
 
-// src/draw/choice.tsx
+// packages/claude-code/src/draw/choice.tsx
 var choice = defineDrawer({
   type: "Choice",
   draw: (props, ctx) => {
@@ -19039,70 +19255,7 @@ var choice = defineDrawer({
   }
 });
 
-// src/draw/flow-layout.ts
-function truncate(text, width) {
-  const chars = [...text];
-  if (chars.length <= width)
-    return text;
-  return width <= 1 ? chars.slice(0, Math.max(width, 0)).join("") : `${chars.slice(0, width - 1).join("")}…`;
-}
-function wrap(text, width) {
-  const room = Math.max(1, width);
-  const lines = [];
-  let line = "";
-  for (const word of text.split(/\s+/).filter(Boolean)) {
-    let rest = [...word];
-    while (rest.length > room) {
-      if (line)
-        lines.push(line);
-      line = "";
-      lines.push(rest.slice(0, room).join(""));
-      rest = rest.slice(room);
-    }
-    const piece = rest.join("");
-    if (!line)
-      line = piece;
-    else if ([...line].length + 1 + rest.length <= room)
-      line += ` ${piece}`;
-    else {
-      lines.push(line);
-      line = piece;
-    }
-  }
-  if (line)
-    lines.push(line);
-  return lines.length ? lines : [""];
-}
-function asSequence(analysis, count) {
-  if (analysis.layers.length !== count)
-    return;
-  const order = analysis.layers.map((layer) => layer[0]);
-  const straight = analysis.edges.every((edge) => analysis.layerOf[edge.to] === analysis.layerOf[edge.from] + 1);
-  return straight ? order : undefined;
-}
-function boxLines(step, notes, cap) {
-  return [
-    ...wrap(step.label, cap).map((text) => ({ text, kind: "title" })),
-    ...step.detail ? wrap(step.detail, cap).map((text) => ({ text, kind: "detail" })) : [],
-    ...notes.flatMap((note) => wrap(note, cap).map((text) => ({ text, kind: "note" })))
-  ];
-}
-function backNotes(steps, analysis) {
-  return steps.map((_, i) => analysis.back.filter((edge) => edge.from === i).map((edge) => `↩ ${steps[edge.to].label}${edge.label ? ` (${edge.label})` : ""}`));
-}
-var boxWidth = (lines) => Math.max(...lines.map((line) => [...line.text].length)) + 4;
-var ARROW_LABEL_MAX = 14;
-var ROW_CAPS = [32, 22, 16];
-var arrowText = (label) => label ? `─ ${truncate(label, ARROW_LABEL_MAX)} ─→` : "──→";
-function planSequence(steps, notes, arrows, columns) {
-  const arrowWidth = arrows.reduce((sum, label) => sum + [...arrowText(label)].length, 0);
-  for (const cap of ROW_CAPS) {
-    const boxes = steps.reduce((sum, step, i) => sum + boxWidth(boxLines(step, notes[i], cap)), 0);
-    if (boxes + arrowWidth <= columns)
-      return { direction: "row", cap };
-  }
-  return { direction: "column", cap: Math.max(1, columns - 4) };
-}
+// packages/claude-code/src/draw/flow-canvas.ts
 var N = 1;
 var E = 2;
 var S = 4;
@@ -19124,7 +19277,6 @@ var GLYPH = {
   [E | W | N]: "┴",
   [N | S | E | W]: "┼"
 };
-var GRID_CAPS = [24, 16, 12];
 function canvasOf(rows, cols) {
   return Array.from({ length: rows }, () => Array.from({ length: cols }, () => ({ ch: " ", kind: "blank", mask: 0, edges: new Set })));
 }
@@ -19183,14 +19335,214 @@ function paintLabel(canvas, row, col, text) {
 function runsOf(canvas) {
   return canvas.map((row) => toRuns(row));
 }
+function toRuns(row) {
+  const runs = [];
+  for (const cell of row) {
+    const last = runs[runs.length - 1];
+    if (last && last.kind === cell.kind)
+      last.text += cell.ch;
+    else
+      runs.push({ text: cell.ch, kind: cell.kind });
+  }
+  if (runs[runs.length - 1]?.kind === "blank")
+    runs.pop();
+  return runs;
+}
+
+// packages/claude-code/src/draw/flow-text.ts
+function truncate(text, width) {
+  const chars = [...text];
+  if (chars.length <= width)
+    return text;
+  return width <= 1 ? chars.slice(0, Math.max(width, 0)).join("") : `${chars.slice(0, width - 1).join("")}…`;
+}
+function wrap(text, width) {
+  const room = Math.max(1, width);
+  const lines = [];
+  let line = "";
+  for (const word of text.split(/\s+/).filter(Boolean)) {
+    let rest = [...word];
+    while (rest.length > room) {
+      if (line)
+        lines.push(line);
+      line = "";
+      lines.push(rest.slice(0, room).join(""));
+      rest = rest.slice(room);
+    }
+    const piece = rest.join("");
+    if (!line)
+      line = piece;
+    else if ([...line].length + 1 + rest.length <= room)
+      line += ` ${piece}`;
+    else {
+      lines.push(line);
+      line = piece;
+    }
+  }
+  if (line)
+    lines.push(line);
+  return lines.length ? lines : [""];
+}
+function wrapEven(text, width) {
+  const words = text.split(/\s+/).filter(Boolean);
+  const len = (s) => [...s].length;
+  if (words.length < 2 || words.some((w) => len(w) > width))
+    return wrap(text, width);
+  const n = words.length;
+  const best = Array(n + 1).fill(Infinity);
+  const from = Array(n + 1).fill(0);
+  best[0] = 0;
+  for (let j = 1;j <= n; j++) {
+    for (let i = j - 1;i >= 0; i--) {
+      const size = len(words.slice(i, j).join(" "));
+      if (size > width)
+        break;
+      const last = j === n;
+      const cost = (last ? 0 : (width - size) ** 2) + (last && j - i === 1 && n > 1 ? width ** 2 * 100 : 0) + width * width / 4;
+      if (best[i] + cost < best[j])
+        [best[j], from[j]] = [best[i] + cost, i];
+    }
+  }
+  const lines = [];
+  for (let j = n;j > 0; j = from[j])
+    lines.unshift(words.slice(from[j], j).join(" "));
+  return lines;
+}
+function boxLines(step, notes, cap) {
+  return [
+    ...wrap(step.label, cap).map((text) => ({ text, kind: "title" })),
+    ...step.detail ? wrap(step.detail, cap).map((text) => ({ text, kind: "detail" })) : [],
+    ...notes.flatMap((note) => wrap(note, cap).map((text) => ({ text, kind: "note" })))
+  ];
+}
+var boxWidth = (lines) => Math.max(...lines.map((line) => [...line.text].length)) + 4;
+
+// packages/claude-code/src/draw/flow-back.ts
+var BACK_LABEL_CELLS = 18;
+function backCells(back, rects, orient) {
+  const out = { segments: [], heads: [], labels: [], leaders: [], rows: 0, cols: 0 };
+  if (back.routes.length === 0)
+    return out;
+  const below = orient === "below";
+  const along = (r) => below ? { start: r.col, size: r.width } : { start: r.row, size: r.height };
+  const across = (r) => below ? { start: r.row, size: r.height } : { start: r.col, size: r.width };
+  const cell = (a, p) => below ? { row: p, col: a } : { row: a, col: p };
+  const [plus, minus, alongPlus, alongMinus] = below ? [S, N, E, W] : [E, W, S, N];
+  const pitch = below ? 1 : 2;
+  const edge = Math.max(...back.routes.flatMap((r) => [r.from, r.to]).map((i) => across(rects[i]).start + across(rects[i]).size));
+  const laneP = (lane) => edge + 1 + lane * pitch;
+  const slot = (i, s) => along(rects[i]).start + 1 + Math.min(Math.max(0, along(rects[i]).size - 3), Math.floor((along(rects[i]).size - 2) * (s.index + 0.5) / s.of));
+  const mark = (a, p, mask) => out.segments.push({ ...cell(a, p), mask });
+  const run = (a0, p0, a1, p1) => {
+    const forward = a0 === a1 ? p1 > p0 ? plus : minus : a1 > a0 ? alongPlus : alongMinus;
+    const backward = forward === plus ? minus : forward === minus ? plus : forward === alongPlus ? alongMinus : alongPlus;
+    const n = Math.max(Math.abs(a1 - a0), Math.abs(p1 - p0));
+    for (let k = 0;k <= n; k++) {
+      const [a, p] = [a0 + Math.sign(a1 - a0) * k, p0 + Math.sign(p1 - p0) * k];
+      mark(a, p, (k < n ? forward : 0) | (k > 0 ? backward : 0));
+    }
+  };
+  for (const route of back.routes) {
+    const [a0, a1, lane] = [slot(route.from, route.fromSlot), slot(route.to, route.toSlot), laneP(route.lane)];
+    run(a0, edge, a0, lane);
+    run(a0, lane, a1, lane);
+    run(a1, lane, a1, edge);
+    out.heads.push({ ...cell(a1, edge), ch: below ? "↑" : "←" });
+  }
+  const lanesEnd = laneP(back.lanes - 1);
+  const mid = (r) => (slot(r.from, r.fromSlot) + slot(r.to, r.toSlot)) / 2;
+  const labelled = back.routes.filter((r) => r.label).sort((x, y) => mid(x) - mid(y));
+  let rows = below ? lanesEnd + 1 : 0;
+  let cols = below ? 0 : lanesEnd + 1;
+  if (!below) {
+    let floor = -Infinity;
+    for (const route of labelled) {
+      const lines = wrapEven(route.label, BACK_LABEL_CELLS);
+      const top = Math.max(Math.round(mid(route)) - Math.floor(lines.length / 2), floor);
+      floor = top + lines.length + 1;
+      lines.forEach((text, k) => out.labels.push({ row: top + k, col: lanesEnd + 2, text }));
+      if (route.lane < back.lanes - 1)
+        for (let c = laneP(route.lane) + 1;c < lanesEnd + 2; c++)
+          out.leaders.push({ row: top, col: c });
+      cols = Math.max(cols, lanesEnd + 2 + Math.max(...lines.map((l) => [...l].length)));
+      rows = Math.max(rows, top + lines.length);
+    }
+  } else {
+    const bands = [];
+    for (const route of labelled) {
+      const lines = wrapEven(route.label, BACK_LABEL_CELLS);
+      const width = Math.max(...lines.map((l) => [...l].length));
+      const left = Math.max(0, Math.round(mid(route)) - Math.floor(width / 2));
+      let b = bands.findIndex((band) => band.right + 1 <= left);
+      if (b < 0) {
+        bands.push({ right: -Infinity, height: 0 });
+        b = bands.length - 1;
+      }
+      bands[b].right = left + width;
+      bands[b].height = Math.max(bands[b].height, lines.length);
+      const top = lanesEnd + 2 + bands.slice(0, b).reduce((n, band) => n + band.height, 0);
+      lines.forEach((text, k) => out.labels.push({ row: top + k, col: left, text }));
+      if (route.lane < back.lanes - 1)
+        for (let r = laneP(route.lane) + 1;r < top; r++)
+          out.leaders.push({ row: r, col: Math.round(mid(route)) });
+      rows = Math.max(rows, top + lines.length);
+      cols = Math.max(cols, left + width);
+    }
+  }
+  out.rows = rows;
+  out.cols = cols;
+  return out;
+}
+function layBack(canvas, cells) {
+  for (const seg of cells.segments) {
+    const target = canvas[seg.row]?.[seg.col];
+    if (target)
+      target.mask |= seg.mask;
+  }
+}
+function paintBackLabels(canvas, cells) {
+  for (const leader of cells.leaders) {
+    const target = canvas[leader.row]?.[leader.col];
+    if (target && target.kind === "blank")
+      Object.assign(target, { ch: "·", kind: "edge" });
+  }
+  return cells.labels.every((label) => paintLabel(canvas, label.row, label.col, label.text));
+}
+
+// packages/claude-code/src/draw/flow-layout.ts
+function asSequence(analysis, count) {
+  if (analysis.layers.length !== count)
+    return;
+  const order = analysis.layers.map((layer) => layer[0]);
+  const straight = analysis.edges.every((edge) => analysis.layerOf[edge.to] === analysis.layerOf[edge.from] + 1);
+  return straight ? order : undefined;
+}
+function backNotes(steps, edges) {
+  return steps.map((_, i) => edges.filter((edge) => edge.from === i).map((edge) => `↩ ${steps[edge.to].label}${edge.label ? ` (${edge.label})` : ""}`));
+}
+var ARROW_LABEL_MAX = 14;
+var ROW_CAPS = [32, 22, 16];
+var arrowText = (label) => label ? `─ ${truncate(label, ARROW_LABEL_MAX)} ─→` : "──→";
+function planSequence(steps, notes, arrows, columns) {
+  const arrowWidth = arrows.reduce((sum, label) => sum + [...arrowText(label)].length, 0);
+  for (const cap of ROW_CAPS) {
+    const boxes = steps.reduce((sum, step, i) => sum + boxWidth(boxLines(step, notes[i], cap)), 0);
+    if (boxes + arrowWidth <= columns)
+      return { direction: "row", cap };
+  }
+  return { direction: "column", cap: Math.max(1, columns - 4) };
+}
+var GRID_CAPS = [24, 16, 12];
+var GRID_LANES = 3;
 function layoutGrid(steps, analysis, columns) {
-  const notes = backNotes(steps, analysis);
   if (analysis.edges.some((edge) => analysis.layerOf[edge.to] !== analysis.layerOf[edge.from] + 1))
     return;
+  const back = planBack(analysis, { lanePitch: 1, labelRoom: 0, available: Infinity, maxLanes: GRID_LANES });
+  const notes = backNotes(steps, back.noted);
   for (const cap of GRID_CAPS) {
-    const grid = tryGrid(steps, analysis, notes, cap, columns);
-    if (grid)
-      return grid;
+    const runs = tryGrid(steps, analysis, notes, back, cap, columns);
+    if (runs)
+      return { runs, routed: back.routes.length };
   }
   return;
 }
@@ -19217,7 +19569,7 @@ function placeVertically(analysis, height) {
   const shift = Math.min(...top);
   return top.map((t) => t - shift);
 }
-function tryGrid(steps, analysis, notes, cap, columns) {
+function tryGrid(steps, analysis, notes, back, cap, columns) {
   const { layers, edges, layerOf } = analysis;
   const lines = steps.map((step, i) => boxLines(step, notes[i], cap));
   const width = lines.map(boxWidth);
@@ -19236,7 +19588,11 @@ function tryGrid(steps, analysis, notes, cap, columns) {
   if (total > columns)
     return;
   const top = placeVertically(analysis, height);
-  const canvas = canvasOf(Math.max(...steps.map((_, i) => top[i] + height[i])), total);
+  const boxRects = steps.map((_, i) => ({ row: top[i], col: left[layerOf[i]], width: width[i], height: height[i] }));
+  const lanes = backCells(back, boxRects, "below");
+  if (lanes.cols > columns)
+    return;
+  const canvas = canvasOf(Math.max(lanes.rows, ...steps.map((_, i) => top[i] + height[i])), Math.max(total, lanes.cols));
   layers.forEach((layer, l) => {
     for (const i of layer)
       paintBox(canvas, top[i], left[l], width[i], lines[i]);
@@ -19263,34 +19619,79 @@ function tryGrid(steps, analysis, notes, cap, columns) {
     if (edge.label)
       labels.push(trunkAtTarget ? { row: ys - 1, col: gx + 1, text: edge.label } : { row: yt - 1, col: gx + 3, text: edge.label });
   }
+  layBack(canvas, lanes);
   drawLines(canvas);
   for (const edge of edges) {
     const l = layerOf[edge.from];
     put(canvas, top[edge.to] + 1, left[l] + layerWidth[l] + gutter[l] - 1, "→", "arrow");
   }
+  for (const head of lanes.heads)
+    put(canvas, head.row, head.col, head.ch, "arrow");
   for (const label of labels)
     if (!paintLabel(canvas, label.row, label.col, label.text))
       return;
+  if (!paintBackLabels(canvas, lanes))
+    return;
   return runsOf(canvas);
 }
-function toRuns(row) {
-  const runs = [];
-  for (const cell of row) {
-    const last = runs[runs.length - 1];
-    if (last && last.kind === cell.kind)
-      last.text += cell.ch;
-    else
-      runs.push({ text: cell.ch, kind: cell.kind });
+var STACK_CAPS = [32, 24, 16];
+var STACK_LANES = 4;
+function layoutStack(steps, analysis, order, columns) {
+  for (const cap of STACK_CAPS) {
+    const back = planBack(analysis, { lanePitch: 2, labelRoom: BACK_LABEL_CELLS + 2, available: columns - (cap + 4), maxLanes: STACK_LANES });
+    if (back.routes.length === 0)
+      return;
+    const notes = backNotes(steps, back.noted);
+    const touching = (i) => back.routes.filter((r) => r.from === i || r.to === i).length;
+    const lines = steps.map((step, i) => {
+      const base = boxLines(step, notes[i], cap);
+      while (base.length < touching(i))
+        base.push({ text: "", kind: "detail" });
+      return base;
+    });
+    const width = Math.max(...lines.map(boxWidth));
+    const centre = Math.floor(width / 2);
+    const forward = (k) => analysis.edges.find((e) => e.from === order[k] && e.to === order[k + 1]);
+    const labelRoom = Math.max(8, width - centre - 3);
+    const gap = order.slice(1).map((_, k) => Math.max(2, forward(k)?.label ? wrapEven(forward(k).label, labelRoom).length : 0));
+    const rects = new Array(steps.length);
+    let row = 0;
+    order.forEach((i, k) => {
+      rects[i] = { row, col: 0, width, height: lines[i].length + 2 };
+      row += lines[i].length + 2 + (gap[k] ?? 0);
+    });
+    const lanes = backCells(back, rects, "right");
+    if (lanes.cols > columns)
+      continue;
+    const canvas = canvasOf(Math.max(row, lanes.rows), Math.max(width, lanes.cols));
+    order.forEach((i) => paintBox(canvas, rects[i].row, 0, width, lines[i]));
+    layBack(canvas, lanes);
+    drawLines(canvas);
+    for (const head of lanes.heads)
+      put(canvas, head.row, head.col, head.ch, "arrow");
+    const labels = [];
+    order.slice(1).forEach((_, k) => {
+      const first = rects[order[k]].row + rects[order[k]].height;
+      for (let g = 0;g < gap[k]; g++)
+        put(canvas, first + g, centre, g === gap[k] - 1 ? "↓" : "│", "arrow");
+      const label = forward(k)?.label;
+      if (label)
+        wrapEven(label, labelRoom).forEach((text, g) => labels.push({ row: first + g, col: centre + 2, text }));
+    });
+    for (const label of labels)
+      if (!paintLabel(canvas, label.row, label.col, label.text))
+        return;
+    if (!paintBackLabels(canvas, lanes))
+      return;
+    return { runs: runsOf(canvas), routed: back.routes.length };
   }
-  if (runs[runs.length - 1]?.kind === "blank")
-    runs.pop();
-  return runs;
+  return;
 }
 function linkLine(steps, edge, isBack, columns) {
   return truncate(`${isBack ? "↩" : "→"} ${steps[edge.to].label}${edge.label ? ` (${edge.label})` : ""}`, columns);
 }
 
-// src/draw/flow.tsx
+// packages/claude-code/src/draw/flow.tsx
 var textProps = (kind) => kind === "title" ? { bold: true } : kind === "detail" || kind === "note" ? { dimColor: true } : kind === "arrow" ? { color: ACCENT } : {};
 function stepBox(ctx, lines, key) {
   const { el } = ctx;
@@ -19308,7 +19709,7 @@ function stepBox(ctx, lines, key) {
 function drawSequence(props, order, ctx) {
   const { el, columns } = ctx;
   const analysis = analyse(props.steps, props.links);
-  const notes = backNotes(props.steps, analysis);
+  const notes = backNotes(props.steps, analysis.back);
   const steps = order.map((i) => props.steps[i]);
   const arrows = order.slice(1).map((to, k) => analysis.edges.find((e) => e.from === order[k] && e.to === to)?.label);
   const plan = planSequence(steps, order.map((i) => notes[i]), arrows, columns);
@@ -19362,30 +19763,36 @@ function drawList(props, ctx) {
     }, `  ${line}`)));
   }));
 }
+function drawCells(runsByRow, ctx) {
+  const { el } = ctx;
+  return /* @__PURE__ */ h(el.Box, {
+    flexDirection: "column"
+  }, runsByRow.map((runs, row) => /* @__PURE__ */ h(el.Box, {
+    key: ctx.key("row", String(row)),
+    flexDirection: "row"
+  }, runs.length === 0 ? /* @__PURE__ */ h(el.Text, null, " ") : runs.map((run, i) => /* @__PURE__ */ h(el.Text, {
+    key: ctx.key("run", String(row), String(i)),
+    ...textProps(run.kind)
+  }, run.text)))));
+}
 var flow = defineDrawer({
   type: "Flow",
   draw: (props, ctx) => {
-    const { el } = ctx;
     const analysis = analyse(props.steps, props.links);
     const order = asSequence(analysis, props.steps.length);
+    const grid = layoutGrid(props.steps, analysis, ctx.columns);
+    if (grid && grid.routed > 0)
+      return drawCells(grid.runs, ctx);
+    const stack = order ? layoutStack(props.steps, analysis, order, ctx.columns) : undefined;
+    if (stack)
+      return drawCells(stack.runs, ctx);
     if (order)
       return drawSequence(props, order, ctx);
-    const grid = layoutGrid(props.steps, analysis, ctx.columns);
-    if (!grid)
-      return drawList(props, ctx);
-    return /* @__PURE__ */ h(el.Box, {
-      flexDirection: "column"
-    }, grid.map((runs, row) => /* @__PURE__ */ h(el.Box, {
-      key: ctx.key("row", String(row)),
-      flexDirection: "row"
-    }, runs.length === 0 ? /* @__PURE__ */ h(el.Text, null, " ") : runs.map((run, i) => /* @__PURE__ */ h(el.Text, {
-      key: ctx.key("run", String(row), String(i)),
-      ...textProps(run.kind)
-    }, run.text)))));
+    return grid ? drawCells(grid.runs, ctx) : drawList(props, ctx);
   }
 });
 
-// src/draw/form-logic.ts
+// packages/claude-code/src/draw/form-logic.ts
 var isEmpty = (value) => value === undefined || typeof value === "string" && value.trim() === "";
 function missingRequired(fields, valueOf) {
   return fields.filter((field) => field.required && isEmpty(valueOf(field.id))).map((field) => field.label);
@@ -19404,7 +19811,7 @@ function blockedNote(missing, invalid) {
 var checkboxLabel = (field, checked) => `${checked ? "[x]" : "[ ]"} ${field.label}${field.required ? " *" : ""}`;
 var fieldLabel = (field) => `${field.label}${field.required ? " *" : ""}`;
 
-// src/draw/form.tsx
+// packages/claude-code/src/draw/form.tsx
 var fieldElements = (ctx) => ctx.surface === "mobile" ? undefined : ctx.el;
 async function guarded(ctx, noteKey, run) {
   try {
@@ -19528,7 +19935,7 @@ var form = defineDrawer({
   }
 });
 
-// src/draw/group.tsx
+// packages/claude-code/src/draw/group.tsx
 var ROW_MIN_COLUMNS = 60;
 var group = defineDrawer({
   type: "Group",
@@ -19543,7 +19950,7 @@ var group = defineDrawer({
   }
 });
 
-// src/draw/label-shape.ts
+// packages/claude-code/src/draw/label-shape.ts
 function fit(text, columns) {
   const room = Math.max(1, columns);
   const chars = [...text];
@@ -19557,7 +19964,7 @@ function tagText(text, columns) {
   return `[${fit(text, columns - 2)}]`;
 }
 
-// src/draw/label.tsx
+// packages/claude-code/src/draw/label.tsx
 var label = defineDrawer({
   type: "Label",
   draw: (props, { el, columns }) => /* @__PURE__ */ h(el.Text, {
@@ -19568,7 +19975,7 @@ var label = defineDrawer({
   }, tagText(props.text, columns))
 });
 
-// src/draw/stat-shape.ts
+// packages/claude-code/src/draw/stat-shape.ts
 var MARKER = { up: "▲", down: "▼", flat: "–" };
 function readingLine(reading, unit) {
   switch (reading.kind) {
@@ -19596,7 +20003,7 @@ function statLines(props, columns) {
   };
 }
 
-// src/draw/stat.tsx
+// packages/claude-code/src/draw/stat.tsx
 var stat = defineDrawer({
   type: "Stat",
   draw: (props, { el, columns }) => {
@@ -19621,7 +20028,7 @@ var stat = defineDrawer({
   }
 });
 
-// src/draw/table-layout.ts
+// packages/claude-code/src/draw/table-layout.ts
 var GAP = 2;
 var MIN_WIDTH = 4;
 var HEADER_KEEP = 10;
@@ -19678,7 +20085,7 @@ function stack(columnDefs, cells, columns) {
   return cells.map((row) => columnDefs.map((column, i) => truncate2(`${column.label}: ${row[i]}`, columns)));
 }
 
-// src/draw/table.tsx
+// packages/claude-code/src/draw/table.tsx
 var table = defineDrawer({
   type: "Table",
   draw: (props, { el, columns, key }) => {
@@ -19717,7 +20124,7 @@ var table = defineDrawer({
   }
 });
 
-// src/draw/text.tsx
+// packages/claude-code/src/draw/text.tsx
 var text = defineDrawer({
   type: "Text",
   draw: (props, { el }) => /* @__PURE__ */ h(el.Markdown, {
@@ -19725,7 +20132,7 @@ var text = defineDrawer({
   })
 });
 
-// src/draw/index.tsx
+// packages/claude-code/src/draw/index.tsx
 var DRAWERS = new Map([text, group, label, stat, table, chart, flow, choice, form].map((drawer) => [drawer.type, drawer]));
 function drawTree(tree, around) {
   const text = (node) => Catalog.kindOf(core2, node).toText(node, text);
@@ -19755,7 +20162,7 @@ function drawTree(tree, around) {
 }
 var drawnTypes = () => [...DRAWERS.keys()];
 
-// src/demo.ts
+// packages/claude-code/src/demo.ts
 var DEMO_TOOL_NAME = "demo_chart";
 var DEMO_TOOL_FULL_NAME = `mcp__intui__${DEMO_TOOL_NAME}`;
 var DEMO_TOOL = {
@@ -19785,7 +20192,7 @@ var DEMO_ROOT = {
 };
 var demoTree = () => Tree.of(DEMO_ROOT);
 
-// src/envelope.ts
+// packages/claude-code/src/envelope.ts
 var MAX_TREES = 50;
 var ENVELOPE_KEY = "intui";
 var isRecord2 = (value) => typeof value === "object" && value !== null && !Array.isArray(value);
@@ -19821,7 +20228,7 @@ function treeFromOutput(output) {
   return;
 }
 
-// src/tool.ts
+// packages/claude-code/src/tool.ts
 var TOOL_NAME = "show";
 var DESCRIPTION = `Show the person an interactive answer: components drawn in the transcript instead of plain text.
 
@@ -19850,7 +20257,7 @@ var SHOW_TOOL = {
 };
 var estimatedToolTokens = () => Math.ceil(JSON.stringify(SHOW_TOOL).length / 4);
 
-// src/usage.ts
+// packages/claude-code/src/usage.ts
 var MAX_ENTRIES = 2000;
 var MAX_START_DAYS = 60;
 var TREND_DAYS = 14;
@@ -20011,7 +20418,7 @@ var percent = (part, whole) => `${Math.round(part / whole * 100)}%`;
 var ratio = (part, whole) => whole ? (part / whole).toFixed(2) : "-";
 var lastDays = (now, count) => Array.from({ length: count }, (_, i) => new Date(now.getTime() - (count - 1 - i) * 86400000).toISOString().slice(0, 10));
 
-// src/register.tsx
+// packages/claude-code/src/register.tsx
 var LOG = "usage";
 var ESCAPES = "escapes";
 var STARTS = "starts";
